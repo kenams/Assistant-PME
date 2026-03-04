@@ -38,6 +38,8 @@ Ce repo contient la base produit (docs + backend MVP + landing).
 - Ingest support: definir `SUPPORT_INGEST_TOKEN` (optionnel)
 - Gmail/Outlook: activer dans l'app > Parametres support (IMAP + app password)
 - Poll IMAP: `MAIL_POLL_INTERVAL_MIN=5`
+- Rate limit: `RATE_LIMIT_*` + `REQUIRE_INGEST_TOKEN`
+- Super admin: `SUPER_ADMIN_EMAIL`
 - OAuth Gmail/Outlook: configurer client ID/secret + redirect URI dans l'app
 - Slack inbound: verifier la signature avec `slack_signing_secret` (optionnel)
 - Teams inbound: header `X-Teams-Signature` = HMAC SHA256 du body (optionnel)
@@ -86,6 +88,9 @@ Ces valeurs peuvent etre changees dans `.env`.
 - GET  /admin/analytics
 - GET  /admin/analytics/pdf
 - GET  /admin/diagnostics
+- GET  /tenants (superadmin)
+- POST /tenants (superadmin)
+- POST /tenants/:id/token (superadmin)
 - GET  /admin/audit (auth admin)
 - GET  /admin/backup (auth admin)
 - POST /admin/restore (auth admin)

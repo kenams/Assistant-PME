@@ -4,6 +4,7 @@ const { env } = require("../config/env");
 const { getOrgSettings } = require("./org.service");
 const { getDefaultTenantId } = require("./tenants.service");
 const { ingestSupport } = require("./ingest.service");
+const { getValidAccessToken } = require("./oauth.service");
 
 let poller = null;
 
@@ -36,6 +37,147 @@ function buildConfig() {
   };
 }
 
+function stripHtml(input) {
+  return (input || "").replace(/<[^>]+>/g, " ");
+}
+
+function decodeGmailBody(data) {
+  if (!data) return "";
+  const normalized = data.replace(/-/g, "+").replace(/_/g, "/");
+  const padded = normalized.padEnd(normalized.length + (4 - (normalized.length % 4)) % 4, "=");
+  return Buffer.from(padded, "base64").toString("utf8");
+}
+
+function findGmailBody(payload) {
+  if (!payload) return "";
+  if (payload.body && payload.body.data) {
+    return decodeGmailBody(payload.body.data);
+  }
+  if (payload.parts && payload.parts.length) {
+    for (const part of payload.parts) {
+      if (part.mimeType === "text/plain" && part.body?.data) {
+        return decodeGmailBody(part.body.data);
+      }
+    }
+    for (const part of payload.parts) {
+      if (part.mimeType === "text/html" && part.body?.data) {
+        return stripHtml(decodeGmailBody(part.body.data));
+      }
+    }
+    for (const part of payload.parts) {
+      const found = findGmailBody(part);
+      if (found) return found;
+    }
+  }
+  return "";
+}
+
+async function fetchGmailMessages({ tenantId, subjectPrefix }) {
+  const tokenResult = await getValidAccessToken({ provider: "google", tenantId });
+  if (tokenResult.error) {
+    return { processed: 0, error: tokenResult.error };
+  }
+  const accessToken = tokenResult.accessToken;
+  const listRes = await fetch(
+    "https://gmail.googleapis.com/gmail/v1/users/me/messages?labelIds=INBOX&q=is:unread&maxResults=10",
+    { headers: { Authorization: `Bearer ${accessToken}` } }
+  );
+  if (!listRes.ok) {
+    return { processed: 0, error: "gmail_list_failed" };
+  }
+  const listData = await listRes.json();
+  const messages = listData.messages || [];
+  let processed = 0;
+
+  for (const msg of messages) {
+    const msgRes = await fetch(
+      `https://gmail.googleapis.com/gmail/v1/users/me/messages/${msg.id}?format=full`,
+      { headers: { Authorization: `Bearer ${accessToken}` } }
+    );
+    if (!msgRes.ok) {
+      continue;
+    }
+    const msgData = await msgRes.json();
+    const headers = msgData.payload?.headers || [];
+    const subjectHeader = headers.find((h) => h.name === "Subject");
+    const fromHeader = headers.find((h) => h.name === "From");
+    const subject = subjectHeader?.value || "Demande support";
+    const from = fromHeader?.value || "gmail-user";
+    const body = findGmailBody(msgData.payload);
+
+    await ingestSupport({
+      tenantId,
+      fromEmail: from,
+      subject: `${subjectPrefix || ""}${subject}`,
+      body,
+      category: "gmail",
+      priority: "medium",
+      source: "gmail"
+    });
+
+    await fetch(
+      `https://gmail.googleapis.com/gmail/v1/users/me/messages/${msg.id}/modify`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ removeLabelIds: ["UNREAD"] })
+      }
+    );
+    processed += 1;
+  }
+
+  return { processed };
+}
+
+async function fetchOutlookMessages({ tenantId, subjectPrefix }) {
+  const tokenResult = await getValidAccessToken({ provider: "outlook", tenantId });
+  if (tokenResult.error) {
+    return { processed: 0, error: tokenResult.error };
+  }
+  const accessToken = tokenResult.accessToken;
+  const listRes = await fetch(
+    "https://graph.microsoft.com/v1.0/me/mailFolders/Inbox/messages?$top=10&$filter=isRead eq false",
+    { headers: { Authorization: `Bearer ${accessToken}` } }
+  );
+  if (!listRes.ok) {
+    return { processed: 0, error: "outlook_list_failed" };
+  }
+  const listData = await listRes.json();
+  const messages = listData.value || [];
+  let processed = 0;
+
+  for (const msg of messages) {
+    const subject = msg.subject || "Demande support";
+    const from = msg.from?.emailAddress?.address || "outlook-user";
+    const body = msg.body?.contentType === "html" ? stripHtml(msg.body.content) : msg.body?.content || "";
+
+    await ingestSupport({
+      tenantId,
+      fromEmail: from,
+      subject: `${subjectPrefix || ""}${subject}`,
+      body,
+      category: "outlook",
+      priority: "medium",
+      source: "outlook"
+    });
+
+    await fetch(`https://graph.microsoft.com/v1.0/me/messages/${msg.id}`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ isRead: true })
+    });
+    processed += 1;
+  }
+
+  return { processed };
+}
+
 function createImap(config) {
   return new Imap({
     user: config.user,
@@ -55,6 +197,20 @@ async function fetchMailboxOnce() {
   const config = buildConfig();
   if (!config) {
     return { processed: 0 };
+  }
+
+  const settings = getOrgSettings({ tenantId: config.tenantId });
+  if (settings.mailbox_provider === "gmail" && settings.oauth_google_access_token) {
+    return fetchGmailMessages({
+      tenantId: config.tenantId,
+      subjectPrefix: config.subjectPrefix
+    });
+  }
+  if (settings.mailbox_provider === "outlook" && settings.oauth_outlook_access_token) {
+    return fetchOutlookMessages({
+      tenantId: config.tenantId,
+      subjectPrefix: config.subjectPrefix
+    });
   }
 
   return new Promise((resolve, reject) => {

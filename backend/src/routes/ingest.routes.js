@@ -10,6 +10,7 @@ const { getOrgSettings } = require("../services/org.service");
 const { getDefaultTenantId } = require("../services/tenants.service");
 const { verifySlackSignature } = require("../services/slack.service");
 const { verifyHmacSignature } = require("../services/signature.service");
+const { ingestLimiter } = require("../middleware/rate-limit");
 
 const router = express.Router();
 
@@ -23,7 +24,7 @@ const ingestSchema = z.object({
 });
 
 function tokenAllowed(req) {
-  if (!env.supportIngestToken) {
+  if (!env.supportIngestToken && !env.requireIngestToken) {
     return true;
   }
   const headerToken = req.get("X-Ingest-Token") || "";
@@ -42,7 +43,7 @@ function getTenantSettings() {
   return getOrgSettings({ tenantId });
 }
 
-router.post("/support", async (req, res) => {
+router.post("/support", ingestLimiter(), async (req, res) => {
   const payload = validateOr400(ingestSchema, res, req.body);
   if (!payload) {
     return;
@@ -69,7 +70,7 @@ router.post("/support", async (req, res) => {
   }
 });
 
-router.post("/slack", async (req, res) => {
+router.post("/slack", ingestLimiter(), async (req, res) => {
   if (!tokenAllowed(req)) {
     return res.status(401).json({ error: "invalid_token" });
   }
@@ -130,7 +131,7 @@ router.post("/slack", async (req, res) => {
   }
 });
 
-router.post("/teams", async (req, res) => {
+router.post("/teams", ingestLimiter(), async (req, res) => {
   if (!tokenAllowed(req)) {
     return res.status(401).json({ error: "invalid_token" });
   }

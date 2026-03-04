@@ -84,6 +84,11 @@ body::before {
   display: none;
 }
 
+.session-badge.superadmin {
+  background: rgba(242, 199, 110, 0.25);
+  color: #ffe6a8;
+}
+
 main {
   padding: 30px 6vw 60px;
   display: grid;

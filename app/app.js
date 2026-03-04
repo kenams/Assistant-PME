@@ -94,6 +94,11 @@ const API_BASE = "http://localhost:3001";
       const diagnosticsTable = document
         .getElementById("diagnosticsTable")
         .querySelector("tbody");
+      const tenantsCard = document.getElementById("tenantsCard");
+      const tenantForm = document.getElementById("tenantForm");
+      const tenantStatus = document.getElementById("tenantStatus");
+      const tenantsTable = document.getElementById("tenantsTable").querySelector("tbody");
+      const tenantsReloadBtn = document.getElementById("tenantsReloadBtn");
 
       let conversationId = null;
       let currentRole = null;
@@ -132,6 +137,12 @@ const API_BASE = "http://localhost:3001";
         if (!orgStatus) return;
         orgStatus.textContent = message;
         orgStatus.className = isError ? "status error" : "status";
+      }
+
+      function setTenantStatus(message, isError) {
+        if (!tenantStatus) return;
+        tenantStatus.textContent = message;
+        tenantStatus.className = isError ? "status error" : "status";
       }
 
       function setInviteStatus(message, isError) {
@@ -192,11 +203,13 @@ const API_BASE = "http://localhost:3001";
           return;
         }
         const label =
-          role === "admin"
-            ? "Admin connecte"
-            : role === "agent"
-              ? "Agent connecte"
-              : "Utilisateur connecte";
+          role === "superadmin"
+            ? "Super admin connecte"
+            : role === "admin"
+              ? "Admin connecte"
+              : role === "agent"
+                ? "Agent connecte"
+                : "Utilisateur connecte";
         sessionBadge.textContent = label;
         sessionBadge.className = `session-badge ${role}`;
         if (email) {
@@ -565,6 +578,53 @@ const API_BASE = "http://localhost:3001";
             </tr>`
           )
           .join("");
+      }
+
+      async function loadTenants() {
+        if (!tenantsTable) return;
+        try {
+          const data = await fetchWithAuth("/tenants");
+          renderTenants(data.items || []);
+          setTenantStatus("Tenants charges", false);
+        } catch (err) {
+          setTenantStatus("Chargement tenants impossible", true);
+        }
+      }
+
+      function renderTenants(items) {
+        tenantsTable.innerHTML = items
+          .map(
+            (tenant) => `<tr>
+              <td>${tenant.name}</td>
+              <td>${tenant.plan || "-"}</td>
+              <td><code>${tenant.id}</code></td>
+              <td>
+                <button class="btn ghost" data-tenant-token="${tenant.id}">
+                  Token admin
+                </button>
+              </td>
+            </tr>`
+          )
+          .join("");
+
+        document.querySelectorAll("[data-tenant-token]").forEach((button) => {
+          button.addEventListener("click", async () => {
+            const id = button.getAttribute("data-tenant-token");
+            const email = prompt("Email admin du tenant:");
+            if (!email) return;
+            try {
+              const data = await fetchWithAuth(`/tenants/${id}/token`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email })
+              });
+              await copyText(data.token);
+              notify("Token admin copie", "info");
+            } catch (err) {
+              notify("Token admin impossible", "error");
+            }
+          });
+        });
       }
 
       function appendMessage(role, text) {
@@ -1727,6 +1787,35 @@ const API_BASE = "http://localhost:3001";
         diagnosticsDeepBtn.addEventListener("click", () => loadDiagnostics(true));
       }
 
+      if (tenantsReloadBtn) {
+        tenantsReloadBtn.addEventListener("click", () => loadTenants());
+      }
+
+      if (tenantForm) {
+        tenantForm.addEventListener("submit", async (event) => {
+          event.preventDefault();
+          const formData = new FormData(tenantForm);
+          const payload = {
+            name: formData.get("name"),
+            plan: formData.get("plan") || "starter",
+            admin_email: formData.get("admin_email"),
+            admin_password: formData.get("admin_password")
+          };
+          try {
+            await fetchWithAuth("/tenants", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload)
+            });
+            tenantForm.reset();
+            loadTenants();
+            setTenantStatus("Tenant cree", false);
+          } catch (err) {
+            setTenantStatus("Creation tenant impossible", true);
+          }
+        });
+      }
+
       userForm.addEventListener("submit", async (event) => {
         event.preventDefault();
         const formData = new FormData(userForm);
@@ -1751,18 +1840,21 @@ const API_BASE = "http://localhost:3001";
 
       async function refreshAll() {
         const tasks = [loadKb(), loadConversations()];
-        if (currentRole === "admin") {
+        if (currentRole === "admin" || currentRole === "superadmin") {
           tasks.push(loadUsers());
           tasks.push(loadOrgSettings());
           tasks.push(loadOrg());
           tasks.push(loadInvites());
           tasks.push(loadDiagnostics(false));
+          if (currentRole === "superadmin") {
+            tasks.push(loadTenants());
+          }
         }
-        if (currentRole === "admin" || currentRole === "agent") {
+        if (currentRole === "admin" || currentRole === "agent" || currentRole === "superadmin") {
           tasks.push(loadTickets());
           tasks.push(loadNotifications());
         }
-        if (currentRole === "admin") {
+        if (currentRole === "admin" || currentRole === "superadmin") {
           tasks.push(loadAudit());
           tasks.push(loadActivity());
         }
@@ -1785,27 +1877,35 @@ const API_BASE = "http://localhost:3001";
       setNetStatus(navigator.onLine);
 
       function applyRoleVisibility() {
-        if (currentRole === "admin" || currentRole === "agent") {
-          usersCard.style.display = currentRole === "admin" ? "block" : "none";
+        if (
+          currentRole === "admin" ||
+          currentRole === "agent" ||
+          currentRole === "superadmin"
+        ) {
+          const isAdmin = currentRole === "admin" || currentRole === "superadmin";
+          usersCard.style.display = isAdmin ? "block" : "none";
           kbForm.style.display = "grid";
           kbUploadForm.style.display = "grid";
           ticketsCard.style.display = "block";
           notificationsCard.style.display = "block";
           ticketForm.style.display = "grid";
-          ticketUserFilter.style.display = currentRole === "admin" ? "inline-flex" : "none";
-          ticketUserFilterBtn.style.display = currentRole === "admin" ? "inline-flex" : "none";
-          adminToolsCard.style.display = currentRole === "admin" ? "block" : "none";
+          ticketUserFilter.style.display = isAdmin ? "inline-flex" : "none";
+          ticketUserFilterBtn.style.display = isAdmin ? "inline-flex" : "none";
+          adminToolsCard.style.display = isAdmin ? "block" : "none";
           if (orgSettingsCard) {
-            orgSettingsCard.style.display = currentRole === "admin" ? "block" : "none";
+            orgSettingsCard.style.display = isAdmin ? "block" : "none";
           }
           if (orgCard) {
-            orgCard.style.display = currentRole === "admin" ? "block" : "none";
+            orgCard.style.display = isAdmin ? "block" : "none";
           }
           if (invitesCard) {
-            invitesCard.style.display = currentRole === "admin" ? "block" : "none";
+            invitesCard.style.display = isAdmin ? "block" : "none";
           }
           if (diagnosticsCard) {
-            diagnosticsCard.style.display = currentRole === "admin" ? "block" : "none";
+            diagnosticsCard.style.display = isAdmin ? "block" : "none";
+          }
+          if (tenantsCard) {
+            tenantsCard.style.display = currentRole === "superadmin" ? "block" : "none";
           }
           return;
         }
@@ -1826,5 +1926,8 @@ const API_BASE = "http://localhost:3001";
         }
         if (diagnosticsCard) {
           diagnosticsCard.style.display = "none";
+        }
+        if (tenantsCard) {
+          tenantsCard.style.display = "none";
         }
       }

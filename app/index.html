@@ -372,6 +372,39 @@
         </div>
       </section>
 
+      <section class="card" id="tenantsCard">
+        <div class="card-header">
+          <h3>Tenants</h3>
+          <button id="tenantsReloadBtn" class="btn ghost">Recharger</button>
+        </div>
+        <form id="tenantForm" class="form two-columns">
+          <input name="name" placeholder="Nom tenant" required />
+          <input name="plan" placeholder="Plan" value="starter" />
+          <input name="admin_email" placeholder="Email admin" type="email" required />
+          <input
+            name="admin_password"
+            placeholder="Mot de passe admin"
+            type="password"
+            required
+          />
+          <button class="btn primary" type="submit">Creer tenant</button>
+          <p id="tenantStatus" class="status"></p>
+        </form>
+        <div class="table-wrap">
+          <table id="tenantsTable">
+            <thead>
+              <tr>
+                <th>Nom</th>
+                <th>Plan</th>
+                <th>ID</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
       <section class="card" id="invitesCard">
         <div class="card-header">
           <h3>Invitations</h3>

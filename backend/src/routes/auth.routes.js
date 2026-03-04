@@ -10,6 +10,7 @@ const {
 } = require("../services/users.service");
 const { logEvent } = require("../services/audit.service");
 const { validateOr400 } = require("../utils/validate");
+const { loginLimiter } = require("../middleware/rate-limit");
 
 const router = express.Router();
 
@@ -18,7 +19,7 @@ const loginSchema = z.object({
   password: z.string().min(6)
 });
 
-router.post("/login", (req, res) => {
+router.post("/login", loginLimiter(), (req, res) => {
   const payload = validateOr400(loginSchema, res, req.body);
   if (!payload) {
     return;
@@ -33,11 +34,16 @@ router.post("/login", (req, res) => {
     return res.status(401).json({ error: "invalid_credentials" });
   }
 
+  const effectiveRole =
+    env.superAdminEmail && user.email === env.superAdminEmail
+      ? "superadmin"
+      : user.role;
+
   const token = jwt.sign(
     {
       sub: user.id,
       tenant_id: user.tenant_id,
-      role: user.role
+      role: effectiveRole
     },
     env.jwtSecret,
     { expiresIn: "1h" }
@@ -55,7 +61,7 @@ router.post("/login", (req, res) => {
     user: {
       id: user.id,
       email: user.email,
-      role: user.role,
+      role: effectiveRole,
       tenant_id: user.tenant_id
     }
   });
@@ -71,11 +77,16 @@ router.post("/quick-admin", (req, res) => {
     return res.status(404).json({ error: "user_not_found" });
   }
 
+  const effectiveRole =
+    env.superAdminEmail && user.email === env.superAdminEmail
+      ? "superadmin"
+      : user.role;
+
   const token = jwt.sign(
     {
       sub: user.id,
       tenant_id: user.tenant_id,
-      role: user.role
+      role: effectiveRole
     },
     env.jwtSecret,
     { expiresIn: "1h" }
@@ -93,7 +104,7 @@ router.post("/quick-admin", (req, res) => {
     user: {
       id: user.id,
       email: user.email,
-      role: user.role,
+      role: effectiveRole,
       tenant_id: user.tenant_id
     }
   });
@@ -109,11 +120,16 @@ router.get("/quick-admin", (req, res) => {
     return res.status(404).json({ error: "user_not_found" });
   }
 
+  const effectiveRole =
+    env.superAdminEmail && user.email === env.superAdminEmail
+      ? "superadmin"
+      : user.role;
+
   const token = jwt.sign(
     {
       sub: user.id,
       tenant_id: user.tenant_id,
-      role: user.role
+      role: effectiveRole
     },
     env.jwtSecret,
     { expiresIn: "1h" }
@@ -138,10 +154,14 @@ router.get("/me", authRequired, (req, res) => {
   if (!user) {
     return res.status(404).json({ error: "user_not_found" });
   }
+  const effectiveRole =
+    env.superAdminEmail && user.email === env.superAdminEmail
+      ? "superadmin"
+      : user.role;
   return res.json({
     id: user.id,
     email: user.email,
-    role: user.role,
+    role: effectiveRole,
     tenant_id: user.tenant_id
   });
 });

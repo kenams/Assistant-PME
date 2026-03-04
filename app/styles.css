@@ -111,6 +111,11 @@ body::before {
   color: #b9c0ff;
 }
 
+.session-badge.superadmin {
+  background: rgba(242, 199, 110, 0.25);
+  color: #ffe6a8;
+}
+
 .session-badge.hidden {
   display: none;
 }
@@ -592,7 +597,8 @@ body.presentation #adminToolsCard,
 body.presentation #orgSettingsCard,
 body.presentation #orgCard,
 body.presentation #invitesCard,
-body.presentation #diagnosticsCard {
+body.presentation #diagnosticsCard,
+body.presentation #tenantsCard {
   display: none !important;
 }
 

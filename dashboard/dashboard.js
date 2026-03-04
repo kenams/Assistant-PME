@@ -80,7 +80,8 @@ const API_BASE = "http://localhost:3001";
           sessionBadge.removeAttribute("title");
           return;
         }
-        const label = role === "admin" ? "Admin connecte" : "Connecte";
+        const label =
+          role === "superadmin" ? "Super admin" : role === "admin" ? "Admin connecte" : "Connecte";
         sessionBadge.textContent = label;
         sessionBadge.className = `session-badge ${role}`;
         if (email) {

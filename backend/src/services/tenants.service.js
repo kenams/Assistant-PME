@@ -1,5 +1,7 @@
-const { ensureSeeded } = require("./users.service");
+const crypto = require("crypto");
+const { ensureSeeded, findUserByEmail } = require("./users.service");
 const { loadDb, withDb } = require("./store.service");
+const { hashPassword } = require("../utils/crypto");
 
 function getDefaultTenantId() {
   ensureSeeded();
@@ -21,4 +23,41 @@ function updateTenant({ tenantId, updates }) {
   });
 }
 
-module.exports = { getDefaultTenantId, updateTenant };
+function listTenants() {
+  ensureSeeded();
+  const db = loadDb();
+  return db.tenants.map((tenant) => ({
+    id: tenant.id,
+    name: tenant.name,
+    plan: tenant.plan,
+    created_at: tenant.created_at,
+    updated_at: tenant.updated_at || null
+  }));
+}
+
+function createTenant({ name, plan, adminEmail, adminPassword }) {
+  return withDb((db) => {
+    if (findUserByEmail(adminEmail)) {
+      return { error: "email_exists" };
+    }
+    const tenantId = crypto.randomUUID();
+    db.tenants.push({
+      id: tenantId,
+      name,
+      plan: plan || "starter",
+      created_at: new Date().toISOString()
+    });
+    const userId = crypto.randomUUID();
+    db.users.push({
+      id: userId,
+      tenant_id: tenantId,
+      email: adminEmail,
+      password_hash: hashPassword(adminPassword),
+      role: "admin",
+      created_at: new Date().toISOString()
+    });
+    return { tenant_id: tenantId, admin_id: userId };
+  });
+}
+
+module.exports = { getDefaultTenantId, updateTenant, listTenants, createTenant };

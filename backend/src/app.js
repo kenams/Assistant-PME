@@ -9,6 +9,7 @@ const { createLogger } = require("./config/logger");
 const { ensureSeeded } = require("./services/users.service");
 const { errorHandler } = require("./middleware/error");
 const { monitoringMiddleware } = require("./middleware/monitoring");
+const { defaultLimiter } = require("./middleware/rate-limit");
 const { startMailboxPolling } = require("./services/mailbox.service");
 
 const healthRoutes = require("./routes/health.routes");
@@ -24,6 +25,7 @@ const usersRoutes = require("./routes/users.routes");
 const notificationsRoutes = require("./routes/notifications.routes");
 const ingestRoutes = require("./routes/ingest.routes");
 const oauthRoutes = require("./routes/oauth.routes");
+const tenantsRoutes = require("./routes/tenants.routes");
 
 const app = express();
 const logger = createLogger();
@@ -33,6 +35,7 @@ startMailboxPolling();
 
 app.use(pinoHttp({ logger }));
 app.use(monitoringMiddleware);
+app.disable("x-powered-by");
 app.use(
   helmet({
     contentSecurityPolicy: {
@@ -59,6 +62,7 @@ const rawBodySaver = (req, res, buf, encoding) => {
 };
 app.use(express.json({ limit: "1mb", verify: rawBodySaver }));
 app.use(express.urlencoded({ extended: false, verify: rawBodySaver }));
+app.use(defaultLimiter());
 
 const publicRoot = path.join(__dirname, "..", "..");
 const appDir = path.join(publicRoot, "app");
@@ -115,6 +119,7 @@ app.use("/users", usersRoutes);
 app.use("/notifications", notificationsRoutes);
 app.use("/ingest", ingestRoutes);
 app.use("/oauth", oauthRoutes);
+app.use("/tenants", tenantsRoutes);
 
 app.use((req, res) => {
   return res.status(404).json({ error: "not_found" });
