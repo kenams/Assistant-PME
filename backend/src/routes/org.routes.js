@@ -36,8 +36,35 @@ const settingsSchema = z.object({
   mailbox_user: z.string().min(1).optional().or(z.literal("")),
   mailbox_password: z.string().min(1).optional().or(z.literal("")),
   mailbox_folder: z.string().min(1).optional().or(z.literal("")),
-  mailbox_subject_prefix: z.string().optional().or(z.literal(""))
+  mailbox_subject_prefix: z.string().optional().or(z.literal("")),
+  slack_signing_secret: z.string().min(6).optional().or(z.literal("")),
+  teams_signing_secret: z.string().min(6).optional().or(z.literal("")),
+  oauth_google_client_id: z.string().min(1).optional().or(z.literal("")),
+  oauth_google_client_secret: z.string().min(1).optional().or(z.literal("")),
+  oauth_google_redirect_uri: z.string().url().optional().or(z.literal("")),
+  oauth_google_scopes: z.string().optional().or(z.literal("")),
+  oauth_outlook_client_id: z.string().min(1).optional().or(z.literal("")),
+  oauth_outlook_client_secret: z.string().min(1).optional().or(z.literal("")),
+  oauth_outlook_redirect_uri: z.string().url().optional().or(z.literal("")),
+  oauth_outlook_scopes: z.string().optional().or(z.literal(""))
 });
+
+function sanitizeSettings(settings) {
+  const safe = { ...settings };
+  delete safe.oauth_google_access_token;
+  delete safe.oauth_google_refresh_token;
+  delete safe.oauth_google_state;
+  delete safe.oauth_outlook_access_token;
+  delete safe.oauth_outlook_refresh_token;
+  delete safe.oauth_outlook_state;
+  return {
+    ...safe,
+    oauth_google_connected: Boolean(settings.oauth_google_access_token),
+    oauth_google_expires_at: settings.oauth_google_expires_at || "",
+    oauth_outlook_connected: Boolean(settings.oauth_outlook_access_token),
+    oauth_outlook_expires_at: settings.oauth_outlook_expires_at || ""
+  };
+}
 
 const orgUpdateSchema = z.object({
   name: z.string().min(1).optional(),
@@ -46,7 +73,8 @@ const orgUpdateSchema = z.object({
 
 router.get("/settings", authRequired, (req, res) => {
   const tenantId = req.user.tenant_id;
-  return res.json(getOrgSettings({ tenantId }));
+  const settings = getOrgSettings({ tenantId });
+  return res.json(sanitizeSettings(settings));
 });
 
 router.put("/settings", authRequired, requireAdmin, (req, res) => {

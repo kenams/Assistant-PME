@@ -73,6 +73,10 @@ const API_BASE = "http://localhost:3001";
       const orgSettingsReloadBtn = document.getElementById("orgSettingsReloadBtn");
       const orgSettingsStatus = document.getElementById("orgSettingsStatus");
       const mailboxPullBtn = document.getElementById("mailboxPullBtn");
+      const oauthGoogleBtn = document.getElementById("oauthGoogleBtn");
+      const oauthOutlookBtn = document.getElementById("oauthOutlookBtn");
+      const oauthGoogleStatus = document.getElementById("oauthGoogleStatus");
+      const oauthOutlookStatus = document.getElementById("oauthOutlookStatus");
       const orgCard = document.getElementById("orgCard");
       const orgForm = document.getElementById("orgForm");
       const orgStatus = document.getElementById("orgStatus");
@@ -368,6 +372,37 @@ const API_BASE = "http://localhost:3001";
           orgSettingsForm.mailbox_folder.value = data.mailbox_folder || "INBOX";
           orgSettingsForm.mailbox_subject_prefix.value =
             data.mailbox_subject_prefix || "";
+          orgSettingsForm.slack_signing_secret.value =
+            data.slack_signing_secret || "";
+          orgSettingsForm.teams_signing_secret.value =
+            data.teams_signing_secret || "";
+          orgSettingsForm.oauth_google_client_id.value =
+            data.oauth_google_client_id || "";
+          orgSettingsForm.oauth_google_client_secret.value =
+            data.oauth_google_client_secret || "";
+          orgSettingsForm.oauth_google_redirect_uri.value =
+            data.oauth_google_redirect_uri || "";
+          orgSettingsForm.oauth_google_scopes.value =
+            data.oauth_google_scopes || "";
+          orgSettingsForm.oauth_outlook_client_id.value =
+            data.oauth_outlook_client_id || "";
+          orgSettingsForm.oauth_outlook_client_secret.value =
+            data.oauth_outlook_client_secret || "";
+          orgSettingsForm.oauth_outlook_redirect_uri.value =
+            data.oauth_outlook_redirect_uri || "";
+          orgSettingsForm.oauth_outlook_scopes.value =
+            data.oauth_outlook_scopes || "";
+
+          if (oauthGoogleStatus) {
+            oauthGoogleStatus.textContent = data.oauth_google_connected
+              ? `Connecte (expire: ${data.oauth_google_expires_at || "?"})`
+              : "Non connecte";
+          }
+          if (oauthOutlookStatus) {
+            oauthOutlookStatus.textContent = data.oauth_outlook_connected
+              ? `Connecte (expire: ${data.oauth_outlook_expires_at || "?"})`
+              : "Non connecte";
+          }
           const threshold =
             typeof data.escalation_threshold === "number"
               ? String(data.escalation_threshold)
@@ -1471,7 +1506,21 @@ const API_BASE = "http://localhost:3001";
             mailbox_password: formData.get("mailbox_password") || "",
             mailbox_host: formData.get("mailbox_host") || "",
             mailbox_folder: formData.get("mailbox_folder") || "INBOX",
-            mailbox_subject_prefix: formData.get("mailbox_subject_prefix") || ""
+            mailbox_subject_prefix: formData.get("mailbox_subject_prefix") || "",
+            slack_signing_secret: formData.get("slack_signing_secret") || "",
+            teams_signing_secret: formData.get("teams_signing_secret") || "",
+            oauth_google_client_id: formData.get("oauth_google_client_id") || "",
+            oauth_google_client_secret:
+              formData.get("oauth_google_client_secret") || "",
+            oauth_google_redirect_uri:
+              formData.get("oauth_google_redirect_uri") || "",
+            oauth_google_scopes: formData.get("oauth_google_scopes") || "",
+            oauth_outlook_client_id: formData.get("oauth_outlook_client_id") || "",
+            oauth_outlook_client_secret:
+              formData.get("oauth_outlook_client_secret") || "",
+            oauth_outlook_redirect_uri:
+              formData.get("oauth_outlook_redirect_uri") || "",
+            oauth_outlook_scopes: formData.get("oauth_outlook_scopes") || ""
           };
           const mailboxPort = Number(formData.get("mailbox_port") || 993);
           if (!Number.isNaN(mailboxPort)) {
@@ -1508,6 +1557,32 @@ const API_BASE = "http://localhost:3001";
             notify("Import email lance", "info");
           } catch (err) {
             notify("Import email impossible", "error");
+          }
+        });
+      }
+
+      if (oauthGoogleBtn) {
+        oauthGoogleBtn.addEventListener("click", async () => {
+          try {
+            const data = await fetchWithAuth("/oauth/google/url");
+            if (data.url) {
+              window.location.href = data.url;
+            }
+          } catch (err) {
+            notify("OAuth Gmail impossible", "error");
+          }
+        });
+      }
+
+      if (oauthOutlookBtn) {
+        oauthOutlookBtn.addEventListener("click", async () => {
+          try {
+            const data = await fetchWithAuth("/oauth/outlook/url");
+            if (data.url) {
+              window.location.href = data.url;
+            }
+          } catch (err) {
+            notify("OAuth Outlook impossible", "error");
           }
         });
       }

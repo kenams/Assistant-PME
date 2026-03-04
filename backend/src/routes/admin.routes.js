@@ -7,7 +7,7 @@ const { listAudit, logEvent } = require("../services/audit.service");
 const { testGlpiConnection, isGlpiEnabled } = require("../services/glpi.service");
 const { getSnapshot } = require("../services/monitoring.service");
 const { getTenantById } = require("../services/users.service");
-const { buildRoiPdf } = require("../services/pdf.service");
+const { buildRoiPdf, buildAnalyticsPdf } = require("../services/pdf.service");
 const { computeAnalytics } = require("../services/analytics.service");
 const { buildCsv } = require("../utils/csv");
 
@@ -58,6 +58,22 @@ router.get("/metrics/system", authRequired, requireAdmin, (req, res) => {
 router.get("/analytics", authRequired, requireAdmin, (req, res) => {
   const tenantId = req.user.tenant_id;
   return res.json(computeAnalytics(tenantId));
+});
+
+router.get("/analytics/pdf", authRequired, requireAdmin, async (req, res) => {
+  const tenantId = req.user.tenant_id;
+  const tenant = getTenantById(tenantId);
+  const analytics = computeAnalytics(tenantId);
+  const pdf = await buildAnalyticsPdf({
+    tenantName: tenant ? tenant.name : null,
+    analytics
+  });
+  res.setHeader("Content-Type", "application/pdf");
+  res.setHeader(
+    "Content-Disposition",
+    "attachment; filename=\"analytics_report.pdf\""
+  );
+  return res.send(pdf);
 });
 
 router.get("/metrics/roi.pdf", authRequired, requireAdmin, async (req, res) => {

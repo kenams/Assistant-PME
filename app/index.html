@@ -248,6 +248,8 @@
           <input name="webhook_secret" placeholder="Webhook secret (optionnel)" />
           <input name="slack_webhook_url" placeholder="Slack webhook URL" type="url" />
           <input name="teams_webhook_url" placeholder="Teams webhook URL" type="url" />
+          <input name="slack_signing_secret" placeholder="Slack signing secret" />
+          <input name="teams_signing_secret" placeholder="Teams signing secret" />
           <label class="toggle">
             <input name="notify_on_ticket_created" type="checkbox" />
             <span>Notifier Slack/Teams a chaque ticket</span>
@@ -274,6 +276,50 @@
           <button id="mailboxPullBtn" class="btn ghost" type="button">
             Importer emails maintenant
           </button>
+          <div class="oauth-block">
+            <strong>OAuth Gmail</strong>
+            <div class="status" id="oauthGoogleStatus"></div>
+            <input name="oauth_google_client_id" placeholder="Gmail client ID" />
+            <input
+              name="oauth_google_client_secret"
+              placeholder="Gmail client secret"
+              type="password"
+            />
+            <input
+              name="oauth_google_redirect_uri"
+              placeholder="Redirect URI Gmail"
+              type="url"
+            />
+            <input
+              name="oauth_google_scopes"
+              placeholder="Scopes Gmail"
+            />
+            <button id="oauthGoogleBtn" class="btn ghost" type="button">
+              Connecter Gmail
+            </button>
+          </div>
+          <div class="oauth-block">
+            <strong>OAuth Outlook</strong>
+            <div class="status" id="oauthOutlookStatus"></div>
+            <input name="oauth_outlook_client_id" placeholder="Outlook client ID" />
+            <input
+              name="oauth_outlook_client_secret"
+              placeholder="Outlook client secret"
+              type="password"
+            />
+            <input
+              name="oauth_outlook_redirect_uri"
+              placeholder="Redirect URI Outlook"
+              type="url"
+            />
+            <input
+              name="oauth_outlook_scopes"
+              placeholder="Scopes Outlook"
+            />
+            <button id="oauthOutlookBtn" class="btn ghost" type="button">
+              Connecter Outlook
+            </button>
+          </div>
           <select name="escalation_threshold">
             <option value="1">Escalade apres 1 echec</option>
             <option value="2" selected>Escalade apres 2 echecs</option>

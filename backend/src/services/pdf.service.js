@@ -115,4 +115,50 @@ function buildRoiPdf({ tenantName, metrics }) {
   });
 }
 
-module.exports = { buildTicketsPdf, buildRoiPdf };
+function buildAnalyticsPdf({ tenantName, analytics }) {
+  return new Promise((resolve) => {
+    const doc = new PDFDocument({ size: "A4", margin: 48 });
+    const chunks = [];
+    doc.on("data", (chunk) => chunks.push(chunk));
+    doc.on("end", () => resolve(Buffer.concat(chunks)));
+
+    doc.fontSize(20).text("Rapport Analytics Support IT", { align: "left" });
+    doc.fontSize(10).fillColor("#666").text("Concu par Kah-Digital");
+    doc.moveDown(0.5);
+    doc.fillColor("#111").fontSize(12).text(`Organisation: ${tenantName || "PME"}`);
+    doc.fontSize(10).fillColor("#444").text(`Date: ${new Date().toLocaleString("fr-FR")}`);
+    doc.moveDown(1);
+
+    const items = [
+      ["Temps reponse moyen (min)", analytics.response_avg_minutes || 0],
+      ["Temps resolution moyen (min)", analytics.resolution_avg_minutes || 0],
+      ["Feedback total", analytics.feedback?.count || 0],
+      ["Note moyenne", analytics.feedback?.average_rating || 0],
+      ["Taux feedback resolu", `${analytics.feedback?.resolved_rate || 0}%`]
+    ];
+
+    doc.fontSize(12).fillColor("#111").text("Performance");
+    doc.moveDown(0.4);
+    items.forEach(([label, value]) => {
+      doc.fontSize(10).fillColor("#333").text(label, { continued: true, width: 240 });
+      doc.fontSize(10).fillColor("#111").text(`: ${value}`);
+    });
+
+    doc.moveDown(1);
+    doc.fontSize(12).fillColor("#111").text("Tickets par categorie");
+    doc.moveDown(0.4);
+
+    const categories = analytics.tickets_by_category || {};
+    Object.entries(categories)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 8)
+      .forEach(([category, count]) => {
+        doc.fontSize(10).fillColor("#333").text(category, { continued: true, width: 200 });
+        doc.fontSize(10).fillColor("#111").text(`: ${count}`);
+      });
+
+    doc.end();
+  });
+}
+
+module.exports = { buildTicketsPdf, buildRoiPdf, buildAnalyticsPdf };

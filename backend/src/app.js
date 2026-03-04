@@ -23,6 +23,7 @@ const billingRoutes = require("./routes/billing.routes");
 const usersRoutes = require("./routes/users.routes");
 const notificationsRoutes = require("./routes/notifications.routes");
 const ingestRoutes = require("./routes/ingest.routes");
+const oauthRoutes = require("./routes/oauth.routes");
 
 const app = express();
 const logger = createLogger();
@@ -51,8 +52,13 @@ app.use(
   })
 );
 app.use(cors());
-app.use(express.json({ limit: "1mb" }));
-app.use(express.urlencoded({ extended: false }));
+const rawBodySaver = (req, res, buf, encoding) => {
+  if (buf && buf.length) {
+    req.rawBody = buf.toString(encoding || "utf8");
+  }
+};
+app.use(express.json({ limit: "1mb", verify: rawBodySaver }));
+app.use(express.urlencoded({ extended: false, verify: rawBodySaver }));
 
 const publicRoot = path.join(__dirname, "..", "..");
 const appDir = path.join(publicRoot, "app");
@@ -108,6 +114,7 @@ app.use("/billing", billingRoutes);
 app.use("/users", usersRoutes);
 app.use("/notifications", notificationsRoutes);
 app.use("/ingest", ingestRoutes);
+app.use("/oauth", oauthRoutes);
 
 app.use((req, res) => {
   return res.status(404).json({ error: "not_found" });

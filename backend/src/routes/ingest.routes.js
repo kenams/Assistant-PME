@@ -6,6 +6,10 @@ const { ingestSupport } = require("../services/ingest.service");
 const { fetchMailboxOnce } = require("../services/mailbox.service");
 const { authRequired } = require("../middleware/auth");
 const { requireAdmin } = require("../middleware/roles");
+const { getOrgSettings } = require("../services/org.service");
+const { getDefaultTenantId } = require("../services/tenants.service");
+const { verifySlackSignature } = require("../services/slack.service");
+const { verifyHmacSignature } = require("../services/signature.service");
 
 const router = express.Router();
 
@@ -30,6 +34,12 @@ function tokenAllowed(req) {
     queryToken === env.supportIngestToken ||
     bodyToken === env.supportIngestToken
   );
+}
+
+function getTenantSettings() {
+  const tenantId = getDefaultTenantId();
+  if (!tenantId) return null;
+  return getOrgSettings({ tenantId });
 }
 
 router.post("/support", async (req, res) => {
@@ -62,6 +72,22 @@ router.post("/support", async (req, res) => {
 router.post("/slack", async (req, res) => {
   if (!tokenAllowed(req)) {
     return res.status(401).json({ error: "invalid_token" });
+  }
+  const settings = getTenantSettings();
+  if (settings && settings.slack_signing_secret) {
+    const signature = req.get("X-Slack-Signature");
+    const timestamp = req.get("X-Slack-Request-Timestamp");
+    const rawBody = req.rawBody || "";
+    if (
+      !verifySlackSignature({
+        rawBody,
+        signingSecret: settings.slack_signing_secret,
+        timestamp,
+        signature
+      })
+    ) {
+      return res.status(401).json({ error: "invalid_signature" });
+    }
   }
   if (req.body && req.body.type === "url_verification") {
     return res.json({ challenge: req.body.challenge });
@@ -107,6 +133,20 @@ router.post("/slack", async (req, res) => {
 router.post("/teams", async (req, res) => {
   if (!tokenAllowed(req)) {
     return res.status(401).json({ error: "invalid_token" });
+  }
+  const settings = getTenantSettings();
+  if (settings && settings.teams_signing_secret) {
+    const signature = req.get("X-Teams-Signature");
+    const rawBody = req.rawBody || "";
+    if (
+      !verifyHmacSignature({
+        rawBody,
+        secret: settings.teams_signing_secret,
+        signature
+      })
+    ) {
+      return res.status(401).json({ error: "invalid_signature" });
+    }
   }
   const payload = req.body || {};
   const text = payload.text || payload.summary || payload.title || "";
