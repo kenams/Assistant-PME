@@ -6,13 +6,14 @@ const { loadDb, saveDb, withDb } = require("../services/store.service");
 const { listAudit, logEvent } = require("../services/audit.service");
 const { testGlpiConnection, isGlpiEnabled } = require("../services/glpi.service");
 const { getSnapshot } = require("../services/monitoring.service");
+const { getTenantById } = require("../services/users.service");
+const { buildRoiPdf } = require("../services/pdf.service");
 const { buildCsv } = require("../utils/csv");
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
 
-router.get("/metrics", authRequired, (req, res) => {
-  const tenantId = req.user.tenant_id;
+function computeMetrics(tenantId) {
   const db = loadDb();
   const tickets = db.tickets.filter((t) => t.tenant_id === tenantId);
   const users = db.users.filter((u) => u.tenant_id === tenantId);
@@ -32,7 +33,7 @@ router.get("/metrics", authRequired, (req, res) => {
     conversations.length > 0 ? Math.round((resolved / conversations.length) * 100) : 0;
   const minutesEconomisees = ticketsEvites * 8;
 
-  return res.json({
+  return {
     tickets_evites: ticketsEvites,
     tickets_crees: tickets.length,
     minutes_economisees: minutesEconomisees,
@@ -41,11 +42,29 @@ router.get("/metrics", authRequired, (req, res) => {
     resolved,
     escalated,
     resolution_rate
-  });
+  };
+}
+
+router.get("/metrics", authRequired, (req, res) => {
+  const tenantId = req.user.tenant_id;
+  return res.json(computeMetrics(tenantId));
 });
 
 router.get("/metrics/system", authRequired, requireAdmin, (req, res) => {
   return res.json(getSnapshot());
+});
+
+router.get("/metrics/roi.pdf", authRequired, requireAdmin, async (req, res) => {
+  const tenantId = req.user.tenant_id;
+  const tenant = getTenantById(tenantId);
+  const metrics = computeMetrics(tenantId);
+  const pdf = await buildRoiPdf({
+    tenantName: tenant ? tenant.name : null,
+    metrics
+  });
+  res.setHeader("Content-Type", "application/pdf");
+  res.setHeader("Content-Disposition", "attachment; filename=\"roi_report.pdf\"");
+  return res.send(pdf);
 });
 
 router.get("/audit", authRequired, requireAdmin, (req, res) => {
@@ -215,6 +234,7 @@ router.post("/restore", authRequired, requireAdmin, upload.single("file"), (req,
     parsed.invoices = parsed.invoices || [];
     parsed.notifications = parsed.notifications || [];
     parsed.org_settings = parsed.org_settings || [];
+    parsed.invites = parsed.invites || [];
 
     saveDb(parsed);
     logEvent({

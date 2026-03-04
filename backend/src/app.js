@@ -21,6 +21,7 @@ const leadsRoutes = require("./routes/leads.routes");
 const billingRoutes = require("./routes/billing.routes");
 const usersRoutes = require("./routes/users.routes");
 const notificationsRoutes = require("./routes/notifications.routes");
+const ingestRoutes = require("./routes/ingest.routes");
 
 const app = express();
 const logger = createLogger();
@@ -104,6 +105,7 @@ app.use("/leads", leadsRoutes);
 app.use("/billing", billingRoutes);
 app.use("/users", usersRoutes);
 app.use("/notifications", notificationsRoutes);
+app.use("/ingest", ingestRoutes);
 
 app.use((req, res) => {
   return res.status(404).json({ error: "not_found" });

@@ -185,6 +185,17 @@ main {
   grid-column: 1 / -1;
 }
 
+.invite-accept {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--stroke);
+}
+
+.invite-accept h4 {
+  margin: 0 0 8px;
+  font-weight: 600;
+}
+
 .toggle {
   display: flex;
   align-items: center;
@@ -515,6 +526,12 @@ th {
   color: #ffb4b4;
 }
 
+.copy-input {
+  position: fixed;
+  opacity: 0;
+  pointer-events: none;
+}
+
 .footer-note {
   font-size: 0.78rem;
   letter-spacing: 0.02em;
@@ -558,7 +575,9 @@ body.presentation #ticketsCard,
 body.presentation #notificationsCard,
 body.presentation #usersCard,
 body.presentation #adminToolsCard,
-body.presentation #orgSettingsCard {
+body.presentation #orgSettingsCard,
+body.presentation #orgCard,
+body.presentation #invitesCard {
   display: none !important;
 }
 

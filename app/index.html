@@ -44,6 +44,20 @@
           </a>
           <p class="note">Mode test local uniquement.</p>
         </div>
+        <div class="invite-accept">
+          <h4>Activer une invitation</h4>
+          <form id="inviteAcceptForm" class="form">
+            <input name="invite_token" placeholder="Token invitation" required />
+            <input
+              name="invite_password"
+              placeholder="Mot de passe"
+              type="password"
+              required
+            />
+            <button class="btn ghost" type="submit">Activer</button>
+            <p id="inviteAcceptStatus" class="status"></p>
+          </form>
+        </div>
       </section>
 
       <section class="card onboarding" id="onboardingCard">
@@ -253,6 +267,59 @@
           <button class="btn primary" type="submit">Sauver</button>
           <p id="orgSettingsStatus" class="status"></p>
         </form>
+      </section>
+
+      <section class="card" id="orgCard">
+        <div class="card-header">
+          <h3>Organisation</h3>
+          <button id="orgReloadBtn" class="btn ghost">Recharger</button>
+        </div>
+        <form id="orgForm" class="form two-columns">
+          <input name="name" placeholder="Nom organisation" required />
+          <input name="plan" placeholder="Plan (starter/pro/premium)" />
+          <button class="btn primary" type="submit">Sauver</button>
+          <p id="orgStatus" class="status"></p>
+        </form>
+      </section>
+
+      <section class="card" id="invitesCard">
+        <div class="card-header">
+          <h3>Invitations</h3>
+          <button id="invitesReloadBtn" class="btn ghost">Recharger</button>
+        </div>
+        <form id="inviteForm" class="form two-columns">
+          <input name="email" placeholder="Email" type="email" required />
+          <select name="role">
+            <option value="user">user</option>
+            <option value="agent">agent</option>
+            <option value="admin">admin</option>
+          </select>
+          <input
+            name="expires_hours"
+            placeholder="Expiration (heures)"
+            type="number"
+            min="1"
+            max="168"
+            value="72"
+          />
+          <button class="btn primary" type="submit">Creer invitation</button>
+          <p id="inviteStatus" class="status"></p>
+        </form>
+        <div class="table-wrap">
+          <table id="invitesTable">
+            <thead>
+              <tr>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Statut</th>
+                <th>Expire</th>
+                <th>Token</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
       </section>
 
       <section class="card" id="usersCard">

@@ -35,6 +35,17 @@ function findUserByEmail(email) {
   return db.users.find((u) => u.email.toLowerCase() === email.toLowerCase()) || null;
 }
 
+function findUserByEmailInTenant({ tenantId, email }) {
+  ensureSeeded();
+  const db = loadDb();
+  return (
+    db.users.find(
+      (u) =>
+        u.tenant_id === tenantId && u.email.toLowerCase() === email.toLowerCase()
+    ) || null
+  );
+}
+
 function findUserById(id) {
   ensureSeeded();
   const db = loadDb();
@@ -50,6 +61,7 @@ function getTenantById(id) {
 module.exports = {
   ensureSeeded,
   findUserByEmail,
+  findUserByEmailInTenant,
   findUserById,
   getTenantById,
   verifyPassword,

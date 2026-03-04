@@ -10,6 +10,7 @@ const API_BASE = "http://localhost:3001";
       const exportLeadsBtn = document.getElementById("exportLeadsBtn");
       const exportTicketsBtn = document.getElementById("exportTicketsBtn");
       const exportTicketsPdfBtn = document.getElementById("exportTicketsPdfBtn");
+      const exportRoiPdfBtn = document.getElementById("exportRoiPdfBtn");
       const exportQuotesBtn = document.getElementById("exportQuotesBtn");
       const exportInvoicesBtn = document.getElementById("exportInvoicesBtn");
       const logoutBtn = document.getElementById("logoutBtn");
@@ -668,6 +669,20 @@ const API_BASE = "http://localhost:3001";
             await downloadBlob("/tickets/export.pdf", "tickets.pdf", "application/pdf");
           } catch (err) {
             setStatus("Export tickets PDF impossible", true);
+          }
+        });
+      }
+
+      if (exportRoiPdfBtn) {
+        exportRoiPdfBtn.addEventListener("click", async () => {
+          try {
+            await downloadBlob(
+              "/admin/metrics/roi.pdf",
+              "roi_report.pdf",
+              "application/pdf"
+            );
+          } catch (err) {
+            setStatus("Export ROI PDF impossible", true);
           }
         });
       }

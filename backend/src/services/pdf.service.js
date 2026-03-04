@@ -66,4 +66,53 @@ function buildTicketsPdf({ tickets, filters, tenantName }) {
   });
 }
 
-module.exports = { buildTicketsPdf };
+function buildRoiPdf({ tenantName, metrics }) {
+  return new Promise((resolve) => {
+    const doc = new PDFDocument({ size: "A4", margin: 48 });
+    const chunks = [];
+    doc.on("data", (chunk) => chunks.push(chunk));
+    doc.on("end", () => resolve(Buffer.concat(chunks)));
+
+    doc.fontSize(20).text("Rapport ROI Support IT", { align: "left" });
+    doc.fontSize(10).fillColor("#666").text("Concu par Kah-Digital");
+    doc.moveDown(0.5);
+    doc.fillColor("#111").fontSize(12).text(`Organisation: ${tenantName || "PME"}`);
+    doc.fontSize(10).fillColor("#444").text(`Date: ${new Date().toLocaleString("fr-FR")}`);
+    doc.moveDown(1);
+
+    const minutes = metrics.minutes_economisees || 0;
+    const hours = Math.round((minutes / 60) * 10) / 10;
+
+    const rows = [
+      ["Tickets evites", metrics.tickets_evites || 0],
+      ["Tickets crees", metrics.tickets_crees || 0],
+      ["Minutes economisees", minutes],
+      ["Heures economisees", hours],
+      ["Utilisateurs actifs", metrics.utilisateurs_actifs || 0],
+      ["Conversations", metrics.conversations || 0],
+      ["Resolues", metrics.resolved || 0],
+      ["Escaladees", metrics.escalated || 0],
+      ["Taux resolution", `${metrics.resolution_rate || 0}%`]
+    ];
+
+    doc.fontSize(12).fillColor("#111").text("Synthese");
+    doc.moveDown(0.5);
+    rows.forEach(([label, value]) => {
+      doc.fontSize(10).fillColor("#333").text(label, { continued: true, width: 220 });
+      doc.fontSize(10).fillColor("#111").text(`: ${value}`);
+    });
+
+    doc.moveDown(1);
+    doc.fontSize(11).fillColor("#111").text("Impact");
+    doc
+      .fontSize(10)
+      .fillColor("#444")
+      .text(
+        "Ce rapport estime le temps economise par l'assistant. Utilisez-le pour communiquer le ROI aux equipes IT et direction."
+      );
+
+    doc.end();
+  });
+}
+
+module.exports = { buildTicketsPdf, buildRoiPdf };

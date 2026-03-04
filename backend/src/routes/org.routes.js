@@ -3,6 +3,7 @@ const { z } = require("zod");
 const { authRequired } = require("../middleware/auth");
 const { requireAdmin } = require("../middleware/roles");
 const { getTenantById } = require("../services/users.service");
+const { updateTenant } = require("../services/tenants.service");
 const { getOrgSettings, updateOrgSettings } = require("../services/org.service");
 const { validateOr400 } = require("../utils/validate");
 
@@ -29,6 +30,11 @@ const settingsSchema = z.object({
   teams_webhook_url: z.string().url().optional().or(z.literal(""))
 });
 
+const orgUpdateSchema = z.object({
+  name: z.string().min(1).optional(),
+  plan: z.string().min(1).optional()
+});
+
 router.get("/settings", authRequired, (req, res) => {
   const tenantId = req.user.tenant_id;
   return res.json(getOrgSettings({ tenantId }));
@@ -42,6 +48,19 @@ router.put("/settings", authRequired, requireAdmin, (req, res) => {
   const tenantId = req.user.tenant_id;
   const next = updateOrgSettings({ tenantId, payload });
   return res.json(next);
+});
+
+router.put("/", authRequired, requireAdmin, (req, res) => {
+  const payload = validateOr400(orgUpdateSchema, res, req.body);
+  if (!payload) {
+    return;
+  }
+  const tenantId = req.user.tenant_id;
+  const updated = updateTenant({ tenantId, updates: payload });
+  if (!updated) {
+    return res.status(404).json({ error: "tenant_not_found" });
+  }
+  return res.json(updated);
 });
 
 module.exports = router;

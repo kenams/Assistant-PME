@@ -35,6 +35,7 @@ Ce repo contient la base produit (docs + backend MVP + landing).
 - `GLPI_ENABLED=true` + `GLPI_BASE_URL` + `GLPI_USER_TOKEN` (+ `GLPI_APP_TOKEN` optionnel)
 - Webhook sortant: configurer dans l'app > Parametres support (URL + secret)
 - Slack/Teams: configurer dans l'app > Parametres support (webhooks entrants)
+- Ingest support: definir `SUPPORT_INGEST_TOKEN` (optionnel)
 
 ## Demarrage 1-clic (Windows)
 - `start-local.ps1` ou `start-local.bat` a la racine du projet.
@@ -76,6 +77,7 @@ Ces valeurs peuvent etre changees dans `.env`.
 - POST /notifications/webhook-local (auth staff)
 - GET  /admin/metrics
 - GET  /admin/metrics/system
+- GET  /admin/metrics/roi.pdf
 - GET  /admin/audit (auth admin)
 - GET  /admin/backup (auth admin)
 - POST /admin/restore (auth admin)
@@ -92,8 +94,13 @@ Ces valeurs peuvent etre changees dans `.env`.
 - GET  /leads/export.csv (auth)
 - GET  /tickets/export.csv (auth)
 - GET  /tickets/export.pdf (auth)
+- POST /ingest/support
 - GET  /users (auth admin)
 - POST /users (auth admin)
+- GET  /users/invites (auth admin)
+- POST /users/invite (auth admin)
+- DELETE /users/invite/:id (auth admin)
+- POST /users/invite/accept
 - PUT  /leads/:id (auth)
 - GET  /billing/quotes (auth)
 - POST /billing/quotes (auth)

@@ -72,6 +72,17 @@ const API_BASE = "http://localhost:3001";
       const orgSettingsForm = document.getElementById("orgSettingsForm");
       const orgSettingsReloadBtn = document.getElementById("orgSettingsReloadBtn");
       const orgSettingsStatus = document.getElementById("orgSettingsStatus");
+      const orgCard = document.getElementById("orgCard");
+      const orgForm = document.getElementById("orgForm");
+      const orgStatus = document.getElementById("orgStatus");
+      const orgReloadBtn = document.getElementById("orgReloadBtn");
+      const invitesCard = document.getElementById("invitesCard");
+      const inviteForm = document.getElementById("inviteForm");
+      const inviteStatus = document.getElementById("inviteStatus");
+      const invitesTable = document.getElementById("invitesTable").querySelector("tbody");
+      const invitesReloadBtn = document.getElementById("invitesReloadBtn");
+      const inviteAcceptForm = document.getElementById("inviteAcceptForm");
+      const inviteAcceptStatus = document.getElementById("inviteAcceptStatus");
 
       let conversationId = null;
       let currentRole = null;
@@ -106,6 +117,24 @@ const API_BASE = "http://localhost:3001";
         orgSettingsStatus.className = isError ? "status error" : "status";
       }
 
+      function setOrgInfoStatus(message, isError) {
+        if (!orgStatus) return;
+        orgStatus.textContent = message;
+        orgStatus.className = isError ? "status error" : "status";
+      }
+
+      function setInviteStatus(message, isError) {
+        if (!inviteStatus) return;
+        inviteStatus.textContent = message;
+        inviteStatus.className = isError ? "status error" : "status";
+      }
+
+      function setInviteAcceptStatus(message, isError) {
+        if (!inviteAcceptStatus) return;
+        inviteAcceptStatus.textContent = message;
+        inviteAcceptStatus.className = isError ? "status error" : "status";
+      }
+
       function notify(message, type) {
         const div = document.createElement("div");
         div.className = type === "error" ? "toast error" : "toast";
@@ -116,6 +145,21 @@ const API_BASE = "http://localhost:3001";
           div.classList.remove("show");
           setTimeout(() => div.remove(), 300);
         }, 2500);
+      }
+
+      async function copyText(text) {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(text);
+          return;
+        }
+        const textarea = document.createElement("textarea");
+        textarea.value = text;
+        textarea.className = "copy-input";
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        document.execCommand("copy");
+        textarea.remove();
       }
 
       function formatDate(value) {
@@ -210,6 +254,16 @@ const API_BASE = "http://localhost:3001";
           (url.searchParams.toString() ? `?${url.searchParams.toString()}` : "") +
           url.hash;
         window.history.replaceState({}, "", next);
+      }
+
+      function bootstrapInviteFromUrl() {
+        if (!inviteAcceptForm) return;
+        const url = new URL(window.location.href);
+        const invite = url.searchParams.get("invite");
+        if (!invite) return;
+        inviteAcceptForm.invite_token.value = invite;
+        url.searchParams.delete("invite");
+        window.history.replaceState({}, "", url.pathname + url.search);
       }
 
       function setPresentationMode(enabled) {
@@ -311,6 +365,79 @@ const API_BASE = "http://localhost:3001";
         } catch (err) {
           setOrgStatus("Chargement impossible", true);
         }
+      }
+
+      async function loadOrg() {
+        if (!orgForm) return;
+        try {
+          const data = await fetchWithAuth("/org");
+          orgForm.name.value = data.name || "";
+          orgForm.plan.value = data.plan || "";
+          setOrgInfoStatus("Organisation chargee", false);
+        } catch (err) {
+          setOrgInfoStatus("Chargement organisation impossible", true);
+        }
+      }
+
+      async function loadInvites() {
+        if (!invitesTable) return;
+        try {
+          const data = await fetchWithAuth("/users/invites");
+          const items = data.items || [];
+          renderInvites(items);
+          setInviteStatus("Invitations chargees", false);
+        } catch (err) {
+          setInviteStatus("Chargement invitations impossible", true);
+        }
+      }
+
+      function renderInvites(items) {
+        invitesTable.innerHTML = items
+          .map((invite) => {
+            const expires = invite.expires_at ? formatDate(invite.expires_at) : "";
+            const disabled = invite.status !== "pending" ? "disabled" : "";
+            return `<tr>
+              <td>${invite.email}</td>
+              <td>${invite.role}</td>
+              <td>${invite.status}</td>
+              <td>${expires}</td>
+              <td><code>${invite.token}</code></td>
+              <td>
+                <button class="btn ghost" data-invite-copy="${invite.token}">
+                  Copier lien
+                </button>
+                <button class="btn ghost" data-invite-revoke="${invite.id}" ${disabled}>
+                  Revoquer
+                </button>
+              </td>
+            </tr>`;
+          })
+          .join("");
+
+        document.querySelectorAll("[data-invite-copy]").forEach((button) => {
+          button.addEventListener("click", async () => {
+            const token = button.getAttribute("data-invite-copy");
+            const link = `${window.location.origin}/app/?invite=${token}`;
+            try {
+              await copyText(link);
+              notify("Lien copie", "info");
+            } catch (err) {
+              notify("Copie impossible", "error");
+            }
+          });
+        });
+
+        document.querySelectorAll("[data-invite-revoke]").forEach((button) => {
+          button.addEventListener("click", async () => {
+            const id = button.getAttribute("data-invite-revoke");
+            try {
+              await fetchWithAuth(`/users/invite/${id}`, { method: "DELETE" });
+              loadInvites();
+            } catch (err) {
+              notify("Revocation impossible", "error");
+            }
+          });
+        });
       }
 
       function appendMessage(role, text) {
@@ -777,7 +904,37 @@ const API_BASE = "http://localhost:3001";
         }
       });
 
+      if (inviteAcceptForm) {
+        inviteAcceptForm.addEventListener("submit", async (event) => {
+          event.preventDefault();
+          const formData = new FormData(inviteAcceptForm);
+          const token = formData.get("invite_token");
+          const password = formData.get("invite_password");
+          try {
+            const res = await fetch(`${API_BASE}/users/invite/accept`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ token, password })
+            });
+            if (!res.ok) {
+              setInviteAcceptStatus("Activation impossible", true);
+              return;
+            }
+            const data = await res.json();
+            await login(data.email, password);
+            setInviteAcceptStatus("Invitation activee", false);
+            loginCard.style.display = "none";
+            setBanner(null);
+            await loadMe();
+            refreshAll();
+          } catch (err) {
+            setInviteAcceptStatus("Activation impossible", true);
+          }
+        });
+      }
+
       bootstrapTokenFromUrl();
+      bootstrapInviteFromUrl();
       initPresentationMode();
 
       if (quickAdminBtn) {
@@ -1319,6 +1476,59 @@ const API_BASE = "http://localhost:3001";
         orgSettingsReloadBtn.addEventListener("click", () => loadOrgSettings());
       }
 
+      if (orgForm) {
+        orgForm.addEventListener("submit", async (event) => {
+          event.preventDefault();
+          const formData = new FormData(orgForm);
+          const payload = {
+            name: formData.get("name"),
+            plan: formData.get("plan") || undefined
+          };
+          try {
+            await fetchWithAuth("/org", {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload)
+            });
+            setOrgInfoStatus("Organisation sauvegardee", false);
+          } catch (err) {
+            setOrgInfoStatus("Sauvegarde organisation impossible", true);
+          }
+        });
+      }
+
+      if (orgReloadBtn) {
+        orgReloadBtn.addEventListener("click", () => loadOrg());
+      }
+
+      if (inviteForm) {
+        inviteForm.addEventListener("submit", async (event) => {
+          event.preventDefault();
+          const formData = new FormData(inviteForm);
+          const payload = {
+            email: formData.get("email"),
+            role: formData.get("role"),
+            expires_hours: Number(formData.get("expires_hours") || 72)
+          };
+          try {
+            await fetchWithAuth("/users/invite", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload)
+            });
+            inviteForm.reset();
+            loadInvites();
+            setInviteStatus("Invitation creee", false);
+          } catch (err) {
+            setInviteStatus("Creation invitation impossible", true);
+          }
+        });
+      }
+
+      if (invitesReloadBtn) {
+        invitesReloadBtn.addEventListener("click", () => loadInvites());
+      }
+
       userForm.addEventListener("submit", async (event) => {
         event.preventDefault();
         const formData = new FormData(userForm);
@@ -1346,6 +1556,8 @@ const API_BASE = "http://localhost:3001";
         if (currentRole === "admin") {
           tasks.push(loadUsers());
           tasks.push(loadOrgSettings());
+          tasks.push(loadOrg());
+          tasks.push(loadInvites());
         }
         if (currentRole === "admin" || currentRole === "agent") {
           tasks.push(loadTickets());
@@ -1387,6 +1599,12 @@ const API_BASE = "http://localhost:3001";
           if (orgSettingsCard) {
             orgSettingsCard.style.display = currentRole === "admin" ? "block" : "none";
           }
+          if (orgCard) {
+            orgCard.style.display = currentRole === "admin" ? "block" : "none";
+          }
+          if (invitesCard) {
+            invitesCard.style.display = currentRole === "admin" ? "block" : "none";
+          }
           return;
         }
         usersCard.style.display = "none";
@@ -1397,5 +1615,11 @@ const API_BASE = "http://localhost:3001";
         adminToolsCard.style.display = "none";
         if (orgSettingsCard) {
           orgSettingsCard.style.display = "none";
+        }
+        if (orgCard) {
+          orgCard.style.display = "none";
+        }
+        if (invitesCard) {
+          invitesCard.style.display = "none";
         }
       }

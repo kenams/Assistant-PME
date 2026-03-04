@@ -17,7 +17,8 @@ const baseState = () => ({
   audit_logs: [],
   notifications: [],
   conversation_feedback: [],
-  org_settings: []
+  org_settings: [],
+  invites: []
 });
 
 function ensureStore() {
