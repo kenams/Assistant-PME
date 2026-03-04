@@ -252,6 +252,28 @@
             <input name="notify_on_ticket_created" type="checkbox" />
             <span>Notifier Slack/Teams a chaque ticket</span>
           </label>
+          <label class="toggle">
+            <input name="mailbox_enabled" type="checkbox" />
+            <span>Activer integration Gmail/Outlook (IMAP)</span>
+          </label>
+          <select name="mailbox_provider">
+            <option value="gmail">Gmail</option>
+            <option value="outlook">Outlook</option>
+            <option value="custom">Custom</option>
+          </select>
+          <input name="mailbox_user" placeholder="Email boite (IMAP)" type="email" />
+          <input name="mailbox_password" placeholder="Mot de passe / App password" type="password" />
+          <input name="mailbox_host" placeholder="Host IMAP (optionnel)" />
+          <input name="mailbox_port" placeholder="Port IMAP" type="number" min="1" max="65535" />
+          <label class="toggle">
+            <input name="mailbox_tls" type="checkbox" />
+            <span>Connexion TLS</span>
+          </label>
+          <input name="mailbox_folder" placeholder="Dossier IMAP (ex: INBOX)" />
+          <input name="mailbox_subject_prefix" placeholder="Prefix sujet (optionnel)" />
+          <button id="mailboxPullBtn" class="btn ghost" type="button">
+            Importer emails maintenant
+          </button>
           <select name="escalation_threshold">
             <option value="1">Escalade apres 1 echec</option>
             <option value="2" selected>Escalade apres 2 echecs</option>

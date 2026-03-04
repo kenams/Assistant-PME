@@ -1,14 +1,11 @@
 const express = require("express");
-const crypto = require("crypto");
 const { z } = require("zod");
 const { env } = require("../config/env");
 const { validateOr400 } = require("../utils/validate");
-const { getDefaultTenantId } = require("../services/tenants.service");
-const { findUserByEmailInTenant, createUser } = require("../services/users.service");
-const { createConversation, addMessage, updateConversation } = require("../services/conversations.service");
-const { createTicket } = require("../services/tickets.service");
-const { logEvent } = require("../services/audit.service");
-const { createNotification } = require("../services/notifications.service");
+const { ingestSupport } = require("../services/ingest.service");
+const { fetchMailboxOnce } = require("../services/mailbox.service");
+const { authRequired } = require("../middleware/auth");
+const { requireAdmin } = require("../middleware/roles");
 
 const router = express.Router();
 
@@ -43,83 +40,108 @@ router.post("/support", async (req, res) => {
   if (!tokenAllowed(req)) {
     return res.status(401).json({ error: "invalid_token" });
   }
-  const tenantId = getDefaultTenantId();
-  if (!tenantId) {
-    return res.status(500).json({ error: "tenant_not_found" });
-  }
-
-  let user = findUserByEmailInTenant({ tenantId, email: payload.from_email });
-  if (!user) {
-    const tempPassword = crypto.randomBytes(9).toString("base64url");
-    const created = createUser({
-      tenantId,
-      email: payload.from_email,
-      password: tempPassword,
-      role: "user"
+  try {
+    const result = await ingestSupport({
+      fromEmail: payload.from_email,
+      subject: payload.subject,
+      body: payload.body,
+      category: payload.category,
+      priority: payload.priority,
+      source: payload.source || "email"
     });
-    if (created.user) {
-      user = created.user;
-    }
+    return res.status(201).json({
+      ok: true,
+      ticket_id: result.ticket.id,
+      conversation_id: result.conversation.id
+    });
+  } catch (err) {
+    return res.status(500).json({ error: "ingest_failed" });
+  }
+});
+
+router.post("/slack", async (req, res) => {
+  if (!tokenAllowed(req)) {
+    return res.status(401).json({ error: "invalid_token" });
+  }
+  if (req.body && req.body.type === "url_verification") {
+    return res.json({ challenge: req.body.challenge });
   }
 
-  const conversation = createConversation({
-    tenantId,
-    userId: user ? user.id : null
-  });
+  const payload = req.body || {};
+  const event = payload.event || {};
+  const text =
+    payload.text ||
+    event.text ||
+    (payload.command ? `${payload.command} ${payload.text || ""}`.trim() : "");
+  if (!text) {
+    return res.status(400).json({ error: "missing_text" });
+  }
+  const user =
+    payload.user_name ||
+    payload.user ||
+    event.user ||
+    event.username ||
+    "slack-user";
+  const channel = payload.channel_name || payload.channel || event.channel || "slack";
+  const subject = `Slack: ${channel}`;
 
-  const body = payload.body || "";
-  const subject = payload.subject || "Demande support";
-  const message = `Sujet: ${subject}\n\n${body}`.trim();
-
-  addMessage({
-    tenantId,
-    conversationId: conversation.id,
-    role: "user",
-    content: message
-  });
-
-  const draft = {
-    title: `Email: ${subject}`.slice(0, 120),
-    summary: `Demande depuis ${payload.from_email}\n\n${body}`.trim(),
-    category: payload.category || payload.source || "email",
-    priority: payload.priority || "medium"
-  };
-
-  const ticket = await createTicket({
-    tenantId,
-    conversationId: conversation.id,
-    draft
-  });
-
-  updateConversation({
-    tenantId,
-    conversationId: conversation.id,
-    updates: { status: "escalated" }
-  });
-
-  logEvent({
-    tenantId,
-    userId: user ? user.id : null,
-    action: "ticket_ingested",
-    meta: { ticket_id: ticket.id, source: payload.source || "email" }
-  });
-
-  createNotification({
-    tenantId,
-    userId: user ? user.id : null,
-    type: "ticket_ingested",
-    channel: "support_ingest",
-    payload: {
+  try {
+    const result = await ingestSupport({
+      fromName: user,
       subject,
-      from: payload.from_email
-    }
-  });
+      body: text,
+      category: "slack",
+      priority: "medium",
+      source: "slack"
+    });
+    return res.status(201).json({
+      ok: true,
+      ticket_id: result.ticket.id,
+      conversation_id: result.conversation.id
+    });
+  } catch (err) {
+    return res.status(500).json({ error: "ingest_failed" });
+  }
+});
 
-  return res.status(201).json({
-    ok: true,
-    ticket_id: ticket.id,
-    conversation_id: conversation.id
-  });
+router.post("/teams", async (req, res) => {
+  if (!tokenAllowed(req)) {
+    return res.status(401).json({ error: "invalid_token" });
+  }
+  const payload = req.body || {};
+  const text = payload.text || payload.summary || payload.title || "";
+  if (!text) {
+    return res.status(400).json({ error: "missing_text" });
+  }
+  const fromName =
+    payload.from?.name || payload.from?.id || payload.user || "teams-user";
+  const subject = payload.title || "Teams";
+  try {
+    const result = await ingestSupport({
+      fromName,
+      subject: `Teams: ${subject}`,
+      body: text,
+      category: "teams",
+      priority: "medium",
+      source: "teams"
+    });
+    return res.status(201).json({
+      ok: true,
+      ticket_id: result.ticket.id,
+      conversation_id: result.conversation.id
+    });
+  } catch (err) {
+    return res.status(500).json({ error: "ingest_failed" });
+  }
+});
+
+router.post("/email/pull", authRequired, requireAdmin, async (req, res) => {
+  try {
+    const result = await fetchMailboxOnce();
+    return res.json({ ok: true, processed: result.processed || 0 });
+  } catch (err) {
+    return res.status(500).json({ error: "mailbox_pull_failed" });
+  }
 });
 
 module.exports = router;

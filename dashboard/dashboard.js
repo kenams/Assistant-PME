@@ -18,6 +18,9 @@ const API_BASE = "http://localhost:3001";
       const monitoringGrid = document.getElementById("monitoringGrid");
       const monitoringRoutes = document.getElementById("monitoringRoutes");
       const monitoringRefreshBtn = document.getElementById("monitoringRefreshBtn");
+      const analyticsGrid = document.getElementById("analyticsGrid");
+      const analyticsBars = document.getElementById("analyticsBars");
+      const analyticsRefreshBtn = document.getElementById("analyticsRefreshBtn");
       const leadsTable = document.getElementById("leadsTable").querySelector("tbody");
       const ticketsTable = document.getElementById("ticketsTable").querySelector("tbody");
       const quotesTable = document.getElementById("quotesTable").querySelector("tbody");
@@ -341,6 +344,54 @@ const API_BASE = "http://localhost:3001";
           : `<div class="status">Aucune requete suivie.</div>`;
       }
 
+      function renderAnalytics(analytics) {
+        if (!analytics) {
+          analyticsGrid.innerHTML = "";
+          analyticsBars.innerHTML = "";
+          return;
+        }
+        const items = [
+          {
+            label: "Temps reponse moyen",
+            value: `${analytics.response_avg_minutes || 0} min`
+          },
+          {
+            label: "Temps resolution moyen",
+            value: `${analytics.resolution_avg_minutes || 0} min`
+          },
+          {
+            label: "Feedback",
+            value: `${analytics.feedback?.average_rating || 0}/5`
+          },
+          {
+            label: "Taux feedback resolu",
+            value: `${analytics.feedback?.resolved_rate || 0}%`
+          }
+        ];
+        analyticsGrid.innerHTML = items
+          .map(
+            (item) =>
+              `<div class="metric"><span>${item.label}</span><strong>${item.value}</strong></div>`
+          )
+          .join("");
+
+        const categories = analytics.tickets_by_category || {};
+        const rows = Object.entries(categories)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 6);
+        const max = rows.length ? rows[0][1] : 1;
+        analyticsBars.innerHTML = rows.length
+          ? rows
+              .map(
+                ([label, value]) =>
+                  `<div class="bar-row"><span>${label}</span><div class="bar"><span style="width:${
+                    (value / max) * 100
+                  }%"></span></div><strong>${value}</strong></div>`
+              )
+              .join("")
+          : `<div class="status">Aucune donnee categorie.</div>`;
+      }
+
       function renderLeads(leads) {
         leadsTable.innerHTML = leads
           .map(
@@ -571,15 +622,18 @@ const API_BASE = "http://localhost:3001";
       async function refreshData() {
         try {
           const systemPromise = fetchWithAuth("/admin/metrics/system").catch(() => null);
-          const [metrics, system, leads, quotes, invoices] = await Promise.all([
+          const analyticsPromise = fetchWithAuth("/admin/analytics").catch(() => null);
+          const [metrics, system, analytics, leads, quotes, invoices] = await Promise.all([
             fetchWithAuth("/admin/metrics"),
             systemPromise,
+            analyticsPromise,
             fetchWithAuth("/leads"),
             fetchWithAuth("/billing/quotes"),
             fetchWithAuth("/billing/invoices")
           ]);
           renderMetrics(metrics);
           renderMonitoring(system);
+          renderAnalytics(analytics);
           renderLeads(leads.items || []);
           renderQuotes(quotes.items || []);
           renderInvoices(invoices.items || []);
@@ -719,6 +773,17 @@ const API_BASE = "http://localhost:3001";
             renderMonitoring(system);
           } catch (err) {
             setStatus("Monitoring indisponible", true);
+          }
+        });
+      }
+
+      if (analyticsRefreshBtn) {
+        analyticsRefreshBtn.addEventListener("click", async () => {
+          try {
+            const analytics = await fetchWithAuth("/admin/analytics");
+            renderAnalytics(analytics);
+          } catch (err) {
+            setStatus("Analytics indisponible", true);
           }
         });
       }

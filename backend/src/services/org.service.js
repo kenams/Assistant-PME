@@ -13,6 +13,15 @@ function defaultSettings(tenantId) {
     webhook_secret: "",
     slack_webhook_url: "",
     teams_webhook_url: "",
+    mailbox_enabled: false,
+    mailbox_provider: "gmail",
+    mailbox_host: "",
+    mailbox_port: 993,
+    mailbox_tls: true,
+    mailbox_user: "",
+    mailbox_password: "",
+    mailbox_folder: "INBOX",
+    mailbox_subject_prefix: "",
     updated_at: null
   };
 }

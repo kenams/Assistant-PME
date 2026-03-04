@@ -19,6 +19,7 @@ const env = {
   seedAdminEmail: process.env.SEED_ADMIN_EMAIL || "admin@assistant.local",
   seedAdminPassword: process.env.SEED_ADMIN_PASSWORD || "admin123",
   supportIngestToken: process.env.SUPPORT_INGEST_TOKEN || "",
+  mailPollIntervalMin: process.env.MAIL_POLL_INTERVAL_MIN || "5",
   glpiBaseUrl: process.env.GLPI_BASE_URL || "",
   glpiAppToken: process.env.GLPI_APP_TOKEN || "",
   glpiUserToken: process.env.GLPI_USER_TOKEN || "",

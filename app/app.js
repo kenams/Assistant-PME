@@ -72,6 +72,7 @@ const API_BASE = "http://localhost:3001";
       const orgSettingsForm = document.getElementById("orgSettingsForm");
       const orgSettingsReloadBtn = document.getElementById("orgSettingsReloadBtn");
       const orgSettingsStatus = document.getElementById("orgSettingsStatus");
+      const mailboxPullBtn = document.getElementById("mailboxPullBtn");
       const orgCard = document.getElementById("orgCard");
       const orgForm = document.getElementById("orgForm");
       const orgStatus = document.getElementById("orgStatus");
@@ -355,6 +356,18 @@ const API_BASE = "http://localhost:3001";
           orgSettingsForm.notify_on_ticket_created.checked = Boolean(
             data.notify_on_ticket_created
           );
+          orgSettingsForm.mailbox_enabled.checked = Boolean(data.mailbox_enabled);
+          orgSettingsForm.mailbox_provider.value = data.mailbox_provider || "gmail";
+          orgSettingsForm.mailbox_user.value = data.mailbox_user || "";
+          orgSettingsForm.mailbox_password.value = data.mailbox_password || "";
+          orgSettingsForm.mailbox_host.value = data.mailbox_host || "";
+          orgSettingsForm.mailbox_port.value =
+            typeof data.mailbox_port === "number" ? String(data.mailbox_port) : "993";
+          orgSettingsForm.mailbox_tls.checked =
+            typeof data.mailbox_tls === "boolean" ? data.mailbox_tls : true;
+          orgSettingsForm.mailbox_folder.value = data.mailbox_folder || "INBOX";
+          orgSettingsForm.mailbox_subject_prefix.value =
+            data.mailbox_subject_prefix || "";
           const threshold =
             typeof data.escalation_threshold === "number"
               ? String(data.escalation_threshold)
@@ -1451,8 +1464,20 @@ const API_BASE = "http://localhost:3001";
             webhook_secret: formData.get("webhook_secret") || "",
             slack_webhook_url: formData.get("slack_webhook_url") || "",
             teams_webhook_url: formData.get("teams_webhook_url") || "",
-            notify_on_ticket_created: Boolean(formData.get("notify_on_ticket_created"))
+            notify_on_ticket_created: Boolean(formData.get("notify_on_ticket_created")),
+            mailbox_enabled: Boolean(formData.get("mailbox_enabled")),
+            mailbox_provider: formData.get("mailbox_provider") || "gmail",
+            mailbox_user: formData.get("mailbox_user") || "",
+            mailbox_password: formData.get("mailbox_password") || "",
+            mailbox_host: formData.get("mailbox_host") || "",
+            mailbox_folder: formData.get("mailbox_folder") || "INBOX",
+            mailbox_subject_prefix: formData.get("mailbox_subject_prefix") || ""
           };
+          const mailboxPort = Number(formData.get("mailbox_port") || 993);
+          if (!Number.isNaN(mailboxPort)) {
+            payload.mailbox_port = mailboxPort;
+          }
+          payload.mailbox_tls = Boolean(formData.get("mailbox_tls"));
           const threshold = Number(formData.get("escalation_threshold") || 2);
           if (!Number.isNaN(threshold)) {
             payload.escalation_threshold = threshold;
@@ -1474,6 +1499,17 @@ const API_BASE = "http://localhost:3001";
 
       if (orgSettingsReloadBtn) {
         orgSettingsReloadBtn.addEventListener("click", () => loadOrgSettings());
+      }
+
+      if (mailboxPullBtn) {
+        mailboxPullBtn.addEventListener("click", async () => {
+          try {
+            await fetchWithAuth("/ingest/email/pull", { method: "POST" });
+            notify("Import email lance", "info");
+          } catch (err) {
+            notify("Import email impossible", "error");
+          }
+        });
       }
 
       if (orgForm) {

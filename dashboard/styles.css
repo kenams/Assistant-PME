@@ -194,6 +194,40 @@ select:focus {
   color: var(--text);
 }
 
+.analytics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.analytics-bars {
+  margin-top: 16px;
+  display: grid;
+  gap: 8px;
+}
+
+.bar-row {
+  display: grid;
+  grid-template-columns: 120px 1fr 60px;
+  gap: 10px;
+  align-items: center;
+  font-size: 0.85rem;
+}
+
+.bar {
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(216, 179, 91, 0.2);
+  overflow: hidden;
+}
+
+.bar > span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+}
+
 .metric {
   background: rgba(18, 24, 28, 0.7);
   border: 1px solid var(--stroke);
@@ -286,6 +320,7 @@ body.presentation #loginCard,
 body.presentation #leadsCard,
 body.presentation #ticketsCard,
 body.presentation #monitoringCard,
+body.presentation #analyticsCard,
 body.presentation #quotesCard,
 body.presentation #invoicesCard {
   display: none !important;

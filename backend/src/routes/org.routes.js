@@ -27,7 +27,16 @@ const settingsSchema = z.object({
   webhook_url: z.string().url().optional().or(z.literal("")),
   webhook_secret: z.string().min(6).optional().or(z.literal("")),
   slack_webhook_url: z.string().url().optional().or(z.literal("")),
-  teams_webhook_url: z.string().url().optional().or(z.literal(""))
+  teams_webhook_url: z.string().url().optional().or(z.literal("")),
+  mailbox_enabled: z.boolean().optional(),
+  mailbox_provider: z.enum(["gmail", "outlook", "custom"]).optional(),
+  mailbox_host: z.string().min(1).optional().or(z.literal("")),
+  mailbox_port: z.number().int().min(1).max(65535).optional(),
+  mailbox_tls: z.boolean().optional(),
+  mailbox_user: z.string().min(1).optional().or(z.literal("")),
+  mailbox_password: z.string().min(1).optional().or(z.literal("")),
+  mailbox_folder: z.string().min(1).optional().or(z.literal("")),
+  mailbox_subject_prefix: z.string().optional().or(z.literal(""))
 });
 
 const orgUpdateSchema = z.object({

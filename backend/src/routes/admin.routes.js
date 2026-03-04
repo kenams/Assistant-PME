@@ -8,6 +8,7 @@ const { testGlpiConnection, isGlpiEnabled } = require("../services/glpi.service"
 const { getSnapshot } = require("../services/monitoring.service");
 const { getTenantById } = require("../services/users.service");
 const { buildRoiPdf } = require("../services/pdf.service");
+const { computeAnalytics } = require("../services/analytics.service");
 const { buildCsv } = require("../utils/csv");
 
 const router = express.Router();
@@ -52,6 +53,11 @@ router.get("/metrics", authRequired, (req, res) => {
 
 router.get("/metrics/system", authRequired, requireAdmin, (req, res) => {
   return res.json(getSnapshot());
+});
+
+router.get("/analytics", authRequired, requireAdmin, (req, res) => {
+  const tenantId = req.user.tenant_id;
+  return res.json(computeAnalytics(tenantId));
 });
 
 router.get("/metrics/roi.pdf", authRequired, requireAdmin, async (req, res) => {

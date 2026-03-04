@@ -36,6 +36,8 @@ Ce repo contient la base produit (docs + backend MVP + landing).
 - Webhook sortant: configurer dans l'app > Parametres support (URL + secret)
 - Slack/Teams: configurer dans l'app > Parametres support (webhooks entrants)
 - Ingest support: definir `SUPPORT_INGEST_TOKEN` (optionnel)
+- Gmail/Outlook: activer dans l'app > Parametres support (IMAP + app password)
+- Poll IMAP: `MAIL_POLL_INTERVAL_MIN=5`
 
 ## Demarrage 1-clic (Windows)
 - `start-local.ps1` ou `start-local.bat` a la racine du projet.
@@ -78,6 +80,7 @@ Ces valeurs peuvent etre changees dans `.env`.
 - GET  /admin/metrics
 - GET  /admin/metrics/system
 - GET  /admin/metrics/roi.pdf
+- GET  /admin/analytics
 - GET  /admin/audit (auth admin)
 - GET  /admin/backup (auth admin)
 - POST /admin/restore (auth admin)
@@ -95,6 +98,9 @@ Ces valeurs peuvent etre changees dans `.env`.
 - GET  /tickets/export.csv (auth)
 - GET  /tickets/export.pdf (auth)
 - POST /ingest/support
+- POST /ingest/slack
+- POST /ingest/teams
+- POST /ingest/email/pull (auth admin)
 - GET  /users (auth admin)
 - POST /users (auth admin)
 - GET  /users/invites (auth admin)

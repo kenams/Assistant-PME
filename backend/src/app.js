@@ -9,6 +9,7 @@ const { createLogger } = require("./config/logger");
 const { ensureSeeded } = require("./services/users.service");
 const { errorHandler } = require("./middleware/error");
 const { monitoringMiddleware } = require("./middleware/monitoring");
+const { startMailboxPolling } = require("./services/mailbox.service");
 
 const healthRoutes = require("./routes/health.routes");
 const authRoutes = require("./routes/auth.routes");
@@ -27,6 +28,7 @@ const app = express();
 const logger = createLogger();
 
 ensureSeeded();
+startMailboxPolling();
 
 app.use(pinoHttp({ logger }));
 app.use(monitoringMiddleware);
