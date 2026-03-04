@@ -1,0 +1,35 @@
+{
+  "name": "assistant-backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "dev": "nodemon src/index.js",
+    "start": "node src/index.js",
+    "kb:import": "node scripts/import_kb.js",
+    "frontend:minify": "node scripts/minify_frontend.js",
+    "frontend:watch": "nodemon --watch ../app --watch ../dashboard --watch ../crm --ext js,html,css --exec \"node scripts/minify_frontend.js\"",
+    "test": "node --test ./tests/*.test.js",
+    "test:e2e": "playwright test",
+    "test:all": "npm run test && npm run test:e2e"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mammoth": "^1.7.2",
+    "multer": "^1.4.5-lts.1",
+    "pdf-parse": "^1.1.1",
+    "pdfkit": "^0.16.0",
+    "pino": "^9.3.2",
+    "pino-http": "^9.0.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.52.0",
+    "nodemon": "^3.1.4",
+    "terser": "^5.37.0"
+  }
+}

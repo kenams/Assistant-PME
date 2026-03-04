@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Assistant Support IT - Assistant IA Support Informatique pour PME</title>
+    <meta name="description" content="Assistant Support IT reduit les tickets IT inutiles pour les PME. Demo en 15 minutes." />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="bg-glow"></div>
+    <header class="nav">
+      <div class="logo">Assistant Support IT</div>
+      <a class="btn ghost" href="#demo">Demander une demo</a>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="pill">Assistant support IT pour PME</p>
+          <h1>Reduisez 30 a 50% des tickets IT simples</h1>
+          <p class="lead">
+            L'assistant repond instantanement aux demandes courantes, guide vos
+            collaborateurs et escalade vers un ticket si besoin.
+          </p>
+          <div class="cta">
+            <a class="btn primary" href="#demo">Demander une demo</a>
+            <a class="btn ghost" href="#proof">Voir les benefices</a>
+          </div>
+          <div class="trust">
+            <span>PME 10 a 200 salaries</span>
+            <span>Cabinets comptables</span>
+            <span>Industrie</span>
+            <span>Agences</span>
+            <span>Ecoles</span>
+          </div>
+        </div>
+        <div class="hero-card">
+          <div class="card-header">Exemple de conversation</div>
+          <div class="chat">
+            <div class="bubble user">Je n'ai plus acces a Outlook</div>
+            <div class="bubble ai">
+              Voici une tentative rapide:
+              <ol>
+                <li>Redemarrez Outlook.</li>
+                <li>Verifiez le VPN.</li>
+                <li>Notez le message d'erreur exact.</li>
+              </ol>
+              Voulez-vous que je cree un ticket si cela persiste ?
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="proof" class="grid">
+        <div class="grid-item">
+          <h3>Gain de temps immediat</h3>
+          <p>Les demandes simples sont resolues sans solliciter votre IT.</p>
+        </div>
+        <div class="grid-item">
+          <h3>Tickets auto-qualifies</h3>
+          <p>Resume, categorie et priorite generes automatiquement.</p>
+        </div>
+        <div class="grid-item">
+          <h3>Base de connaissances</h3>
+          <p>Procedures internes integrees et accessibles en langage simple.</p>
+        </div>
+      </section>
+
+      <section class="kpis">
+        <div class="kpi">
+          <strong>-40%</strong>
+          <span>Tickets simples</span>
+        </div>
+        <div class="kpi">
+          <strong>15 min</strong>
+          <span>Demo guidee</span>
+        </div>
+        <div class="kpi">
+          <strong>1 jour</strong>
+          <span>Setup initial</span>
+        </div>
+      </section>
+
+      <section class="how">
+        <h2>Comment ca marche</h2>
+        <div class="steps">
+          <div class="step">
+            <span>1</span>
+            <p>Vos equipes posent leurs questions dans le chat.</p>
+          </div>
+          <div class="step">
+            <span>2</span>
+            <p>L'assistant propose des actions simples et verifie le contexte.</p>
+          </div>
+          <div class="step">
+            <span>3</span>
+            <p>Si besoin, un ticket est cree avec un resume clair.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="demo" class="demo">
+        <div>
+          <h2>Demander une demo</h2>
+          <p>15 minutes pour voir si l'assistant vous fait gagner du temps.</p>
+        </div>
+        <form class="form" action="http://localhost:3001/leads" method="post">
+          <input name="name" placeholder="Nom" required />
+          <input name="email" placeholder="Email pro" type="email" required />
+          <input name="company" placeholder="Entreprise" />
+          <textarea name="message" placeholder="Votre besoin" rows="4"></textarea>
+          <button class="btn primary" type="submit">Recevoir une demo</button>
+          <p class="note">Formulaire connecte au backend local (gratuit).</p>
+        </form>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span>Assistant Support IT</span>
+      <span>Concu par Kah-Digital</span>
+    </footer>
+  </body>
+</html>

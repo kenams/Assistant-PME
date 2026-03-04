@@ -1,0 +1,32 @@
+{
+  "tenants": [
+    {
+      "id": "19c3f7e3-242d-4ee5-a576-ed4cd178231f",
+      "name": "Default",
+      "plan": "starter",
+      "created_at": "2026-03-04T08:54:16.515Z"
+    }
+  ],
+  "users": [
+    {
+      "id": "ec42cb0e-ae8a-40a6-ae35-572850ba0c47",
+      "tenant_id": "19c3f7e3-242d-4ee5-a576-ed4cd178231f",
+      "email": "admin@assistant.local",
+      "password_hash": "b2871ff1ee04ee77ad52fe82169d52b8:7ed5b9f2ac91b1ca3e8dd3ef956f9252437f17deac0a091e49251d17e2ec6eda075374dea76d284042e0d75228091ffe72f58867d93fa3e200ec0c87a7a4c999",
+      "role": "admin",
+      "created_at": "2026-03-04T08:54:16.560Z"
+    }
+  ],
+  "conversations": [],
+  "messages": [],
+  "tickets": [],
+  "kb_documents": [],
+  "kb_chunks": [],
+  "metrics_daily": [],
+  "leads": [],
+  "quotes": [],
+  "invoices": [],
+  "audit_logs": [],
+  "notifications": [],
+  "conversation_feedback": []
+}

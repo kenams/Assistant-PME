@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Assistant Support IT</title>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">Assistant Support IT</div>
+      <div class="actions">
+        <span id="netStatus" class="net-status">online</span>
+        <span id="sessionBadge" class="session-badge hidden"></span>
+        <button id="presentationToggle" class="btn ghost" type="button">
+          Mode presentation
+        </button>
+        <button id="refreshBtn" class="btn">Rafraichir</button>
+        <button id="logoutBtn" class="btn ghost">Deconnexion</button>
+      </div>
+    </header>
+    <div id="statusBanner" class="status-banner hidden"></div>
+
+    <main>
+      <section class="card" id="loginCard">
+        <h2>Connexion</h2>
+        <form id="loginForm" class="form">
+          <input name="email" type="email" placeholder="Email" required />
+          <input name="password" type="password" placeholder="Mot de passe" required />
+          <button class="btn primary" type="submit">Se connecter</button>
+          <p id="loginStatus" class="status"></p>
+        </form>
+        <div class="quick-login">
+          <a
+            id="quickAdminBtn"
+            class="btn ghost"
+            href="/auth/quick-admin?redirect=/app/"
+          >
+            Connexion admin rapide
+          </a>
+          <p class="note">Mode test local uniquement.</p>
+        </div>
+      </section>
+
+      <section class="card onboarding" id="onboardingCard">
+        <div class="card-header">
+          <h3>Demarrage rapide</h3>
+          <button id="demoBtn" class="btn ghost">Lancer la demo</button>
+        </div>
+        <div class="onboarding-steps">
+          <div>
+            <strong>1. Ajoutez une procedure</strong>
+            <p>Importez un PDF ou collez une procedure interne.</p>
+          </div>
+          <div>
+            <strong>2. Posez une question</strong>
+            <p>Exemple: “Je n’ai plus acces a Outlook”.</p>
+          </div>
+          <div>
+            <strong>3. Suivez les stats</strong>
+            <p>Tickets evites, escalades, temps gagne.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="grid">
+        <div class="card" id="kbCard">
+          <div class="card-header">
+            <h3>Chat utilisateur</h3>
+            <div class="actions-inline">
+              <button id="demoBtnInline" class="btn ghost">Demo</button>
+              <button id="newChatBtn" class="btn ghost">Nouveau</button>
+            </div>
+          </div>
+          <div class="kb-actions">
+            <input id="convoSearchInput" placeholder="Recherche conversations" />
+            <button id="convoSearchBtn" class="btn ghost">Chercher</button>
+            <select id="langSelect">
+              <option value="fr">FR</option>
+              <option value="en">EN</option>
+            </select>
+          </div>
+          <div class="convo-list" id="convoList"></div>
+          <div id="chatWindow" class="chat-window"></div>
+          <form id="chatForm" class="chat-form">
+            <input name="message" placeholder="Ecrire un message" required />
+            <button class="btn primary" type="submit">Envoyer</button>
+          </form>
+          <div class="sources" id="chatSources"></div>
+          <div class="feedback" id="feedbackBox">
+            <span>Resolution:</span>
+            <button id="resolveYesBtn" class="btn ghost">Resolue</button>
+            <button id="resolveNoBtn" class="btn ghost">Toujours probleme</button>
+            <select id="ratingSelect">
+              <option value="">Note</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+            </select>
+            <input id="feedbackComment" placeholder="Commentaire (optionnel)" />
+          </div>
+          <div class="chat-tickets" id="chatTickets"></div>
+          <div class="history-search" id="historySearch"></div>
+        </div>
+
+        <div class="card">
+          <h3>Base de connaissances</h3>
+          <form id="kbForm" class="form">
+            <input name="title" placeholder="Titre" required />
+            <select name="source_type">
+              <option value="note">note</option>
+              <option value="procedure">procedure</option>
+              <option value="faq">faq</option>
+              <option value="pdf">pdf</option>
+            </select>
+            <textarea name="content" rows="6" placeholder="Contenu" required></textarea>
+            <button class="btn primary" type="submit">Ajouter</button>
+          </form>
+          <form id="kbBulkForm" class="form">
+            <input name="bulk_title" placeholder="Titre de base (optionnel)" />
+            <select name="bulk_type">
+              <option value="faq">faq</option>
+              <option value="procedure">procedure</option>
+              <option value="note">note</option>
+            </select>
+            <textarea
+              name="bulk_content"
+              rows="5"
+              placeholder="Import rapide: Titre | Contenu (une ligne par entree)"
+            ></textarea>
+            <button class="btn ghost" type="submit">Importer rapidement</button>
+            <p class="status">Format: Mot de passe | Voici la procedure...</p>
+          </form>
+          <form id="kbUploadForm" class="form">
+            <input name="file_title" placeholder="Titre (optionnel)" />
+            <select name="file_type">
+              <option value="file">file</option>
+              <option value="pdf">pdf</option>
+              <option value="docx">docx</option>
+              <option value="txt">txt</option>
+            </select>
+            <div id="dropZone" class="drop-zone">Glisser des fichiers ici</div>
+            <input name="files" id="kbFilesInput" type="file" multiple />
+            <button class="btn ghost" type="submit">Uploader fichier</button>
+            <p class="status">PDF/DOCX/TXT pris en charge.</p>
+          </form>
+          <div class="kb-actions">
+            <input id="kbSearchInput" placeholder="Recherche" />
+            <button id="kbSearchBtn" class="btn ghost">Chercher</button>
+          </div>
+          <ul id="kbList" class="list"></ul>
+        </div>
+      </section>
+
+      <section class="card" id="ticketsCard">
+        <div class="card-header">
+          <h3>Tickets</h3>
+          <button id="reloadTicketsBtn" class="btn ghost">Recharger</button>
+        </div>
+        <div class="kb-actions">
+          <select id="ticketUserFilter">
+            <option value="">Tous</option>
+          </select>
+          <button id="ticketUserFilterBtn" class="btn ghost">Filtrer</button>
+        </div>
+        <form id="ticketForm" class="form two-columns">
+          <input name="title" placeholder="Titre" required />
+          <input name="category" placeholder="Categorie" required />
+          <select name="priority">
+            <option value="low">low</option>
+            <option value="medium" selected>medium</option>
+            <option value="high">high</option>
+          </select>
+          <textarea name="summary" rows="4" placeholder="Description" required></textarea>
+          <button class="btn primary" type="submit">Creer ticket</button>
+        </form>
+        <div class="table-wrap">
+          <table id="ticketsTable">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Titre</th>
+                <th>Categorie</th>
+                <th>Priorite</th>
+                <th>Status</th>
+                <th>Lien</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card" id="notificationsCard">
+        <div class="card-header">
+          <h3>Notifications</h3>
+          <div class="actions-inline">
+            <button id="reloadNotificationsBtn" class="btn ghost">Recharger</button>
+            <button id="testNotificationBtn" class="btn ghost">Test</button>
+            <button id="webhookNotificationBtn" class="btn ghost">Webhook</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table id="notificationsTable">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Channel</th>
+                <th>Payload</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card" id="orgSettingsCard">
+        <div class="card-header">
+          <h3>Parametres support</h3>
+          <button id="orgSettingsReloadBtn" class="btn ghost">Recharger</button>
+        </div>
+        <form id="orgSettingsForm" class="form two-columns">
+          <input name="support_email" placeholder="Email support" type="email" />
+          <input name="support_phone" placeholder="Telephone support" />
+          <input name="support_hours" placeholder="Horaires support" />
+          <input name="webhook_url" placeholder="Webhook URL (optionnel)" type="url" />
+          <input name="webhook_secret" placeholder="Webhook secret (optionnel)" />
+          <input name="slack_webhook_url" placeholder="Slack webhook URL" type="url" />
+          <input name="teams_webhook_url" placeholder="Teams webhook URL" type="url" />
+          <label class="toggle">
+            <input name="notify_on_ticket_created" type="checkbox" />
+            <span>Notifier Slack/Teams a chaque ticket</span>
+          </label>
+          <select name="escalation_threshold">
+            <option value="1">Escalade apres 1 echec</option>
+            <option value="2" selected>Escalade apres 2 echecs</option>
+            <option value="3">Escalade apres 3 echecs</option>
+            <option value="4">Escalade apres 4 echecs</option>
+            <option value="5">Escalade apres 5 echecs</option>
+          </select>
+          <textarea
+            name="signature"
+            rows="3"
+            placeholder="Signature (optionnel)"
+          ></textarea>
+          <button class="btn primary" type="submit">Sauver</button>
+          <p id="orgSettingsStatus" class="status"></p>
+        </form>
+      </section>
+
+      <section class="card" id="usersCard">
+        <div class="card-header">
+          <h3>Utilisateurs</h3>
+          <button id="reloadUsersBtn" class="btn ghost">Recharger</button>
+        </div>
+        <form id="userForm" class="form two-columns">
+          <input name="email" placeholder="Email" required />
+          <input name="password" placeholder="Mot de passe" type="password" required />
+          <select name="role">
+            <option value="user">user</option>
+            <option value="agent">agent</option>
+            <option value="admin">admin</option>
+          </select>
+          <button class="btn primary" type="submit">Ajouter</button>
+        </form>
+        <div class="table-wrap">
+          <table id="usersTable">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Email</th>
+                <th>Role</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card" id="adminToolsCard">
+        <div class="card-header">
+          <h3>Admin tools</h3>
+          <div class="actions-inline">
+            <button id="backupBtn" class="btn ghost">Backup</button>
+            <label class="btn ghost" for="restoreInput">Restore</label>
+            <input id="restoreInput" type="file" />
+            <button id="kbExportJsonBtn" class="btn ghost">KB JSON</button>
+            <button id="kbExportCsvBtn" class="btn ghost">KB CSV</button>
+            <label class="btn ghost" for="kbImportInput">KB Import</label>
+            <input id="kbImportInput" type="file" />
+            <button id="glpiTestBtn" class="btn ghost">Test GLPI</button>
+            <button id="convoExportJsonBtn" class="btn ghost">Convos JSON</button>
+            <button id="convoExportCsvBtn" class="btn ghost">Convos CSV</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table id="auditTable">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Action</th>
+                <th>User</th>
+                <th>Meta</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div class="table-wrap">
+          <table id="activityTable">
+            <thead>
+              <tr>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Conversations</th>
+                <th>Messages</th>
+                <th>Tickets</th>
+                <th>Derniere activite</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span class="footer-note">Concu par Kah-Digital</span>
+    </footer>
+
+    <script src="app.min.js" defer></script>
+  </body>
+</html>
