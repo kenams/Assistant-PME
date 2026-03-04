@@ -591,7 +591,8 @@ body.presentation #usersCard,
 body.presentation #adminToolsCard,
 body.presentation #orgSettingsCard,
 body.presentation #orgCard,
-body.presentation #invitesCard {
+body.presentation #invitesCard,
+body.presentation #diagnosticsCard {
   display: none !important;
 }
 

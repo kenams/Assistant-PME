@@ -151,4 +151,38 @@ function startMailboxPolling() {
   fetchMailboxOnce().catch(() => {});
 }
 
-module.exports = { startMailboxPolling, fetchMailboxOnce };
+function testMailboxConnection() {
+  const config = buildConfig();
+  if (!config) {
+    return Promise.resolve({ ok: false, error: "not_configured" });
+  }
+  return new Promise((resolve) => {
+    const imap = createImap(config);
+    let resolved = false;
+
+    function finish(result) {
+      if (resolved) return;
+      resolved = true;
+      resolve(result);
+    }
+
+    imap.once("ready", () => {
+      imap.openBox(config.folder, false, (err) => {
+        if (err) {
+          imap.end();
+          return finish({ ok: false, error: "open_box_failed" });
+        }
+        imap.end();
+        return finish({ ok: true });
+      });
+    });
+
+    imap.once("error", () => {
+      finish({ ok: false, error: "connection_failed" });
+    });
+
+    imap.connect();
+  });
+}
+
+module.exports = { startMailboxPolling, fetchMailboxOnce, testMailboxConnection };

@@ -88,6 +88,12 @@ const API_BASE = "http://localhost:3001";
       const invitesReloadBtn = document.getElementById("invitesReloadBtn");
       const inviteAcceptForm = document.getElementById("inviteAcceptForm");
       const inviteAcceptStatus = document.getElementById("inviteAcceptStatus");
+      const diagnosticsCard = document.getElementById("diagnosticsCard");
+      const diagnosticsReloadBtn = document.getElementById("diagnosticsReloadBtn");
+      const diagnosticsDeepBtn = document.getElementById("diagnosticsDeepBtn");
+      const diagnosticsTable = document
+        .getElementById("diagnosticsTable")
+        .querySelector("tbody");
 
       let conversationId = null;
       let currentRole = null;
@@ -486,6 +492,79 @@ const API_BASE = "http://localhost:3001";
             }
           });
         });
+      }
+
+      async function loadDiagnostics(deep = false) {
+        if (!diagnosticsTable) return;
+        try {
+          const suffix = deep ? "?deep=1" : "";
+          const data = await fetchWithAuth(`/admin/diagnostics${suffix}`);
+          renderDiagnostics(data);
+        } catch (err) {
+          notify("Diagnostics indisponibles", "error");
+        }
+      }
+
+      function renderDiagnostics(data) {
+        const rows = [
+          {
+            name: "OpenAI",
+            status: data.openai?.enabled
+              ? data.openai.configured
+                ? "OK"
+                : "Manquant"
+              : "Off",
+            detail: data.openai?.model || "-"
+          },
+          {
+            name: "GLPI",
+            status: data.glpi?.enabled ? data.glpi.ok : "Off",
+            detail: data.glpi?.enabled ? "GLPI active" : "Desactive"
+          },
+          {
+            name: "Mailbox",
+            status: data.mailbox?.enabled ? data.mailbox.ok : "Off",
+            detail: data.mailbox?.configured ? "IMAP configure" : "Non configure"
+          },
+          {
+            name: "OAuth Gmail",
+            status: data.oauth?.google?.connected ? "Connecte" : "Non",
+            detail: data.oauth?.google?.expires_at || "-"
+          },
+          {
+            name: "OAuth Outlook",
+            status: data.oauth?.outlook?.connected ? "Connecte" : "Non",
+            detail: data.oauth?.outlook?.expires_at || "-"
+          },
+          {
+            name: "Slack inbound",
+            status: data.inbound?.slack_signing_secret ? "Signe" : "Sans signature",
+            detail: data.inbound?.ingest_token ? "Token OK" : "Token OFF"
+          },
+          {
+            name: "Teams inbound",
+            status: data.inbound?.teams_signing_secret ? "Signe" : "Sans signature",
+            detail: data.inbound?.ingest_token ? "Token OK" : "Token OFF"
+          },
+          {
+            name: "Webhooks sortants",
+            status: data.outbound?.webhook_url ? "OK" : "OFF",
+            detail:
+              data.outbound?.slack_webhook || data.outbound?.teams_webhook
+                ? "Slack/Teams ON"
+                : "Aucun"
+          }
+        ];
+
+        diagnosticsTable.innerHTML = rows
+          .map(
+            (row) => `<tr>
+              <td>${row.name}</td>
+              <td>${row.status}</td>
+              <td>${row.detail}</td>
+            </tr>`
+          )
+          .join("");
       }
 
       function appendMessage(role, text) {
@@ -1640,6 +1719,14 @@ const API_BASE = "http://localhost:3001";
         invitesReloadBtn.addEventListener("click", () => loadInvites());
       }
 
+      if (diagnosticsReloadBtn) {
+        diagnosticsReloadBtn.addEventListener("click", () => loadDiagnostics(false));
+      }
+
+      if (diagnosticsDeepBtn) {
+        diagnosticsDeepBtn.addEventListener("click", () => loadDiagnostics(true));
+      }
+
       userForm.addEventListener("submit", async (event) => {
         event.preventDefault();
         const formData = new FormData(userForm);
@@ -1669,6 +1756,7 @@ const API_BASE = "http://localhost:3001";
           tasks.push(loadOrgSettings());
           tasks.push(loadOrg());
           tasks.push(loadInvites());
+          tasks.push(loadDiagnostics(false));
         }
         if (currentRole === "admin" || currentRole === "agent") {
           tasks.push(loadTickets());
@@ -1716,6 +1804,9 @@ const API_BASE = "http://localhost:3001";
           if (invitesCard) {
             invitesCard.style.display = currentRole === "admin" ? "block" : "none";
           }
+          if (diagnosticsCard) {
+            diagnosticsCard.style.display = currentRole === "admin" ? "block" : "none";
+          }
           return;
         }
         usersCard.style.display = "none";
@@ -1732,5 +1823,8 @@ const API_BASE = "http://localhost:3001";
         }
         if (invitesCard) {
           invitesCard.style.display = "none";
+        }
+        if (diagnosticsCard) {
+          diagnosticsCard.style.display = "none";
         }
       }

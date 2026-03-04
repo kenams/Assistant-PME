@@ -2,6 +2,7 @@ const express = require("express");
 const multer = require("multer");
 const { authRequired } = require("../middleware/auth");
 const { requireAdmin } = require("../middleware/roles");
+const { env } = require("../config/env");
 const { loadDb, saveDb, withDb } = require("../services/store.service");
 const { listAudit, logEvent } = require("../services/audit.service");
 const { testGlpiConnection, isGlpiEnabled } = require("../services/glpi.service");
@@ -9,6 +10,8 @@ const { getSnapshot } = require("../services/monitoring.service");
 const { getTenantById } = require("../services/users.service");
 const { buildRoiPdf, buildAnalyticsPdf } = require("../services/pdf.service");
 const { computeAnalytics } = require("../services/analytics.service");
+const { getOrgSettings } = require("../services/org.service");
+const { testMailboxConnection } = require("../services/mailbox.service");
 const { buildCsv } = require("../utils/csv");
 
 const router = express.Router();
@@ -74,6 +77,66 @@ router.get("/analytics/pdf", authRequired, requireAdmin, async (req, res) => {
     "attachment; filename=\"analytics_report.pdf\""
   );
   return res.send(pdf);
+});
+
+router.get("/diagnostics", authRequired, requireAdmin, async (req, res) => {
+  const tenantId = req.user.tenant_id;
+  const settings = getOrgSettings({ tenantId });
+  const deep = String(req.query.deep || "") === "1";
+
+  const diagnostics = {
+    openai: {
+      enabled: env.llmMode === "openai",
+      configured: Boolean(env.openaiApiKey),
+      model: env.openaiModel || ""
+    },
+    glpi: {
+      enabled: isGlpiEnabled(),
+      ok: isGlpiEnabled() ? "pending" : false
+    },
+    mailbox: {
+      enabled: Boolean(settings.mailbox_enabled),
+      configured: Boolean(settings.mailbox_user && settings.mailbox_password),
+      ok: settings.mailbox_enabled ? "pending" : false
+    },
+    oauth: {
+      google: {
+        connected: Boolean(settings.oauth_google_access_token),
+        expires_at: settings.oauth_google_expires_at || ""
+      },
+      outlook: {
+        connected: Boolean(settings.oauth_outlook_access_token),
+        expires_at: settings.oauth_outlook_expires_at || ""
+      }
+    },
+    inbound: {
+      slack_signing_secret: Boolean(settings.slack_signing_secret),
+      teams_signing_secret: Boolean(settings.teams_signing_secret),
+      ingest_token: Boolean(env.supportIngestToken)
+    },
+    outbound: {
+      webhook_url: Boolean(settings.webhook_url),
+      slack_webhook: Boolean(settings.slack_webhook_url),
+      teams_webhook: Boolean(settings.teams_webhook_url)
+    }
+  };
+
+  if (deep) {
+    if (isGlpiEnabled()) {
+      try {
+        await testGlpiConnection();
+        diagnostics.glpi.ok = true;
+      } catch (err) {
+        diagnostics.glpi.ok = false;
+      }
+    }
+    if (settings.mailbox_enabled) {
+      const result = await testMailboxConnection();
+      diagnostics.mailbox.ok = Boolean(result.ok);
+    }
+  }
+
+  return res.json(diagnostics);
 });
 
 router.get("/metrics/roi.pdf", authRequired, requireAdmin, async (req, res) => {

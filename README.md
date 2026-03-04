@@ -85,6 +85,7 @@ Ces valeurs peuvent etre changees dans `.env`.
 - GET  /admin/metrics/roi.pdf
 - GET  /admin/analytics
 - GET  /admin/analytics/pdf
+- GET  /admin/diagnostics
 - GET  /admin/audit (auth admin)
 - GET  /admin/backup (auth admin)
 - POST /admin/restore (auth admin)
