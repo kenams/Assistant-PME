@@ -26,6 +26,12 @@ const env = {
   rateLimitIngestMax: parseInt(process.env.RATE_LIMIT_INGEST_MAX || "30", 10),
   rateLimitLoginMax: parseInt(process.env.RATE_LIMIT_LOGIN_MAX || "10", 10),
   requireIngestToken: (process.env.REQUIRE_INGEST_TOKEN || "").toLowerCase() === "true",
+  leadAllowlistDomains: process.env.LEAD_ALLOWLIST_DOMAINS || "",
+  leadToken: process.env.LEAD_TOKEN || "",
+  requireLeadToken: (process.env.REQUIRE_LEAD_TOKEN || "").toLowerCase() === "true",
+  requireLeadChallenge:
+    (process.env.REQUIRE_LEAD_CHALLENGE || "").toLowerCase() === "true",
+  ingestAllowlistDomains: process.env.INGEST_ALLOWLIST_DOMAINS || "",
   glpiBaseUrl: process.env.GLPI_BASE_URL || "",
   glpiAppToken: process.env.GLPI_APP_TOKEN || "",
   glpiUserToken: process.env.GLPI_USER_TOKEN || "",

@@ -94,11 +94,17 @@ const API_BASE = "http://localhost:3001";
       const diagnosticsTable = document
         .getElementById("diagnosticsTable")
         .querySelector("tbody");
+      const superadminCard = document.getElementById("superadminCard");
+      const superadminMetrics = document.getElementById("superadminMetrics");
+      const superadminRefreshBtn = document.getElementById("superadminRefreshBtn");
+      const globalBackupBtn = document.getElementById("globalBackupBtn");
+      const globalRestoreInput = document.getElementById("globalRestoreInput");
       const tenantsCard = document.getElementById("tenantsCard");
       const tenantForm = document.getElementById("tenantForm");
       const tenantStatus = document.getElementById("tenantStatus");
       const tenantsTable = document.getElementById("tenantsTable").querySelector("tbody");
       const tenantsReloadBtn = document.getElementById("tenantsReloadBtn");
+      const tenantImportInput = document.getElementById("tenantImportInput");
 
       let conversationId = null;
       let currentRole = null;
@@ -365,6 +371,19 @@ const API_BASE = "http://localhost:3001";
         return res.text();
       }
 
+      async function downloadFile(path, filename, type) {
+        const text = await fetchTextWithAuth(path);
+        const blob = new Blob([text], { type: type || "application/json" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+      }
+
       async function loadOrgSettings() {
         if (!orgSettingsForm) return;
         try {
@@ -580,6 +599,31 @@ const API_BASE = "http://localhost:3001";
           .join("");
       }
 
+      async function loadSuperadminOverview() {
+        if (!superadminMetrics) return;
+        try {
+          const data = await fetchWithAuth("/tenants/overview");
+          const items = [
+            { label: "Tenants", value: data.tenants || 0 },
+            { label: "Utilisateurs", value: data.users || 0 },
+            { label: "Conversations", value: data.conversations || 0 },
+            { label: "Messages", value: data.messages || 0 },
+            { label: "Tickets", value: data.tickets || 0 },
+            { label: "Leads", value: data.leads || 0 },
+            { label: "Docs KB", value: data.kb_documents || 0 }
+          ];
+          superadminMetrics.innerHTML = items
+            .map(
+              (item) =>
+                `<div class="metric"><span>${item.label}</span><strong>${item.value}</strong></div>`
+            )
+            .join("");
+        } catch (err) {
+          superadminMetrics.innerHTML =
+            '<div class="status">Overview indisponible</div>';
+        }
+      }
+
       async function loadTenants() {
         if (!tenantsTable) return;
         try {
@@ -602,6 +646,12 @@ const API_BASE = "http://localhost:3001";
                 <button class="btn ghost" data-tenant-token="${tenant.id}">
                   Token admin
                 </button>
+                <button class="btn ghost" data-tenant-export="${tenant.id}">
+                  Export
+                </button>
+                <button class="btn ghost" data-tenant-import="${tenant.id}">
+                  Import
+                </button>
               </td>
             </tr>`
           )
@@ -623,6 +673,25 @@ const API_BASE = "http://localhost:3001";
             } catch (err) {
               notify("Token admin impossible", "error");
             }
+          });
+        });
+
+        document.querySelectorAll("[data-tenant-export]").forEach((button) => {
+          button.addEventListener("click", async () => {
+            const id = button.getAttribute("data-tenant-export");
+            try {
+              await downloadFile(`/tenants/${id}/export.json`, `tenant_${id}.json`);
+            } catch (err) {
+              notify("Export tenant impossible", "error");
+            }
+          });
+        });
+
+        document.querySelectorAll("[data-tenant-import]").forEach((button) => {
+          button.addEventListener("click", () => {
+            if (!tenantImportInput) return;
+            tenantImportInput.dataset.tenantId = button.getAttribute("data-tenant-import");
+            tenantImportInput.click();
           });
         });
       }
@@ -1787,6 +1856,62 @@ const API_BASE = "http://localhost:3001";
         diagnosticsDeepBtn.addEventListener("click", () => loadDiagnostics(true));
       }
 
+      if (superadminRefreshBtn) {
+        superadminRefreshBtn.addEventListener("click", () => loadSuperadminOverview());
+      }
+
+      if (globalBackupBtn) {
+        globalBackupBtn.addEventListener("click", async () => {
+          try {
+            await downloadFile("/tenants/export.json", "global_backup.json");
+          } catch (err) {
+            notify("Backup global impossible", "error");
+          }
+        });
+      }
+
+      if (globalRestoreInput) {
+        globalRestoreInput.addEventListener("change", async () => {
+          const file = globalRestoreInput.files[0];
+          if (!file) return;
+          const payload = new FormData();
+          payload.append("file", file);
+          try {
+            await fetchWithAuth("/tenants/import", {
+              method: "POST",
+              body: payload
+            });
+            globalRestoreInput.value = "";
+            loadSuperadminOverview();
+            loadTenants();
+            notify("Restore global termine", "info");
+          } catch (err) {
+            notify("Restore global impossible", "error");
+          }
+        });
+      }
+
+      if (tenantImportInput) {
+        tenantImportInput.addEventListener("change", async () => {
+          const file = tenantImportInput.files[0];
+          const tenantId = tenantImportInput.dataset.tenantId;
+          if (!file || !tenantId) return;
+          const payload = new FormData();
+          payload.append("file", file);
+          try {
+            await fetchWithAuth(`/tenants/${tenantId}/import`, {
+              method: "POST",
+              body: payload
+            });
+            tenantImportInput.value = "";
+            notify("Import tenant termine", "info");
+            loadTenants();
+          } catch (err) {
+            notify("Import tenant impossible", "error");
+          }
+        });
+      }
+
       if (tenantsReloadBtn) {
         tenantsReloadBtn.addEventListener("click", () => loadTenants());
       }
@@ -1848,6 +1973,7 @@ const API_BASE = "http://localhost:3001";
           tasks.push(loadDiagnostics(false));
           if (currentRole === "superadmin") {
             tasks.push(loadTenants());
+            tasks.push(loadSuperadminOverview());
           }
         }
         if (currentRole === "admin" || currentRole === "agent" || currentRole === "superadmin") {
@@ -1907,6 +2033,9 @@ const API_BASE = "http://localhost:3001";
           if (tenantsCard) {
             tenantsCard.style.display = currentRole === "superadmin" ? "block" : "none";
           }
+          if (superadminCard) {
+            superadminCard.style.display = currentRole === "superadmin" ? "block" : "none";
+          }
           return;
         }
         usersCard.style.display = "none";
@@ -1929,5 +2058,8 @@ const API_BASE = "http://localhost:3001";
         }
         if (tenantsCard) {
           tenantsCard.style.display = "none";
+        }
+        if (superadminCard) {
+          superadminCard.style.display = "none";
         }
       }

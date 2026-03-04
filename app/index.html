@@ -372,6 +372,19 @@
         </div>
       </section>
 
+      <section class="card" id="superadminCard">
+        <div class="card-header">
+          <h3>Superadmin</h3>
+          <div class="actions-inline">
+            <button id="superadminRefreshBtn" class="btn ghost">Refresh</button>
+            <button id="globalBackupBtn" class="btn ghost">Backup global</button>
+            <label class="btn ghost" for="globalRestoreInput">Restore global</label>
+            <input id="globalRestoreInput" type="file" />
+          </div>
+        </div>
+        <div class="grid" id="superadminMetrics"></div>
+      </section>
+
       <section class="card" id="tenantsCard">
         <div class="card-header">
           <h3>Tenants</h3>
@@ -403,6 +416,7 @@
             <tbody></tbody>
           </table>
         </div>
+        <input id="tenantImportInput" type="file" />
       </section>
 
       <section class="card" id="invitesCard">

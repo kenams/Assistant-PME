@@ -43,6 +43,19 @@ function getTenantSettings() {
   return getOrgSettings({ tenantId });
 }
 
+function parseAllowlist(raw) {
+  return (raw || "")
+    .split(",")
+    .map((value) => value.trim().toLowerCase())
+    .filter(Boolean);
+}
+
+function isAllowedDomain(email, allowlist) {
+  if (!allowlist.length) return true;
+  const domain = (email.split("@")[1] || "").toLowerCase();
+  return allowlist.includes(domain);
+}
+
 router.post("/support", ingestLimiter(), async (req, res) => {
   const payload = validateOr400(ingestSchema, res, req.body);
   if (!payload) {
@@ -50,6 +63,10 @@ router.post("/support", ingestLimiter(), async (req, res) => {
   }
   if (!tokenAllowed(req)) {
     return res.status(401).json({ error: "invalid_token" });
+  }
+  const allowlist = parseAllowlist(env.ingestAllowlistDomains);
+  if (!isAllowedDomain(payload.from_email, allowlist)) {
+    return res.status(403).json({ error: "domain_not_allowed" });
   }
   try {
     const result = await ingestSupport({

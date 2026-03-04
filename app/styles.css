@@ -173,7 +173,9 @@ main {
 }
 
 #restoreInput,
-#kbImportInput {
+#kbImportInput,
+#globalRestoreInput,
+#tenantImportInput {
   display: none;
 }
 
@@ -598,7 +600,8 @@ body.presentation #orgSettingsCard,
 body.presentation #orgCard,
 body.presentation #invitesCard,
 body.presentation #diagnosticsCard,
-body.presentation #tenantsCard {
+body.presentation #tenantsCard,
+body.presentation #superadminCard {
   display: none !important;
 }
 

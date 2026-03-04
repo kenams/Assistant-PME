@@ -252,6 +252,19 @@ main {
   font-family: inherit;
 }
 
+.honeypot {
+  position: absolute;
+  left: -9999px;
+  opacity: 0;
+  height: 0;
+  width: 0;
+}
+
+.challenge-label {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
 .note {
   font-size: 0.8rem;
   color: var(--muted);

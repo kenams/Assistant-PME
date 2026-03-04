@@ -109,6 +109,10 @@
           <input name="name" placeholder="Nom" required />
           <input name="email" placeholder="Email pro" type="email" required />
           <input name="company" placeholder="Entreprise" />
+          <input class="honeypot" name="company_website" tabindex="-1" autocomplete="off" />
+          <input type="hidden" name="challenge_id" id="challengeId" />
+          <label id="challengeLabel" class="challenge-label">Verification anti-spam</label>
+          <input name="challenge_answer" id="challengeAnswer" placeholder="Reponse" />
           <textarea name="message" placeholder="Votre besoin" rows="4"></textarea>
           <button class="btn primary" type="submit">Recevoir une demo</button>
           <p class="note">Formulaire connecte au backend local (gratuit).</p>
@@ -120,5 +124,6 @@
       <span>Assistant Support IT</span>
       <span>Concu par Kah-Digital</span>
     </footer>
+    <script src="landing.js" defer></script>
   </body>
 </html>

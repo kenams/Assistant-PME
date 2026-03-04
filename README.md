@@ -40,6 +40,8 @@ Ce repo contient la base produit (docs + backend MVP + landing).
 - Poll IMAP: `MAIL_POLL_INTERVAL_MIN=5`
 - Rate limit: `RATE_LIMIT_*` + `REQUIRE_INGEST_TOKEN`
 - Super admin: `SUPER_ADMIN_EMAIL`
+- Leads anti-spam: `LEAD_ALLOWLIST_DOMAINS`, `REQUIRE_LEAD_TOKEN`, `LEAD_TOKEN`, `REQUIRE_LEAD_CHALLENGE`
+- Ingest allowlist: `INGEST_ALLOWLIST_DOMAINS`
 - OAuth Gmail/Outlook: configurer client ID/secret + redirect URI dans l'app
 - Slack inbound: verifier la signature avec `slack_signing_secret` (optionnel)
 - Teams inbound: header `X-Teams-Signature` = HMAC SHA256 du body (optionnel)
@@ -91,6 +93,12 @@ Ces valeurs peuvent etre changees dans `.env`.
 - GET  /tenants (superadmin)
 - POST /tenants (superadmin)
 - POST /tenants/:id/token (superadmin)
+- GET  /tenants/overview (superadmin)
+- GET  /tenants/export.json (superadmin)
+- POST /tenants/import (superadmin)
+- GET  /tenants/:id/export.json (superadmin)
+- POST /tenants/:id/import (superadmin)
+- GET  /leads/challenge
 - GET  /admin/audit (auth admin)
 - GET  /admin/backup (auth admin)
 - POST /admin/restore (auth admin)
