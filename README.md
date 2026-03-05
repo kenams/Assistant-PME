@@ -42,9 +42,11 @@ Ce repo contient la base produit (docs + backend MVP + landing).
 - Super admin: `SUPER_ADMIN_EMAIL`
 - Leads anti-spam: `LEAD_ALLOWLIST_DOMAINS`, `REQUIRE_LEAD_TOKEN`, `LEAD_TOKEN`, `REQUIRE_LEAD_CHALLENGE`
 - Ingest allowlist: `INGEST_ALLOWLIST_DOMAINS`
+- SLA alerts: `SLA_NOTIFY_INTERVAL_MIN` (0 = desactive)
 - OAuth Gmail/Outlook: configurer client ID/secret + redirect URI dans l'app
 - Slack inbound: verifier la signature avec `slack_signing_secret` (optionnel)
 - Teams inbound: header `X-Teams-Signature` = HMAC SHA256 du body (optionnel)
+- SLA/ROI: configurer `SLA (heures)`, `Alerte SLA (%)`, `Cout moyen ticket` dans Parametres support
 
 ## Demarrage 1-clic (Windows)
 - `start-local.ps1` ou `start-local.bat` a la racine du projet.
@@ -89,7 +91,9 @@ Ces valeurs peuvent etre changees dans `.env`.
 - GET  /admin/metrics/roi.pdf
 - GET  /admin/analytics
 - GET  /admin/analytics/pdf
+- GET  /admin/analytics/summary.csv
 - GET  /admin/diagnostics
+- POST /admin/sla/notify
 - GET  /tenants (superadmin)
 - POST /tenants (superadmin)
 - POST /tenants/:id/token (superadmin)
@@ -158,6 +162,14 @@ Ces valeurs peuvent etre changees dans `.env`.
 ## App (Chat + KB + Tickets)
 - Lancer le backend puis ouvrir `http://localhost:3001/app/`.
 - Se connecter avec le compte admin.
+
+## Superadmin (multi-tenant)
+- Ouvrir `http://localhost:3001/superadmin/`.
+- Le compte doit etre `SUPER_ADMIN_EMAIL`.
+
+## Demo (seed)
+- Dans l'app > Admin tools: `Demo data` ou `Reset + demo`.
+- Endpoint: `POST /admin/demo/seed` (body `{ mode: "append" | "reset" }`).
 
 ## Frontend (minifier)
 - Generer les fichiers `.min.js` :

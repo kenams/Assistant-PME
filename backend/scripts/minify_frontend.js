@@ -9,7 +9,11 @@ const targets = [
     src: path.join(root, "dashboard", "dashboard.js"),
     out: path.join(root, "dashboard", "dashboard.min.js")
   },
-  { src: path.join(root, "crm", "crm.js"), out: path.join(root, "crm", "crm.min.js") }
+  { src: path.join(root, "crm", "crm.js"), out: path.join(root, "crm", "crm.min.js") },
+  {
+    src: path.join(root, "superadmin", "superadmin.js"),
+    out: path.join(root, "superadmin", "superadmin.min.js")
+  }
 ];
 
 async function run() {

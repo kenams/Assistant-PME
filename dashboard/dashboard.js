@@ -22,6 +22,10 @@ const API_BASE = "http://localhost:3001";
       const analyticsGrid = document.getElementById("analyticsGrid");
       const analyticsBars = document.getElementById("analyticsBars");
       const analyticsRefreshBtn = document.getElementById("analyticsRefreshBtn");
+      const slaNotifyBtn = document.getElementById("slaNotifyBtn");
+      const exportAnalyticsSummaryBtn = document.getElementById(
+        "exportAnalyticsSummaryBtn"
+      );
       const leadsTable = document.getElementById("leadsTable").querySelector("tbody");
       const ticketsTable = document.getElementById("ticketsTable").querySelector("tbody");
       const quotesTable = document.getElementById("quotesTable").querySelector("tbody");
@@ -181,6 +185,7 @@ const API_BASE = "http://localhost:3001";
         }
         return res.text();
       }
+
 
       async function postWithAuth(path, payload) {
         const token = getToken();
@@ -370,6 +375,37 @@ const API_BASE = "http://localhost:3001";
             value: `${analytics.feedback?.resolved_rate || 0}%`
           }
         ];
+        if (analytics.roi) {
+          items.push(
+            {
+              label: "Tickets evites",
+              value: analytics.roi.tickets_evites || 0
+            },
+            {
+              label: "Heures gagnees",
+              value: `${analytics.roi.hours_saved || 0} h`
+            },
+            {
+              label: "Gain estime",
+              value:
+                analytics.roi.savings_estimate && analytics.roi.savings_estimate > 0
+                  ? `${analytics.roi.savings_estimate} €`
+                  : "-",
+            }
+          );
+        }
+        if (analytics.sla) {
+          items.push(
+            {
+              label: "SLA en retard",
+              value: analytics.sla.breached_open_count || 0
+            },
+            {
+              label: "SLA a risque",
+              value: analytics.sla.at_risk_count || 0
+            }
+          );
+        }
         analyticsGrid.innerHTML = items
           .map(
             (item) =>
@@ -377,12 +413,30 @@ const API_BASE = "http://localhost:3001";
           )
           .join("");
 
+        const sla = analytics.sla || {};
+        const alerts = sla.alerts || [];
+        const alertsHtml = alerts.length
+          ? `<div class="status">Alertes SLA (seuil ${sla.warning_pct || 80}%)</div>` +
+            alerts
+              .map(
+                (alert) =>
+                  `<div class="sla-alert ${alert.type}">
+                    <div>
+                      <strong>${alert.title || "Ticket"}</strong>
+                      <div class="muted">Age: ${alert.age_hours}h • ${alert.status}</div>
+                    </div>
+                    <span class="pill">${alert.type === "breach" ? "Depasse" : "A risque"}</span>
+                  </div>`
+              )
+              .join("")
+          : `<div class="status">Aucune alerte SLA.</div>`;
+
         const categories = analytics.tickets_by_category || {};
         const rows = Object.entries(categories)
           .sort((a, b) => b[1] - a[1])
           .slice(0, 6);
         const max = rows.length ? rows[0][1] : 1;
-        analyticsBars.innerHTML = rows.length
+        const categoriesHtml = rows.length
           ? rows
               .map(
                 ([label, value]) =>
@@ -392,6 +446,7 @@ const API_BASE = "http://localhost:3001";
               )
               .join("")
           : `<div class="status">Aucune donnee categorie.</div>`;
+        analyticsBars.innerHTML = `${alertsHtml}<div class="divider"></div>${categoriesHtml}`;
       }
 
       function renderLeads(leads) {
@@ -800,6 +855,27 @@ const API_BASE = "http://localhost:3001";
             renderAnalytics(analytics);
           } catch (err) {
             setStatus("Analytics indisponible", true);
+          }
+        });
+      }
+
+      if (slaNotifyBtn) {
+        slaNotifyBtn.addEventListener("click", async () => {
+          try {
+            await postWithAuth("/admin/sla/notify", {});
+            setStatus("Verification SLA lancee.", false);
+          } catch (err) {
+            setStatus("Verification SLA impossible.", true);
+          }
+        });
+      }
+
+      if (exportAnalyticsSummaryBtn) {
+        exportAnalyticsSummaryBtn.addEventListener("click", async () => {
+          try {
+            await downloadCsv("/admin/analytics/summary.csv", "analytics_summary.csv");
+          } catch (err) {
+            setStatus("Export KPI impossible.", true);
           }
         });
       }

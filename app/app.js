@@ -11,6 +11,11 @@ const API_BASE = "http://localhost:3001";
       const quickAdminBtn = document.getElementById("quickAdminBtn");
       const demoBtn = document.getElementById("demoBtn");
       const demoBtnInline = document.getElementById("demoBtnInline");
+      const checklistReloadBtn = document.getElementById("checklistReloadBtn");
+      const setupChecklist = document.getElementById("setupChecklist");
+      const setupChecklistCard = document.getElementById("setupChecklistCard");
+      const demoSeedBtn = document.getElementById("demoSeedBtn");
+      const demoResetBtn = document.getElementById("demoResetBtn");
 
       const chatWindow = document.getElementById("chatWindow");
       const chatForm = document.getElementById("chatForm");
@@ -414,6 +419,16 @@ const API_BASE = "http://localhost:3001";
             data.slack_signing_secret || "";
           orgSettingsForm.teams_signing_secret.value =
             data.teams_signing_secret || "";
+          orgSettingsForm.sla_hours.value =
+            typeof data.sla_hours === "number" ? String(data.sla_hours) : "24";
+          orgSettingsForm.sla_warning_pct.value =
+            typeof data.sla_warning_pct === "number"
+              ? String(data.sla_warning_pct)
+              : "80";
+          orgSettingsForm.cost_per_ticket.value =
+            typeof data.cost_per_ticket === "number"
+              ? String(data.cost_per_ticket)
+              : "12";
           orgSettingsForm.oauth_google_client_id.value =
             data.oauth_google_client_id || "";
           orgSettingsForm.oauth_google_client_secret.value =
@@ -450,6 +465,86 @@ const API_BASE = "http://localhost:3001";
           setOrgStatus("Parametres charges", false);
         } catch (err) {
           setOrgStatus("Chargement impossible", true);
+        }
+      }
+
+      async function loadChecklist() {
+        if (!setupChecklist) return;
+        try {
+          const [diagnostics, settings, orgInfo, kbData] = await Promise.all([
+            fetchWithAuth("/admin/diagnostics"),
+            fetchWithAuth("/org/settings"),
+            fetchWithAuth("/org"),
+            fetchWithAuth("/kb/documents")
+          ]);
+          const kbCount = (kbData.items || []).length;
+          const items = [
+            {
+              label: "Organisation configuree",
+              ok: Boolean(orgInfo.name),
+              hint: "Renseignez le nom et le plan dans Organisation."
+            },
+            {
+              label: "Base de connaissances",
+              ok: kbCount > 0,
+              hint: "Ajoutez au moins une procedure ou FAQ."
+            },
+            {
+              label: "IA configuree",
+              ok: diagnostics.openai.configured || diagnostics.openai.enabled === false,
+              hint: "Activez OpenAI si vous sortez du mode mock."
+            },
+            {
+              label: "GLPI connecte",
+              ok: diagnostics.glpi.enabled,
+              hint: "Activez GLPI pour l'escalade automatique."
+            },
+            {
+              label: "Boite mail support",
+              ok: diagnostics.mailbox.enabled && diagnostics.mailbox.configured,
+              hint: "Activez IMAP ou OAuth pour la boite support."
+            },
+            {
+              label: "OAuth Gmail/Outlook",
+              ok:
+                diagnostics.oauth.google.connected ||
+                diagnostics.oauth.outlook.connected,
+              hint: "Connectez au moins un fournisseur pour lire les emails."
+            },
+            {
+              label: "Webhooks sortants",
+              ok: Boolean(settings.webhook_url),
+              hint: "Configurez un webhook pour les alertes."
+            },
+            {
+              label: "Slack/Teams inbound",
+              ok: Boolean(settings.slack_signing_secret || settings.teams_signing_secret),
+              hint: "Ajoutez un secret pour recevoir des tickets entrants."
+            },
+            {
+              label: "SLA defini",
+              ok: Number(settings.sla_hours || 0) > 0,
+              hint: "Definissez un SLA pour le suivi des tickets."
+            }
+          ];
+          const completed = items.filter((item) => item.ok).length;
+          setupChecklist.innerHTML =
+            `<div class="status">${completed}/${items.length} etapes completes</div>` +
+            items
+              .map(
+                (item) =>
+                  `<div class="checklist-item ${item.ok ? "ok" : "warn"}">
+                    <div>
+                      <strong>${item.label}</strong>
+                      <div class="hint">${item.hint}</div>
+                    </div>
+                    <span class="checklist-pill">${item.ok ? "OK" : "A faire"}</span>
+                  </div>`
+              )
+              .join("");
+        } catch (err) {
+          setupChecklist.innerHTML =
+            `<div class="status">Checklist indisponible.</div>`;
         }
       }
 
@@ -1249,6 +1344,12 @@ const API_BASE = "http://localhost:3001";
       if (demoBtnInline) {
         demoBtnInline.addEventListener("click", () => runDemo());
       }
+      if (demoSeedBtn) {
+        demoSeedBtn.addEventListener("click", () => seedDemo("append"));
+      }
+      if (demoResetBtn) {
+        demoResetBtn.addEventListener("click", () => seedDemo("reset"));
+      }
 
       convoSearchBtn.addEventListener("click", (event) => {
         event.preventDefault();
@@ -1334,6 +1435,20 @@ const API_BASE = "http://localhost:3001";
         } catch (err) {
           appendMessage("assistant", "Erreur. Verifiez le backend.");
           notify("Erreur: backend indisponible", "error");
+        }
+      }
+
+      async function seedDemo(mode) {
+        try {
+          await fetchWithAuth("/admin/demo/seed", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ mode })
+          });
+          notify("Demo initialisee", "info");
+          refreshAll();
+        } catch (err) {
+          notify("Demo impossible", "error");
         }
       }
 
@@ -1739,6 +1854,18 @@ const API_BASE = "http://localhost:3001";
           if (!Number.isNaN(threshold)) {
             payload.escalation_threshold = threshold;
           }
+          const slaHours = Number(formData.get("sla_hours") || 0);
+          if (!Number.isNaN(slaHours)) {
+            payload.sla_hours = slaHours;
+          }
+          const slaWarningPct = Number(formData.get("sla_warning_pct") || 0);
+          if (!Number.isNaN(slaWarningPct)) {
+            payload.sla_warning_pct = slaWarningPct;
+          }
+          const costPerTicket = Number(formData.get("cost_per_ticket") || 0);
+          if (!Number.isNaN(costPerTicket)) {
+            payload.cost_per_ticket = costPerTicket;
+          }
           try {
             await fetchWithAuth("/org/settings", {
               method: "PUT",
@@ -1756,6 +1883,10 @@ const API_BASE = "http://localhost:3001";
 
       if (orgSettingsReloadBtn) {
         orgSettingsReloadBtn.addEventListener("click", () => loadOrgSettings());
+      }
+
+      if (checklistReloadBtn) {
+        checklistReloadBtn.addEventListener("click", () => loadChecklist());
       }
 
       if (mailboxPullBtn) {
@@ -1971,6 +2102,7 @@ const API_BASE = "http://localhost:3001";
           tasks.push(loadOrg());
           tasks.push(loadInvites());
           tasks.push(loadDiagnostics(false));
+          tasks.push(loadChecklist());
           if (currentRole === "superadmin") {
             tasks.push(loadTenants());
             tasks.push(loadSuperadminOverview());
@@ -2030,6 +2162,9 @@ const API_BASE = "http://localhost:3001";
           if (diagnosticsCard) {
             diagnosticsCard.style.display = isAdmin ? "block" : "none";
           }
+          if (setupChecklistCard) {
+            setupChecklistCard.style.display = isAdmin ? "block" : "none";
+          }
           if (tenantsCard) {
             tenantsCard.style.display = currentRole === "superadmin" ? "block" : "none";
           }
@@ -2055,6 +2190,9 @@ const API_BASE = "http://localhost:3001";
         }
         if (diagnosticsCard) {
           diagnosticsCard.style.display = "none";
+        }
+        if (setupChecklistCard) {
+          setupChecklistCard.style.display = "none";
         }
         if (tenantsCard) {
           tenantsCard.style.display = "none";

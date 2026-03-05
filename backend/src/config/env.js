@@ -32,6 +32,7 @@ const env = {
   requireLeadChallenge:
     (process.env.REQUIRE_LEAD_CHALLENGE || "").toLowerCase() === "true",
   ingestAllowlistDomains: process.env.INGEST_ALLOWLIST_DOMAINS || "",
+  slaNotifyIntervalMin: process.env.SLA_NOTIFY_INTERVAL_MIN || "0",
   glpiBaseUrl: process.env.GLPI_BASE_URL || "",
   glpiAppToken: process.env.GLPI_APP_TOKEN || "",
   glpiUserToken: process.env.GLPI_USER_TOKEN || "",

@@ -4,10 +4,11 @@ const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
 
-process.env.NODE_ENV = "development";
+process.env.NODE_ENV = "test";
 process.env.JWT_SECRET = "test_secret";
 process.env.SEED_ADMIN_EMAIL = "admin@assistant.local";
 process.env.SEED_ADMIN_PASSWORD = "admin123";
+process.env.SUPER_ADMIN_EMAIL = "";
 
 const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "assistant-tests-"));
 process.env.DATA_STORE_PATH = path.join(tmpDir, "db.json");

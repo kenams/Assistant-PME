@@ -159,6 +159,50 @@ main {
   margin-bottom: 6px;
 }
 
+.checklist {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.checklist-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--stroke);
+  background: rgba(18, 24, 28, 0.7);
+}
+
+.checklist-item strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.checklist-item .hint {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.checklist-item.ok {
+  border-color: rgba(58, 174, 163, 0.4);
+}
+
+.checklist-item.warn {
+  border-color: rgba(242, 199, 110, 0.4);
+}
+
+.checklist-pill {
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--stroke);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
 .card-header {
   display: flex;
   align-items: center;

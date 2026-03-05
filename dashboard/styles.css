@@ -51,6 +51,12 @@ body::before {
   gap: 10px;
 }
 
+.actions-inline {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .status-banner {
   padding: 10px 6vw;
   border-bottom: 1px solid var(--stroke);
@@ -210,6 +216,45 @@ select:focus {
   margin-top: 16px;
   display: grid;
   gap: 8px;
+}
+
+.divider {
+  height: 1px;
+  background: var(--stroke);
+  margin: 10px 0;
+}
+
+.sla-alert {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--stroke);
+  background: rgba(18, 24, 28, 0.65);
+}
+
+.sla-alert .muted {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.sla-alert.breach {
+  border-color: rgba(255, 123, 123, 0.4);
+}
+
+.sla-alert.warning {
+  border-color: rgba(242, 199, 110, 0.4);
+}
+
+.pill {
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--stroke);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .bar-row {

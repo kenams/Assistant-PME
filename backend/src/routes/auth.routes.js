@@ -68,7 +68,7 @@ router.post("/login", loginLimiter(), (req, res) => {
 });
 
 router.post("/quick-admin", (req, res) => {
-  if (env.nodeEnv !== "development") {
+  if (env.nodeEnv !== "development" && env.nodeEnv !== "test") {
     return res.status(403).json({ error: "forbidden" });
   }
 
@@ -111,7 +111,7 @@ router.post("/quick-admin", (req, res) => {
 });
 
 router.get("/quick-admin", (req, res) => {
-  if (env.nodeEnv !== "development") {
+  if (env.nodeEnv !== "development" && env.nodeEnv !== "test") {
     return res.status(403).json({ error: "forbidden" });
   }
 

@@ -1,4 +1,5 @@
 const { loadDb } = require("./store.service");
+const { getOrgSettings } = require("./org.service");
 
 function round(value, digits = 1) {
   const factor = 10 ** digits;
@@ -29,6 +30,96 @@ function rangeDays(days) {
   return list;
 }
 
+function computeRoi({ conversations, tickets, settings }) {
+  const ticketConversations = new Set(
+    tickets.map((ticket) => ticket.conversation_id).filter(Boolean)
+  );
+  const ticketsEvites = conversations.filter(
+    (c) => c.status === "resolved" && !ticketConversations.has(c.id)
+  ).length;
+  const minutesSaved = ticketsEvites * 8;
+  const hoursSaved = round(minutesSaved / 60, 1);
+  const costPerTicket = Number(settings.cost_per_ticket || 0);
+  const savingsEstimate = costPerTicket > 0 ? ticketsEvites * costPerTicket : 0;
+
+  return {
+    tickets_evites: ticketsEvites,
+    minutes_saved: minutesSaved,
+    hours_saved: hoursSaved,
+    cost_per_ticket: costPerTicket,
+    savings_estimate: round(savingsEstimate, 2)
+  };
+}
+
+function computeSla({ tickets, settings }) {
+  const slaHours = Number(settings.sla_hours || 24);
+  const warningPct = Number(settings.sla_warning_pct || 80);
+  const warningHours = (slaHours * warningPct) / 100;
+  const now = Date.now();
+
+  let breached = 0;
+  let atRisk = 0;
+  let openCount = 0;
+  let breachedOpen = 0;
+  let breachedClosed = 0;
+  const alerts = [];
+
+  tickets.forEach((ticket) => {
+    const createdAt = ticket.created_at ? new Date(ticket.created_at).getTime() : null;
+    if (!createdAt || Number.isNaN(createdAt)) {
+      return;
+    }
+    const status = ticket.status || "open";
+    const isOpen = status === "open" || status === "pending";
+    const updatedAt = ticket.updated_at ? new Date(ticket.updated_at).getTime() : null;
+    const ageHours = (now - createdAt) / 3600000;
+    const durationHours =
+      updatedAt && !Number.isNaN(updatedAt)
+        ? (updatedAt - createdAt) / 3600000
+        : ageHours;
+
+    if (isOpen) {
+      openCount += 1;
+      if (ageHours >= slaHours) {
+        breached += 1;
+        breachedOpen += 1;
+        alerts.push({
+          id: ticket.id,
+          title: ticket.title,
+          status,
+          age_hours: round(ageHours, 1),
+          type: "breach"
+        });
+      } else if (ageHours >= warningHours) {
+        atRisk += 1;
+        alerts.push({
+          id: ticket.id,
+          title: ticket.title,
+          status,
+          age_hours: round(ageHours, 1),
+          type: "warning"
+        });
+      }
+    } else if (durationHours >= slaHours) {
+      breached += 1;
+      breachedClosed += 1;
+    }
+  });
+
+  alerts.sort((a, b) => b.age_hours - a.age_hours);
+
+  return {
+    hours: slaHours,
+    warning_pct: warningPct,
+    breached_count: breached,
+    at_risk_count: atRisk,
+    open_count: openCount,
+    breached_open_count: breachedOpen,
+    breached_closed_count: breachedClosed,
+    alerts: alerts.slice(0, 6)
+  };
+}
+
 function computeAnalytics(tenantId) {
   const db = loadDb();
   const conversations = (db.conversations || []).filter(
@@ -39,6 +130,7 @@ function computeAnalytics(tenantId) {
   const feedback = (db.conversation_feedback || []).filter(
     (f) => f.tenant_id === tenantId
   );
+  const settings = getOrgSettings({ tenantId });
 
   const messagesByConversation = new Map();
   messages.forEach((msg) => {
@@ -131,7 +223,9 @@ function computeAnalytics(tenantId) {
       average_rating: feedbackAvg,
       resolved_rate: feedbackResolvedRate
     },
-    volume_last_14_days: volume
+    volume_last_14_days: volume,
+    sla: computeSla({ tickets, settings }),
+    roi: computeRoi({ conversations, tickets, settings })
   };
 }
 

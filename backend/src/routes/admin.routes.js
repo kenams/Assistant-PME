@@ -13,6 +13,8 @@ const { computeAnalytics } = require("../services/analytics.service");
 const { getOrgSettings } = require("../services/org.service");
 const { testMailboxConnection } = require("../services/mailbox.service");
 const { buildCsv } = require("../utils/csv");
+const { seedDemoData } = require("../services/demo.service");
+const { sendSlaAlerts } = require("../services/sla.service");
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
@@ -79,6 +81,31 @@ router.get("/analytics/pdf", authRequired, requireAdmin, async (req, res) => {
   return res.send(pdf);
 });
 
+router.get("/analytics/summary.csv", authRequired, requireAdmin, (req, res) => {
+  const tenantId = req.user.tenant_id;
+  const metrics = computeMetrics(tenantId);
+  const analytics = computeAnalytics(tenantId);
+  const row = {
+    tickets_evites: analytics.roi?.tickets_evites || metrics.tickets_evites || 0,
+    tickets_crees: metrics.tickets_crees || 0,
+    minutes_economisees: analytics.roi?.minutes_saved || metrics.minutes_economisees || 0,
+    heures_gagnees: analytics.roi?.hours_saved || 0,
+    gain_estime: analytics.roi?.savings_estimate || 0,
+    response_avg_minutes: analytics.response_avg_minutes || 0,
+    resolution_avg_minutes: analytics.resolution_avg_minutes || 0,
+    feedback_avg: analytics.feedback?.average_rating || 0,
+    feedback_resolved_rate: analytics.feedback?.resolved_rate || 0,
+    sla_hours: analytics.sla?.hours || 0,
+    sla_breached_open: analytics.sla?.breached_open_count || 0,
+    sla_at_risk: analytics.sla?.at_risk_count || 0
+  };
+  const headers = Object.keys(row);
+  const csv = buildCsv(headers, [headers.map((key) => row[key])]);
+  res.setHeader("Content-Type", "text/csv; charset=utf-8");
+  res.setHeader("Content-Disposition", "attachment; filename=\"analytics_summary.csv\"");
+  return res.send(csv);
+});
+
 router.get("/diagnostics", authRequired, requireAdmin, async (req, res) => {
   const tenantId = req.user.tenant_id;
   const settings = getOrgSettings({ tenantId });
@@ -137,6 +164,29 @@ router.get("/diagnostics", authRequired, requireAdmin, async (req, res) => {
   }
 
   return res.json(diagnostics);
+});
+
+router.post("/sla/notify", authRequired, requireAdmin, (req, res) => {
+  const tenantId = req.user.tenant_id;
+  const userId = req.user.sub;
+  try {
+    const result = sendSlaAlerts({ tenantId, userId, windowHours: 24 });
+    return res.json({ ok: true, sent: result.sent, alerts: result.alerts });
+  } catch (err) {
+    return res.status(500).json({ error: "sla_notify_failed" });
+  }
+});
+
+router.post("/demo/seed", authRequired, requireAdmin, async (req, res) => {
+  const tenantId = req.user.tenant_id;
+  const userId = req.user.sub;
+  const mode = req.body && req.body.mode ? String(req.body.mode) : "append";
+  try {
+    const result = await seedDemoData({ tenantId, userId, mode });
+    return res.json({ ok: true, result });
+  } catch (err) {
+    return res.status(500).json({ error: "demo_seed_failed" });
+  }
 });
 
 router.get("/metrics/roi.pdf", authRequired, requireAdmin, async (req, res) => {

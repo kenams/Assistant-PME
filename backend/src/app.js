@@ -11,6 +11,7 @@ const { errorHandler } = require("./middleware/error");
 const { monitoringMiddleware } = require("./middleware/monitoring");
 const { defaultLimiter } = require("./middleware/rate-limit");
 const { startMailboxPolling } = require("./services/mailbox.service");
+const { startSlaAlertScheduler } = require("./services/sla.service");
 
 const healthRoutes = require("./routes/health.routes");
 const authRoutes = require("./routes/auth.routes");
@@ -31,7 +32,10 @@ const app = express();
 const logger = createLogger();
 
 ensureSeeded();
-startMailboxPolling();
+if (env.nodeEnv !== "test") {
+  startMailboxPolling();
+  startSlaAlertScheduler();
+}
 
 app.use(pinoHttp({ logger }));
 app.use(monitoringMiddleware);
@@ -69,6 +73,7 @@ const appDir = path.join(publicRoot, "app");
 const landingDir = path.join(publicRoot, "landing");
 const dashboardDir = path.join(publicRoot, "dashboard");
 const crmDir = path.join(publicRoot, "crm");
+const superadminDir = path.join(publicRoot, "superadmin");
 const staticOptions = {
   index: "index.html",
   redirect: false,
@@ -87,9 +92,19 @@ app.get("/app/index.html", (req, res) => {
   res.sendFile(path.join(appDir, "index.html"));
 });
 app.use("/app", express.static(appDir, staticOptions));
+app.get("/superadmin", (req, res) => {
+  res.sendFile(path.join(superadminDir, "index.html"));
+});
+app.get("/superadmin/", (req, res) => {
+  res.sendFile(path.join(superadminDir, "index.html"));
+});
+app.get("/superadmin/index.html", (req, res) => {
+  res.sendFile(path.join(superadminDir, "index.html"));
+});
 app.use("/landing", express.static(landingDir, staticOptions));
 app.use("/dashboard", express.static(dashboardDir, staticOptions));
 app.use("/crm", express.static(crmDir, staticOptions));
+app.use("/superadmin", express.static(superadminDir, staticOptions));
 
 app.get("/debug/paths", (req, res) => {
   const fs = require("fs");
