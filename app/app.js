@@ -9,11 +9,13 @@ const API_BASE = "http://localhost:3001";
       const sessionBadge = document.getElementById("sessionBadge");
       const presentationToggle = document.getElementById("presentationToggle");
       const quickAdminBtn = document.getElementById("quickAdminBtn");
+      const quickUserBtn = document.getElementById("quickUserBtn");
       const demoBtn = document.getElementById("demoBtn");
       const demoBtnInline = document.getElementById("demoBtnInline");
       const checklistReloadBtn = document.getElementById("checklistReloadBtn");
       const setupChecklist = document.getElementById("setupChecklist");
       const setupChecklistCard = document.getElementById("setupChecklistCard");
+      const userGuideCard = document.getElementById("userGuideCard");
       const demoSeedBtn = document.getElementById("demoSeedBtn");
       const demoResetBtn = document.getElementById("demoResetBtn");
 
@@ -273,6 +275,18 @@ const API_BASE = "http://localhost:3001";
         });
         if (!res.ok) {
           throw new Error("quick_login_failed");
+        }
+        const data = await res.json();
+        setToken(data.token);
+      }
+
+      async function quickUserLogin() {
+        const res = await fetch(`${API_BASE}/auth/quick-user`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" }
+        });
+        if (!res.ok) {
+          throw new Error("quick_user_failed");
         }
         const data = await res.json();
         setToken(data.token);
@@ -1312,6 +1326,24 @@ const API_BASE = "http://localhost:3001";
         });
       }
 
+      if (quickUserBtn) {
+        quickUserBtn.addEventListener("click", async () => {
+          try {
+            setStatus("Connexion utilisateur en cours...", false);
+            notify("Connexion utilisateur...", "info");
+            await quickUserLogin();
+            loginCard.style.display = "none";
+            setStatus("", false);
+            setBanner(null);
+            await loadMe();
+            refreshAll();
+          } catch (err) {
+            setStatus("Connexion utilisateur impossible", true);
+            notify("Connexion utilisateur impossible", "error");
+          }
+        });
+      }
+
       if (presentationToggle) {
         presentationToggle.addEventListener("click", () => {
           const enabled = !document.body.classList.contains("presentation");
@@ -2165,6 +2197,9 @@ const API_BASE = "http://localhost:3001";
           if (setupChecklistCard) {
             setupChecklistCard.style.display = isAdmin ? "block" : "none";
           }
+          if (userGuideCard) {
+            userGuideCard.style.display = currentRole === "user" ? "block" : "none";
+          }
           if (tenantsCard) {
             tenantsCard.style.display = currentRole === "superadmin" ? "block" : "none";
           }
@@ -2193,6 +2228,9 @@ const API_BASE = "http://localhost:3001";
         }
         if (setupChecklistCard) {
           setupChecklistCard.style.display = "none";
+        }
+        if (userGuideCard) {
+          userGuideCard.style.display = "none";
         }
         if (tenantsCard) {
           tenantsCard.style.display = "none";

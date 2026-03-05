@@ -159,6 +159,18 @@ main {
   margin-bottom: 6px;
 }
 
+.guide-steps {
+  display: grid;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.guide-steps strong {
+  color: var(--accent-strong);
+  margin-right: 6px;
+}
+
 .checklist {
   display: grid;
   gap: 10px;

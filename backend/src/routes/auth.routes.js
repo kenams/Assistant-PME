@@ -6,8 +6,10 @@ const { authRequired } = require("../middleware/auth");
 const {
   findUserByEmail,
   findUserById,
-  verifyPassword
+  verifyPassword,
+  createUser
 } = require("../services/users.service");
+const { getDefaultTenantId } = require("../services/tenants.service");
 const { logEvent } = require("../services/audit.service");
 const { validateOr400 } = require("../utils/validate");
 const { loginLimiter } = require("../middleware/rate-limit");
@@ -163,6 +165,63 @@ router.get("/me", authRequired, (req, res) => {
     email: user.email,
     role: effectiveRole,
     tenant_id: user.tenant_id
+  });
+});
+
+router.post("/quick-user", (req, res) => {
+  if (env.nodeEnv !== "development" && env.nodeEnv !== "test") {
+    return res.status(403).json({ error: "forbidden" });
+  }
+
+  const tenantId = getDefaultTenantId();
+  if (!tenantId) {
+    return res.status(404).json({ error: "tenant_not_found" });
+  }
+
+  let user = findUserByEmail(env.seedUserEmail);
+  if (!user) {
+    const created = createUser({
+      tenantId,
+      email: env.seedUserEmail,
+      password: env.seedUserPassword,
+      role: "user"
+    });
+    user = created.user || null;
+  }
+
+  if (!user) {
+    return res.status(404).json({ error: "user_not_found" });
+  }
+
+  if (!env.jwtSecret) {
+    return res.status(500).json({ error: "missing_jwt_secret" });
+  }
+
+  const token = jwt.sign(
+    {
+      sub: user.id,
+      tenant_id: user.tenant_id,
+      role: "user"
+    },
+    env.jwtSecret,
+    { expiresIn: "1h" }
+  );
+
+  logEvent({
+    tenantId: user.tenant_id,
+    userId: user.id,
+    action: "auth_quick_user",
+    meta: { email: user.email }
+  });
+
+  return res.json({
+    token,
+    user: {
+      id: user.id,
+      email: user.email,
+      role: "user",
+      tenant_id: user.tenant_id
+    }
   });
 });
 

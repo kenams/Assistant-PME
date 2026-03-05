@@ -61,6 +61,10 @@ Ce repo contient la base produit (docs + backend MVP + landing).
 
 Ces valeurs peuvent etre changees dans `.env`.
 
+## Compte utilisateur par defaut
+- Email: `user@assistant.local`
+- Mot de passe: `user123`
+
 ## Endpoints MVP
 - POST /auth/login
 - GET  /auth/me
