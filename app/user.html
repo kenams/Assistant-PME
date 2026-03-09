@@ -43,6 +43,9 @@
         <button id="userSimpleToggle" class="btn ghost" type="button">
           Mode simple: OFF
         </button>
+        <button id="demoModeBtn" class="btn ghost" type="button">
+          Mode demo
+        </button>
         <button id="showSupportBtn" class="btn ghost" type="button">
           Support
         </button>
@@ -78,6 +81,12 @@
             Compte utilisateur: user@assistant.local / user123
           </p>
         </div>
+        <div class="demo-login hidden" id="demoLoginPanel">
+          <button id="demoLoginBtn" class="btn primary" type="button">
+            Connexion demo ADF
+          </button>
+          <p class="note" id="demoLoginNote">Acces rapide (sans mot de passe).</p>
+        </div>
         <div class="invite-activate">
           <h4 id="inviteTitle">Activer une invitation</h4>
           <form id="inviteAcceptForm" class="form inline">
@@ -102,7 +111,7 @@
 
       <section class="hero-start" id="kioskStart">
         <div class="hero-card">
-          <div class="hero-badge">Support IT</div>
+          <div class="hero-badge" id="heroBadge">Support IT</div>
           <h1 id="heroTitle">Bienvenue</h1>
           <p id="heroSubtitle">
             Exposez votre probleme et obtenez une solution en quelques secondes.
@@ -162,6 +171,24 @@
               <div class="summary-last">
                 <strong id="summaryLastLabel">Dernier message</strong>
                 <span id="summaryLast">-</span>
+              </div>
+            </div>
+            <div class="presentation-kpis" id="presentationKpis">
+              <div class="presentation-kpi tile-1">
+                <span class="kpi-label" id="presentationKpiLabelTotal">Tickets</span>
+                <strong class="kpi-value" id="presentationKpiTotal">0</strong>
+              </div>
+              <div class="presentation-kpi tile-2">
+                <span class="kpi-label" id="presentationKpiLabelOpen">En cours</span>
+                <strong class="kpi-value" id="presentationKpiOpen">0</strong>
+              </div>
+              <div class="presentation-kpi tile-3">
+                <span class="kpi-label" id="presentationKpiLabelResolved">Resolus</span>
+                <strong class="kpi-value" id="presentationKpiResolved">0</strong>
+              </div>
+              <div class="presentation-kpi tile-4">
+                <span class="kpi-label" id="presentationKpiLabelLast">Dernier message</span>
+                <strong class="kpi-value kpi-value-small" id="presentationKpiLast">-</strong>
               </div>
             </div>
             <div class="status-card" id="statusCard">

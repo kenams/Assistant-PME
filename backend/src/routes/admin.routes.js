@@ -14,6 +14,7 @@ const { listAudit, logEvent } = require("../services/audit.service");
 const { testGlpiConnection, isGlpiEnabled } = require("../services/glpi.service");
 const { getSnapshot } = require("../services/monitoring.service");
 const { getTenantById } = require("../services/users.service");
+const { getTenantByCode } = require("../services/tenants.service");
 const { buildRoiPdf, buildAnalyticsPdf } = require("../services/pdf.service");
 const { computeAnalytics } = require("../services/analytics.service");
 const { getOrgSettings } = require("../services/org.service");
@@ -379,8 +380,33 @@ router.post("/demo/seed", authRequired, requireAdmin, async (req, res) => {
   const tenantId = req.user.tenant_id;
   const userId = req.user.sub;
   const mode = req.body && req.body.mode ? String(req.body.mode) : "append";
+  const requestedTenant =
+    req.body && req.body.tenant_code ? String(req.body.tenant_code).trim() : "";
+  let targetTenantId = tenantId;
+  if (
+    requestedTenant &&
+    (env.nodeEnv === "development" || env.nodeEnv === "test")
+  ) {
+    const targetTenant = getTenantByCode(requestedTenant);
+    if (!targetTenant) {
+      return res.status(404).json({ error: "tenant_not_found" });
+    }
+    targetTenantId = targetTenant.id;
+  }
   try {
-    const result = await seedDemoData({ tenantId, userId, mode });
+    let targetUserId = userId;
+    if (targetTenantId !== tenantId) {
+      const db = loadDb();
+      const fallback = db.users.find((u) => u.tenant_id === targetTenantId);
+      if (fallback) {
+        targetUserId = fallback.id;
+      }
+    }
+    const result = await seedDemoData({
+      tenantId: targetTenantId,
+      userId: targetUserId,
+      mode
+    });
     return res.json({ ok: true, result });
   } catch (err) {
     return res.status(500).json({ error: "demo_seed_failed" });

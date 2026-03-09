@@ -10,6 +10,7 @@ const { ingestDocument } = require("./rag.service");
 const { createQuote, createInvoice } = require("./billing.service");
 const { createNotification } = require("./notifications.service");
 const { logEvent } = require("./audit.service");
+const { getTenantById } = require("./users.service");
 
 function hoursAgo(hours) {
   return new Date(Date.now() - hours * 60 * 60 * 1000).toISOString();
@@ -31,7 +32,43 @@ function clearTenantData(tenantId) {
     db.notifications = db.notifications.filter(keep);
     db.conversation_feedback = db.conversation_feedback.filter(keep);
     db.invites = db.invites.filter(keep);
+    if (Array.isArray(db.quick_issues)) {
+      db.quick_issues = db.quick_issues.filter(keep);
+    }
   });
+}
+
+function ensureQuickIssues(db) {
+  if (!Array.isArray(db.quick_issues)) {
+    db.quick_issues = [];
+  }
+}
+
+function seedQuickIssues({ tenantId, issues }) {
+  if (!issues || !issues.length) return 0;
+  let seeded = 0;
+  const now = new Date().toISOString();
+  withDb((db) => {
+    ensureQuickIssues(db);
+    issues.forEach((issue) => {
+      const exists = db.quick_issues.find(
+        (item) => item.tenant_id === tenantId && item.key === issue.key
+      );
+      if (exists) return;
+      db.quick_issues.push({
+        id: crypto.randomUUID(),
+        tenant_id: tenantId,
+        key: issue.key,
+        label: issue.label,
+        example: issue.example,
+        count: issue.count || 1,
+        created_at: now,
+        last_seen: now
+      });
+      seeded += 1;
+    });
+  });
+  return seeded;
 }
 
 async function seedDemoData({ tenantId, userId, mode = "append" }) {
@@ -45,11 +82,24 @@ async function seedDemoData({ tenantId, userId, mode = "append" }) {
     conversations: 0,
     tickets: 0,
     quotes: 0,
-    invoices: 0
+    invoices: 0,
+    quick_issues: 0
   };
+
+  const tenantInfo = getTenantById(tenantId);
+  const tenantCode = tenantInfo && tenantInfo.code ? String(tenantInfo.code).toUpperCase() : "";
+  const isAdf =
+    tenantCode === "ADF" ||
+    (tenantInfo && String(tenantInfo.name || "").toUpperCase().includes("ADF"));
 
   const dbSnapshot = loadDb();
   const hasKb = dbSnapshot.kb_documents.some((doc) => doc.tenant_id === tenantId);
+  const hasAdfKb = dbSnapshot.kb_documents.some(
+    (doc) =>
+      doc.tenant_id === tenantId &&
+      doc.title &&
+      String(doc.title).toUpperCase().startsWith("ADF -")
+  );
   if (!hasKb) {
     await ingestDocument({
       tenantId,
@@ -66,6 +116,30 @@ async function seedDemoData({ tenantId, userId, mode = "append" }) {
         "1. Brancher l'imprimante au reseau.\n2. Installer le pilote depuis le site constructeur.\n3. Ajouter l'imprimante dans Windows.\n4. Lancer une page test."
     });
     seeded.kb += 2;
+  }
+  if (isAdf && !hasAdfKb) {
+    await ingestDocument({
+      tenantId,
+      title: "ADF - Acces SharePoint Projets",
+      sourceType: "procedure",
+      content:
+        "1. Verifier le compte Microsoft 365.\n2. S'assurer d'etre dans le bon groupe AD.\n3. Tester l'acces via le navigateur.\n4. Si refus, demander un ajout de droits."
+    });
+    await ingestDocument({
+      tenantId,
+      title: "ADF - Demande VPN",
+      sourceType: "procedure",
+      content:
+        "1. Confirmer l'autorisation du manager.\n2. Installer le client VPN.\n3. Tester le MFA.\n4. Si erreur, escalader au support reseau."
+    });
+    await ingestDocument({
+      tenantId,
+      title: "ADF - Onboarding nouvel arrivant",
+      sourceType: "procedure",
+      content:
+        "1. Creer compte AD.\n2. Activer Office 365.\n3. Attribuer poste HP + Windows 11.\n4. Ajouter acces SharePoint et Teams."
+    });
+    seeded.kb += 3;
   }
 
   const resolvedConvo = createConversation({ tenantId, userId });
@@ -127,6 +201,26 @@ async function seedDemoData({ tenantId, userId, mode = "append" }) {
       source: "teams"
     }
   ];
+  if (isAdf) {
+    ingestSamples.push(
+      {
+        fromName: "adf-support",
+        subject: "Acces SharePoint refuse",
+        body: "Besoin d'acces au site Projets ADF.",
+        category: "sharepoint",
+        priority: "medium",
+        source: "portal"
+      },
+      {
+        fromName: "adf-it",
+        subject: "Nouvel arrivant - Creation compte",
+        body: "Compte AD + O365 pour nouvel arrivant.",
+        category: "onboarding",
+        priority: "high",
+        source: "portal"
+      }
+    );
+  }
 
   for (const sample of ingestSamples) {
     const result = await ingestSupport({ tenantId, ...sample });
@@ -203,6 +297,50 @@ async function seedDemoData({ tenantId, userId, mode = "append" }) {
     }
   });
   seeded.invoices += 1;
+
+  if (isAdf) {
+    const quickIssuesSeeded = seedQuickIssues({
+      tenantId,
+      issues: [
+        {
+          key: "teams",
+          label: "Teams ne s'ouvre pas",
+          example: "Teams ne s'ouvre pas sur mon poste ADF."
+        },
+        {
+          key: "sharepoint",
+          label: "Acces SharePoint",
+          example: "Je n'ai pas acces au site SharePoint ADF."
+        },
+        {
+          key: "vpn",
+          label: "VPN ne se connecte pas",
+          example: "Le VPN ADF ne se connecte pas."
+        },
+        {
+          key: "access",
+          label: "Demande d'acces",
+          example: "J'ai besoin d'acces a un dossier reseau."
+        },
+        {
+          key: "account",
+          label: "Creation de compte",
+          example: "Creation d'un compte AD."
+        },
+        {
+          key: "onboarding",
+          label: "Nouvel arrivant",
+          example: "Preparation poste HP + Windows 11."
+        },
+        {
+          key: "return",
+          label: "Retour poste informatique",
+          example: "Retour d'un poste ADF."
+        }
+      ]
+    });
+    seeded.quick_issues += quickIssuesSeeded;
+  }
 
   createNotification({
     tenantId,

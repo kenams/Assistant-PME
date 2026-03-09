@@ -38,7 +38,7 @@
     <main>
       <section class="card login-card" id="loginCard">
         <div class="login-header">
-          <div class="hero-badge">Support IT</div>
+          <div class="hero-badge" id="heroBadge">Support IT</div>
           <h2 id="loginTitle">Connexion utilisateur</h2>
           <p class="note" id="loginSubtitle">
             Accedez a l'assistant pour obtenir de l'aide ou creer un ticket.
@@ -69,6 +69,12 @@
         <p class="note subtle" id="loginTestAccount">
           Compte test local: <strong>user@assistant.local</strong> / <strong>user123</strong>
         </p>
+        <div class="demo-login hidden" id="demoLoginPanel">
+          <button id="demoLoginBtn" class="btn primary" type="button">
+            Connexion demo ADF
+          </button>
+          <p class="note" id="demoLoginNote">Acces rapide (sans mot de passe).</p>
+        </div>
       </section>
     </main>
 

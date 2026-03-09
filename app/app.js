@@ -30,6 +30,8 @@ const userOnlyMode =
 const kioskMode =
   document.body.classList.contains("kiosk-mode") || queryParams.get("kiosk") === "1";
 const demoClientMode = queryParams.get("demo") === "1";
+const advancedMode = queryParams.get("advanced") === "1";
+const userPresentationParam = queryParams.get("presentation") === "1";
 if (kioskMode) {
   document.body.classList.add("kiosk-mode");
 }
@@ -52,11 +54,16 @@ if (kioskMode) {
       const simpleModeToggle = document.getElementById("simpleModeToggle");
       const adminCleanToggle = document.getElementById("adminCleanToggle");
       const demoClientBtn = document.getElementById("demoClientBtn");
+      const demoAdfSeedBtn = document.getElementById("demoAdfSeedBtn");
+      const demoAdfOpenBtn = document.getElementById("demoAdfOpenBtn");
       const homeBrand = document.getElementById("homeBrand");
       const quickAdminBtn = document.getElementById("quickAdminBtn");
       const quickUserBtn = document.getElementById("quickUserBtn");
       const quickLoginAdmin = document.getElementById("quickLoginAdmin");
       const quickLoginUser = document.getElementById("quickLoginUser");
+      const demoLoginPanel = document.getElementById("demoLoginPanel");
+      const demoLoginBtn = document.getElementById("demoLoginBtn");
+      const demoLoginNote = document.getElementById("demoLoginNote");
       const tenantCodeInput = loginForm
         ? loginForm.querySelector("input[name=\"tenant_code\"]")
         : null;
@@ -92,6 +99,7 @@ if (kioskMode) {
       const userPresentationToggle = document.getElementById("userPresentationToggle");
       const guidedModeToggle = document.getElementById("guidedModeToggle");
       const userSimpleToggle = document.getElementById("userSimpleToggle");
+      const demoModeBtn = document.getElementById("demoModeBtn");
       const beginnerModeToggle = document.getElementById("beginnerModeToggle");
       const beginnerStep = document.getElementById("beginnerStep");
       const summaryTotal = document.getElementById("summaryTotal");
@@ -99,6 +107,11 @@ if (kioskMode) {
       const summaryResolved = document.getElementById("summaryResolved");
       const summaryFilterItems = document.querySelectorAll("[data-summary-filter]");
       const summaryLast = document.getElementById("summaryLast");
+      const presentationKpis = document.getElementById("presentationKpis");
+      const presentationKpiTotal = document.getElementById("presentationKpiTotal");
+      const presentationKpiOpen = document.getElementById("presentationKpiOpen");
+      const presentationKpiResolved = document.getElementById("presentationKpiResolved");
+      const presentationKpiLast = document.getElementById("presentationKpiLast");
       const nextStepCard = document.getElementById("nextStepCard");
       const nextStepText = document.getElementById("nextStepText");
       const nextStepActions = document.getElementById("nextStepActions");
@@ -285,10 +298,36 @@ if (kioskMode) {
 
       if (tenantCodeInput) {
         const savedTenantCode = localStorage.getItem("assistant_tenant_code");
-        if (savedTenantCode && !tenantCodeInput.value) {
+        const queryTenant = tenantParam
+          ? tenantParam.toString().trim().toUpperCase()
+          : "";
+        if (queryTenant && !tenantCodeInput.value) {
+          tenantCodeInput.value = queryTenant;
+        } else if (savedTenantCode && !tenantCodeInput.value) {
           tenantCodeInput.value = savedTenantCode;
         }
+        if (demoClientMode && !tenantCodeInput.value) {
+          tenantCodeInput.value = "ADF";
+          localStorage.setItem("assistant_tenant_code", "ADF");
+        }
+        tenantCodeInput.addEventListener("input", () => {
+          const next = getTenantCode();
+          if (next) {
+            localStorage.setItem("assistant_tenant_code", next);
+          }
+          applyTenantDefaults();
+          applyTenantBranding();
+        });
       }
+
+      const getTenantCode = () => {
+        const fromInput = tenantCodeInput ? tenantCodeInput.value : "";
+        const fromStorage = localStorage.getItem("assistant_tenant_code");
+        const fromQuery = tenantParam;
+        return (fromInput || fromStorage || fromQuery || "").toString().trim().toUpperCase();
+      };
+
+      let applyTenantBranding = () => {};
 
       const resolveDefaultLogo = (img) =>
         img.getAttribute("data-default-logo") || "/app/assets/logo.svg";
@@ -444,6 +483,19 @@ if (kioskMode) {
         "ad-locked": "password",
         "network-outage": "network"
       };
+      const tenantBrandingMap = {
+        ADF: {
+          code: "ADF",
+          brandKey: "tenant.adf.brand",
+          badgeKey: "tenant.adf.badge",
+          subtitleKey: "tenant.adf.subtitle",
+          loginHintKey: "tenant.adf.loginHint",
+          testAccountKey: "tenant.adf.testAccount",
+          demoLoginNoteKey: "tenant.adf.demoNote",
+          logo: "/app/assets/logo-adf.svg",
+          demoEmail: "user@groupeadf.demo"
+        }
+      };
       const issueTemplateMap = {
         outlook: "app_restart",
         teams: "app_restart",
@@ -536,6 +588,75 @@ if (kioskMode) {
         if (message === messageKey) return fallback || resolved;
         return message;
       };
+      const getTenantBranding = () => {
+        const code = getTenantCode();
+        return code ? tenantBrandingMap[code] || null : null;
+      };
+      const buildTenantQuickIssues = (tenantCode) => {
+        if (!tenantCode) return [];
+        if (tenantCode !== "ADF") return [];
+        const keys = [
+          "teams",
+          "sharepoint",
+          "vpn",
+          "access",
+          "account",
+          "onboarding",
+          "return",
+          "outlook",
+          "password"
+        ];
+        return keys.map((key) => ({
+          key,
+          label: getIssueLabel(key, key),
+          message: getIssueMessage(key, key)
+        }));
+      };
+      applyTenantBranding = () => {
+        const branding = getTenantBranding();
+        document.body.classList.toggle("tenant-adf", Boolean(branding && branding.code));
+        if (!branding) {
+          return;
+        }
+        const brandNameEl = document.getElementById("brandName");
+        if (brandNameEl) {
+          brandNameEl.textContent = t(branding.brandKey);
+        }
+        const heroBadge = document.getElementById("heroBadge");
+        if (heroBadge && branding.badgeKey) {
+          heroBadge.textContent = t(branding.badgeKey);
+        }
+        const heroSubtitle = document.getElementById("heroSubtitle");
+        if (heroSubtitle && branding.subtitleKey) {
+          heroSubtitle.textContent = t(branding.subtitleKey);
+        }
+        const loginHintEl = document.getElementById("loginHint");
+        if (loginHintEl && branding.loginHintKey) {
+          loginHintEl.textContent = t(branding.loginHintKey);
+        }
+        const loginTestEl = document.getElementById("loginTestAccount");
+        if (loginTestEl && branding.testAccountKey) {
+          loginTestEl.innerHTML = t(branding.testAccountKey);
+        }
+        if (demoLoginNote && branding.demoLoginNoteKey) {
+          demoLoginNote.textContent = t(branding.demoLoginNoteKey);
+        }
+        if (demoLoginPanel) {
+          const showDemoPanel =
+            isLocalHost && demoClientMode && getTenantCode() === "ADF";
+          demoLoginPanel.classList.toggle("hidden", !showDemoPanel);
+        }
+        if (!logoParam && branding.logo && (demoClientMode || tenantParam)) {
+          applyBrandLogo(branding.logo);
+          localStorage.setItem("assistant_logo_url", branding.logo);
+        }
+        if (quickIssuesContainer && !getToken()) {
+          const fallbackItems = buildTenantQuickIssues(branding.code);
+          if (fallbackItems.length) {
+            renderQuickIssues(fallbackItems);
+          }
+        }
+      };
       const buildGuideSteps = (templateKey) => {
         const keys = guideTemplates[templateKey] || guideTemplates.generic || [];
         return keys
@@ -543,6 +664,43 @@ if (kioskMode) {
           .filter((step) => step && !step.startsWith("guide.template."));
       };
       function buildGuidedFlow() {
+        const tenantCode = getTenantCode();
+        const baseIssueOptions = [
+          {
+            label: getIssueLabel("internet", "Plus d'internet"),
+            value:
+              getIssueMessage("internet", "Plus d'internet") ||
+              getIssueLabel("internet", "Plus d'internet")
+          },
+          {
+            label: getIssueLabel("outlook", "Outlook ne s'ouvre pas"),
+            value:
+              getIssueMessage("outlook", "Outlook ne s'ouvre pas") ||
+              getIssueLabel("outlook", "Outlook ne s'ouvre pas")
+          },
+          {
+            label: getIssueLabel("printer", "Imprimante ne repond pas"),
+            value:
+              getIssueMessage("printer", "Imprimante ne repond pas") ||
+              getIssueLabel("printer", "Imprimante ne repond pas")
+          }
+        ];
+        if (tenantCode === "ADF") {
+          baseIssueOptions.unshift(
+            {
+              label: getIssueLabel("sharepoint", "Acces SharePoint"),
+              value:
+                getIssueMessage("sharepoint", "Acces SharePoint") ||
+                getIssueLabel("sharepoint", "Acces SharePoint")
+            },
+            {
+              label: getIssueLabel("vpn", "VPN ne se connecte pas"),
+              value:
+                getIssueMessage("vpn", "VPN ne se connecte pas") ||
+                getIssueLabel("vpn", "VPN ne se connecte pas")
+            }
+          );
+        }
         return [
           {
             key: "device",
@@ -585,26 +743,7 @@ if (kioskMode) {
           {
             key: "issue",
             prompt: t("guided.issue.prompt"),
-            options: [
-              {
-                label: getIssueLabel("internet", "Plus d'internet"),
-                value:
-                  getIssueMessage("internet", "Plus d'internet") ||
-                  getIssueLabel("internet", "Plus d'internet")
-              },
-              {
-                label: getIssueLabel("outlook", "Outlook ne s'ouvre pas"),
-                value:
-                  getIssueMessage("outlook", "Outlook ne s'ouvre pas") ||
-                  getIssueLabel("outlook", "Outlook ne s'ouvre pas")
-              },
-              {
-                label: getIssueLabel("printer", "Imprimante ne repond pas"),
-                value:
-                  getIssueMessage("printer", "Imprimante ne repond pas") ||
-                  getIssueLabel("printer", "Imprimante ne repond pas")
-              }
-            ]
+            options: baseIssueOptions.slice(0, 5)
           }
         ];
       }
@@ -620,6 +759,7 @@ if (kioskMode) {
       let supportMeta = { slaHours: 0, supportLabel: "" };
       let chatSearchQuery = "";
       let userPresentationEnabled =
+        userPresentationParam ||
         localStorage.getItem("assistant_user_presentation") === "1";
       let myTicketsFilter = "all";
       let myTicketsSearch = "";
@@ -692,6 +832,7 @@ if (kioskMode) {
 
         setText("brandName", "brand.name");
         setText("landingBadge", "landing.badge");
+        setText("heroBadge", "landing.badge");
         setText("landingTitle", "landing.title");
         setText("landingSubtitle", "landing.subtitle");
         setText("landingLoginBtn", "landing.login");
@@ -707,6 +848,7 @@ if (kioskMode) {
         setText("logoutBtn", "action.logout");
         setText("logoutBtnBottom", "action.logout");
         setText("refreshBtn", "tickets.refresh");
+        setText("demoModeBtn", "demo.mode");
 
         setText("loginTitle", isAdminPage ? "login.title.admin" : "login.title.user");
         setText("loginSubtitle", "login.subtitle");
@@ -716,6 +858,8 @@ if (kioskMode) {
         setText("loginSubmitBtn", "login.submit");
         setText("loginHint", isAdminPage ? "login.hint.admin" : "login.hint.user");
         setHtml("loginTestAccount", "login.testAccount");
+        setText("demoLoginBtn", "demo.login.btn");
+        setText("demoLoginNote", "demo.login.note");
         setText("quickUserBtn", "login.quick");
         setText("quickLoginNote", "login.quickNote");
         setText("inviteTitle", "login.inviteTitle");
@@ -746,6 +890,10 @@ if (kioskMode) {
         setText("summaryLabelOpen", "summary.open");
         setText("summaryLabelResolved", "summary.resolved");
         setText("summaryLastLabel", "summary.last");
+        setText("presentationKpiLabelTotal", "summary.tickets");
+        setText("presentationKpiLabelOpen", "summary.open");
+        setText("presentationKpiLabelResolved", "summary.resolved");
+        setText("presentationKpiLabelLast", "summary.last");
 
         setText("statusTitle", "status.title");
         setText("statusStepAssistant", "status.step.assistant");
@@ -888,6 +1036,8 @@ if (kioskMode) {
         setText("simpleSummaryLabelResolved", "dashboard.label.resolved");
         setText("simpleStartBtn", "dashboard.ask");
         setText("simpleTicketsBtn", "dashboard.viewTickets");
+        setText("demoAdfSeedBtn", "demo.adf.seed");
+        setText("demoAdfOpenBtn", "demo.adf.open");
 
         setText("imageLightboxDownload", "lightbox.download");
         setText("imageLightboxClose", "lightbox.close");
@@ -903,6 +1053,7 @@ if (kioskMode) {
           selectedQuickIssue = updatedIssue;
           showQuickIssueDetail(updatedIssue);
         }
+        applyTenantBranding();
       };
 
       const updateGuidedToggleLabel = () => {
@@ -984,6 +1135,12 @@ if (kioskMode) {
       updateGuidedToggleLabel();
       updateSimpleToggleLabel();
       applyI18n();
+        if (userOnlyMode && !advancedMode) {
+          document.body.classList.add("user-basic");
+        }
+        if (demoModeBtn && isLocalHost) {
+          demoModeBtn.style.display = "inline-flex";
+        }
       if (simpleUserModeEnabled) {
         document.body.classList.add("simple-user");
       }
@@ -1355,6 +1512,9 @@ if (kioskMode) {
         } else {
           guidedStepIndex = null;
         }
+        if (userOnlyMode && !guidedModeEnabled) {
+          appendMessage("assistant", t("chat.welcome"));
+        }
         if (beginnerModeEnabled) {
           setBeginnerStep(t("beginner.step1"));
         }
@@ -1672,6 +1832,22 @@ if (kioskMode) {
         };
       }
 
+      function updatePresentationKpis({ total, open, resolved, last }) {
+        if (!presentationKpis) return;
+        if (presentationKpiTotal) {
+          presentationKpiTotal.textContent = String(total ?? 0);
+        }
+        if (presentationKpiOpen) {
+          presentationKpiOpen.textContent = String(open ?? 0);
+        }
+        if (presentationKpiResolved) {
+          presentationKpiResolved.textContent = String(resolved ?? 0);
+        }
+        if (presentationKpiLast) {
+          presentationKpiLast.textContent = last || "-";
+        }
+      }
+
       function refreshQuickIssueLabels() {
         if (!quickIssuesContainer) return;
         const chips = Array.from(quickIssuesContainer.querySelectorAll(".chip"));
@@ -1898,17 +2074,30 @@ if (kioskMode) {
         if (demoScenarioRunning || !demoClientMode) return;
         demoScenarioRunning = true;
         resetConversation();
+        if (getTenantCode() === "ADF") {
+          guidedModeEnabled = true;
+          localStorage.setItem("assistant_guided_mode", "on");
+          updateGuidedToggleLabel();
+        }
         ensureWelcomeMessage();
         await sleep(500);
-        await sendChatMessage(getIssueMessage("internet", t("demo.issue")) || t("demo.issue"));
+        const issueKey = getTenantCode() === "ADF" ? "sharepoint" : "internet";
+        const issueMessage =
+          getTenantCode() === "ADF"
+            ? getIssueMessage("sharepoint", t("demo.adf.issue")) || t("demo.adf.issue")
+            : getIssueMessage("internet", t("demo.issue")) || t("demo.issue");
+        await sendChatMessage(issueMessage);
         await waitForChatIdle();
         await sleep(700);
-        await sendChatMessage(t("demo.followup"), { keepGuide: true });
+        const followup =
+          getTenantCode() === "ADF" ? t("demo.adf.followup") : t("demo.followup");
+        await sendChatMessage(followup, { keepGuide: true });
         await waitForChatIdle();
         await sleep(700);
         if (createTicketBtn && !createTicketBtn.disabled) {
           createTicketBtn.click();
         }
+        demoScenarioRunning = false;
       }
 
       async function runUserTestScenario() {
@@ -1920,12 +2109,24 @@ if (kioskMode) {
         }
         demoScenarioRunning = true;
         resetConversation();
+        if (getTenantCode() === "ADF") {
+          guidedModeEnabled = true;
+          localStorage.setItem("assistant_guided_mode", "on");
+          updateGuidedToggleLabel();
+        }
         ensureWelcomeMessage();
         await sleep(400);
-        await sendChatMessage(getIssueMessage("outlook", t("demo.issue")) || t("demo.issue"));
+        const issueKey = getTenantCode() === "ADF" ? "vpn" : "outlook";
+        const issueMessage =
+          getTenantCode() === "ADF"
+            ? getIssueMessage("vpn", t("demo.adf.issue")) || t("demo.adf.issue")
+            : getIssueMessage("outlook", t("demo.issue")) || t("demo.issue");
+        await sendChatMessage(issueMessage);
         await waitForChatIdle();
         await sleep(600);
-        await sendChatMessage(t("demo.followup"), { keepGuide: true });
+        const followup =
+          getTenantCode() === "ADF" ? t("demo.adf.followup") : t("demo.followup");
+        await sendChatMessage(followup, { keepGuide: true });
         await waitForChatIdle();
         await sleep(400);
         if (createTicketBtn && !createTicketBtn.disabled) {
@@ -2664,10 +2865,7 @@ if (kioskMode) {
       }
 
       function applyTenantDefaults() {
-        const tenantCode = (localStorage.getItem("assistant_tenant_code") || "")
-          .toString()
-          .trim()
-          .toUpperCase();
+        const tenantCode = getTenantCode();
         if (tenantCode !== "ADF") return;
         let updated = false;
         if (contextDevice && !contextDevice.value) {
@@ -3174,15 +3372,29 @@ if (kioskMode) {
       }
 
       async function quickUserLogin() {
+        const tenantCode = getTenantCode();
+        const branding = getTenantBranding();
+        const payload = {};
+        if (tenantCode) {
+          payload.tenant_code = tenantCode;
+        }
+        if (branding && branding.demoEmail && demoClientMode) {
+          payload.email = branding.demoEmail;
+        }
         const res = await fetch(`${API_BASE}/auth/quick-user`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" }
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
         });
         if (!res.ok) {
           throw new Error("quick_user_failed");
         }
         const data = await res.json();
         setToken(data.token);
+        if (tenantCode) {
+          localStorage.setItem("assistant_tenant_code", tenantCode);
+        }
+        applyTenantDefaults();
       }
 
       function bootstrapTokenFromUrl() {
@@ -4131,6 +4343,12 @@ if (kioskMode) {
               ? truncateText(items[0].last_message || "-", 120)
               : "-";
           }
+          updatePresentationKpis({
+            total: summaryTotal ? Number(summaryTotal.textContent) : 0,
+            open: summaryOpen ? Number(summaryOpen.textContent) : 0,
+            resolved: summaryResolved ? Number(summaryResolved.textContent) : 0,
+            last: summaryLast ? summaryLast.textContent : "-"
+          });
           if (!items.length) {
             historyList.innerHTML = `<div class="ticket-empty">${t(
               "history.noneRecent"
@@ -4263,6 +4481,12 @@ if (kioskMode) {
         if (myTicketsCountResolved) {
           myTicketsCountResolved.textContent = String(resolved);
         }
+        updatePresentationKpis({
+          total,
+          open,
+          resolved,
+          last: summaryLast ? summaryLast.textContent : "-"
+        });
       }
 
       function filterMyTickets(items) {
@@ -4603,7 +4827,13 @@ if (kioskMode) {
         try {
           const data = await fetchWithAuth("/chat/quick-issues");
           const items = Array.isArray(data.items) ? data.items : [];
-          if (!items.length) return;
+          if (!items.length) {
+            const fallbackItems = buildTenantQuickIssues(getTenantCode());
+            if (fallbackItems.length) {
+              renderQuickIssues(fallbackItems);
+            }
+            return;
+          }
           renderQuickIssues(items);
         } catch (err) {
           // keep default quick issues on failure
@@ -5369,6 +5599,33 @@ if (kioskMode) {
         });
       }
 
+      if (demoLoginBtn) {
+        demoLoginBtn.addEventListener("click", async () => {
+          try {
+            if (demoClientMode && !getTenantCode()) {
+              localStorage.setItem("assistant_tenant_code", "ADF");
+              if (tenantCodeInput) {
+                tenantCodeInput.value = "ADF";
+              }
+              applyTenantDefaults();
+              applyTenantBranding();
+            }
+            setStatus(t("auth.userLoginPending"), false);
+            notify(t("auth.userLoginInfo"), "info");
+            await quickUserLogin();
+            setAuthState(true);
+            setStatus("", false);
+            setBanner(null);
+            await loadMe();
+            setKioskWaiting(false);
+            refreshAll();
+          } catch (err) {
+            setStatus(t("auth.userLoginFail"), true);
+            notify(t("auth.userLoginFail"), "error");
+          }
+        });
+      }
+
       if (userAutoTestBtn) {
         userAutoTestBtn.addEventListener("click", () => {
           runUserTestScenario();
@@ -5416,6 +5673,27 @@ if (kioskMode) {
         apiResetBtn.addEventListener("click", () => {
           localStorage.removeItem("assistant_api_base");
           reloadWithoutApiParam();
+        });
+      }
+      if (demoModeBtn) {
+        if (!isLocalHost) {
+          demoModeBtn.style.display = "none";
+        }
+        demoModeBtn.addEventListener("click", () => {
+          const params = new URLSearchParams();
+          params.set("demo", "1");
+          params.set("presentation", "1");
+          const tenantCode = getTenantCode();
+          if (tenantCode) {
+            params.set("tenant", tenantCode);
+          }
+          const branding = getTenantBranding();
+          const logo =
+            (branding && branding.logo) || localStorage.getItem("assistant_logo_url");
+          if (logo) {
+            params.set("logo", logo);
+          }
+          window.location.href = `/app/user/?${params.toString()}`;
         });
       }
       if (demoClientBtn) {
@@ -6026,6 +6304,9 @@ if (kioskMode) {
       if (demoResetBtn) {
         demoResetBtn.addEventListener("click", () => seedDemo("reset"));
       }
+      if (demoAdfSeedBtn) {
+        demoAdfSeedBtn.addEventListener("click", () => seedDemo("reset", "ADF"));
+      }
       const kioskStart = document.getElementById("kioskStart");
       const startBtn = document.getElementById("startBtn");
       if (kioskStart && userOnlyMode) {
@@ -6283,12 +6564,15 @@ if (kioskMode) {
         }
       }
 
-      async function seedDemo(mode) {
+      async function seedDemo(mode, tenantCode = "") {
         try {
           await fetchWithAuth("/admin/demo/seed", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ mode })
+            body: JSON.stringify({
+              mode,
+              tenant_code: tenantCode || undefined
+            })
           });
           notify(t("demo.initialized"), "info");
           refreshAll();
@@ -7144,8 +7428,62 @@ if (kioskMode) {
           return payload;
         };
 
-        const saveOrgSettings = async () => {
+        const isBlank = (value) => !value || !String(value).trim();
+        const isValidUrl = (value, protocols = []) => {
+          if (!value) return false;
+          try {
+            const url = new URL(value);
+            if (protocols.length && !protocols.includes(url.protocol)) {
+              return false;
+            }
+            return true;
+          } catch (err) {
+            return false;
+          }
+        };
+        const validateOrgSettingsPayload = (payload) => {
+          const errors = [];
+          if (payload.glpi_enabled) {
+            const missing = ["glpi_base_url", "glpi_app_token", "glpi_user_token"].filter(
+              (field) => isBlank(payload[field])
+            );
+            if (missing.length) {
+              errors.push(t("orgSettings.validation.glpi"));
+            }
+          }
+          if (payload.ad_enabled) {
+            const missing = [
+              "ad_url",
+              "ad_domain",
+              "ad_base_dn",
+              "ad_bind_user",
+              "ad_bind_password"
+            ].filter((field) => isBlank(payload[field]));
+            if (missing.length) {
+              errors.push(t("orgSettings.validation.ad"));
+            }
+          }
+          if (payload.glpi_base_url && !isValidUrl(payload.glpi_base_url, ["http:", "https:"])) {
+            errors.push(t("orgSettings.validation.url", { field: "GLPI" }));
+          }
+          if (payload.ad_url && !isValidUrl(payload.ad_url, ["ldap:", "ldaps:"])) {
+            errors.push(t("orgSettings.validation.url", { field: "AD/LDAP" }));
+          }
+          return errors;
+        };
+
+        const saveOrgSettings = async ({ validate = false } = {}) => {
           const payload = buildOrgSettingsPayload();
+          const validationErrors = validateOrgSettingsPayload(payload);
+          if (validationErrors.length) {
+            setOrgStatus(validationErrors[0], true);
+            if (validate) {
+              const err = new Error("validation_failed");
+              err.validationMessage = validationErrors[0];
+              throw err;
+            }
+            return;
+          }
           try {
             await fetchWithAuth("/org/settings", {
               method: "PUT",
@@ -7177,9 +7515,15 @@ if (kioskMode) {
             orgSettingsAutoTimer = null;
           }
           try {
-            await saveOrgSettings();
+            await saveOrgSettings({ validate: true });
             notify(t("orgSettings.saved"), "info");
           } catch (err) {
+            if (err && err.message === "validation_failed") {
+              if (err.validationMessage) {
+                notify(err.validationMessage, "error");
+              }
+              return;
+            }
             notify(t("orgSettings.saveFailed"), "error");
           }
         });
@@ -7192,7 +7536,7 @@ if (kioskMode) {
           setOrgStatus(t("orgSettings.autoSaving"), false);
           orgSettingsAutoTimer = setTimeout(async () => {
             try {
-              await saveOrgSettings();
+              await saveOrgSettings({ validate: false });
               notify(t("orgSettings.autoSaved"), "info");
             } catch (err) {
               notify(t("orgSettings.autoSaveFailed"), "error");

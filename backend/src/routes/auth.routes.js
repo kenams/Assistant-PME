@@ -184,16 +184,23 @@ router.post("/quick-user", (req, res) => {
     return res.status(403).json({ error: "forbidden" });
   }
 
-  const tenantId = getDefaultTenantId();
+  const requestedTenant =
+    (req.body && req.body.tenant_code ? String(req.body.tenant_code) : "") ||
+    (req.query && req.query.tenant_code ? String(req.query.tenant_code) : "") ||
+    (req.query && req.query.tenant ? String(req.query.tenant) : "");
+  const tenant = requestedTenant ? getTenantByCode(requestedTenant) : null;
+  const tenantId = tenant ? tenant.id : getDefaultTenantId();
   if (!tenantId) {
     return res.status(404).json({ error: "tenant_not_found" });
   }
 
-  let user = findUserByEmail(env.seedUserEmail);
+  const requestedEmail = req.body && req.body.email ? String(req.body.email).trim() : "";
+  const email = requestedEmail || env.seedUserEmail;
+  let user = findUserByEmailInTenant({ tenantId, email });
   if (!user) {
     const created = createUser({
       tenantId,
-      email: env.seedUserEmail,
+      email,
       password: env.seedUserPassword,
       role: "user"
     });

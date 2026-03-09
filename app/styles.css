@@ -470,6 +470,12 @@ body.user-only #chatTickets {
   display: none;
 }
 
+body.user-basic #userPresentationToggle,
+body.user-basic #guidedModeToggle,
+body.user-basic #userSimpleToggle {
+  display: none !important;
+}
+
 body.user-only .chat-window {
   height: 440px;
 }
@@ -875,6 +881,39 @@ body.user-only main > details:nth-of-type(4) {
   border: 1px solid var(--stroke);
   background: #ffffff;
   margin-bottom: 12px;
+}
+
+.presentation-kpis {
+  display: none;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.presentation-kpi {
+  display: grid;
+  gap: 6px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(47, 59, 82, 0.12);
+  background: #ffffff;
+  box-shadow: 0 10px 24px rgba(47, 59, 82, 0.12);
+}
+
+.presentation-kpi .kpi-label {
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+.presentation-kpi .kpi-value {
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+.presentation-kpi .kpi-value-small {
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.4;
 }
 
 .status-card,
@@ -1351,11 +1390,13 @@ body.user-only main > details:nth-of-type(4) {
 }
 
 body.presentation-client {
-  background: radial-gradient(circle at top left, #14181f, #0b0e12 60%);
+  background: radial-gradient(circle at 12% 10%, rgba(47, 59, 82, 0.12), transparent 45%),
+    radial-gradient(circle at 88% 12%, rgba(30, 154, 162, 0.12), transparent 50%),
+    linear-gradient(180deg, #f7f9fb, #eef2f6 60%, #f4f6f8);
 }
 
 body.presentation-client .topbar {
-  display: none;
+  display: flex;
 }
 
 body.presentation-client .actions {
@@ -1367,13 +1408,17 @@ body.presentation-client .status-banner {
 }
 
 body.presentation-client main {
-  max-width: 1200px;
+  max-width: 1080px;
   margin: 0 auto;
 }
 
 body.presentation-client #loginCard,
 body.presentation-client #myTicketsPanel {
   display: none !important;
+}
+
+body.presentation-client.unauthenticated #loginCard {
+  display: block !important;
 }
 
 body.presentation-client .summary-card,
@@ -1383,6 +1428,31 @@ body.presentation-client .user-hint {
 
 body.presentation-client .chat-window {
   height: 60vh;
+}
+
+body.presentation-client .presentation-kpis {
+  display: grid;
+}
+
+body.presentation-client #contextCard,
+body.presentation-client #quickIssuesContainer,
+body.presentation-client .quick-issues,
+body.presentation-client #nextStepCard,
+body.presentation-client #chatSources,
+body.presentation-client #chatSearchInput,
+body.presentation-client .chat-search,
+body.presentation-client .kb-actions,
+body.presentation-client #kbTabPanel {
+  display: none !important;
+}
+
+body.presentation-client #assistantTabPanel {
+  display: block !important;
+}
+
+body.presentation-client .page-footer,
+body.presentation-client .footer {
+  display: none !important;
 }
 
 .quick-guide {
@@ -1787,6 +1857,24 @@ body.kiosk-mode:not(.kiosk-waiting) .hero-start {
 .invite-accept h4 {
   margin: 0 0 8px;
   font-weight: 600;
+}
+
+.demo-login {
+  margin-top: 16px;
+  padding: 12px;
+  border: 1px solid var(--stroke);
+  border-radius: 14px;
+  background: var(--panel-soft);
+  display: grid;
+  gap: 8px;
+}
+
+.demo-login .btn {
+  width: 100%;
+}
+
+.demo-login.hidden {
+  display: none;
 }
 
 .oauth-block {
