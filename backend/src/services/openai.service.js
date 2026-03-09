@@ -26,7 +26,13 @@ function needsTicketFor(message) {
     text.includes("bloque") ||
     text.includes("perte") ||
     text.includes("data") ||
-    text.includes("compromis")
+    text.includes("compromis") ||
+    text.includes("panne generale") ||
+    text.includes("plus rien") ||
+    text.includes("incident") ||
+    text.includes("fuite") ||
+    text.includes("phishing") ||
+    text.includes("pirat")
   );
 }
 
@@ -62,6 +68,116 @@ function detectIntent(message, language) {
               "Le probleme concerne-t-il un seul poste ou plusieurs ?",
               "Quel est le message d'erreur exact ?"
             ]
+    };
+  }
+
+  if (text.includes("teams")) {
+    return {
+      category: "teams",
+      steps:
+        language === "en"
+          ? [
+              "Check the internet connection and VPN if remote.",
+              "Quit Teams completely and reopen it.",
+              "Clear the Teams cache and retry."
+            ]
+          : [
+              "Verifiez la connexion internet et le VPN si a distance.",
+              "Quittez completement Teams puis relancez.",
+              "Videz le cache Teams puis reessayez."
+            ],
+      questions:
+        language === "en"
+          ? ["Is it audio, video, or login issue?", "Any error code shown?"]
+          : ["C'est un probleme audio, video ou connexion ?", "Un code erreur affiche ?"]
+    };
+  }
+
+  if (text.includes("sharepoint")) {
+    return {
+      category: "sharepoint",
+      steps:
+        language === "en"
+          ? [
+              "Confirm you are logged with the correct Microsoft 365 account.",
+              "Try access in a private browser window.",
+              "Ask for site/group access if needed."
+            ]
+          : [
+              "Verifiez que vous etes connecte au bon compte Microsoft 365.",
+              "Essayez l'acces en navigation privee.",
+              "Demandez l'ajout au site/groupe si besoin."
+            ],
+      questions:
+        language === "en"
+          ? ["Which site or library is blocked?", "Is it a permission or error page?"]
+          : ["Quel site ou bibliotheque est bloque ?", "Est-ce un refus d'acces ou une erreur ?"]
+    };
+  }
+
+  if (text.includes("onedrive")) {
+    return {
+      category: "onedrive",
+      steps:
+        language === "en"
+          ? [
+              "Check available disk space and internet.",
+              "Pause and resume sync.",
+              "Sign out and sign in again."
+            ]
+          : [
+              "Verifiez l'espace disque et internet.",
+              "Mettez en pause puis relancez la synchro.",
+              "Deconnectez puis reconnectez OneDrive."
+            ],
+      questions:
+        language === "en"
+          ? ["Is it one file or all files?", "Any sync error code?"]
+          : ["Un fichier ou toute la synchro ?", "Un code erreur de synchro ?"]
+    };
+  }
+
+  if (text.includes("creation de compte") || text.includes("nouvel arrivant") || text.includes("onboarding")) {
+    return {
+      category: "account",
+      steps:
+        language === "en"
+          ? [
+              "Collect full name, department, and start date.",
+              "Validate manager approval.",
+              "Create account and assign licenses/groups."
+            ]
+          : [
+              "Collectez nom, service et date d'arrivee.",
+              "Validez l'accord du manager.",
+              "Creez le compte et attribuez licences/groupes."
+            ],
+      questions:
+        language === "en"
+          ? ["Start date and manager name?", "Which tools/apps are required?"]
+          : ["Date d'arrivee et manager ?", "Quels outils/applications requis ?"]
+    };
+  }
+
+  if (text.includes("acces") || text.includes("autorisation") || text.includes("permission")) {
+    return {
+      category: "access",
+      steps:
+        language === "en"
+          ? [
+              "Identify the resource (app, folder, site).",
+              "Confirm the requester approval.",
+              "Add user to the right group."
+            ]
+          : [
+              "Identifiez la ressource (app, dossier, site).",
+              "Confirmez l'autorisation du responsable.",
+              "Ajoutez l'utilisateur au bon groupe."
+            ],
+      questions:
+        language === "en"
+          ? ["Which application or folder?", "Who approved the access?"]
+          : ["Quelle application ou dossier ?", "Qui a valide l'acces ?"]
     };
   }
 
@@ -134,6 +250,28 @@ function detectIntent(message, language) {
         language === "en"
           ? ["What is the VPN error message?"]
           : ["Quel est le message d'erreur VPN ?"]
+    };
+  }
+
+  if (text.includes("poste lent") || text.includes("lent") || text.includes("ralenti")) {
+    return {
+      category: "performance",
+      steps:
+        language === "en"
+          ? [
+              "Restart the device and close heavy apps.",
+              "Check disk space and updates.",
+              "Run an antivirus scan."
+            ]
+          : [
+              "Redemarrez le poste et fermez les applis lourdes.",
+              "Verifiez l'espace disque et les mises a jour.",
+              "Lancez un scan antivirus."
+            ],
+      questions:
+        language === "en"
+          ? ["Is it slow on login or specific apps?", "Since when?"]
+          : ["Le ralentissement est general ou sur une appli ?", "Depuis quand ?"]
     };
   }
 
@@ -222,6 +360,9 @@ function generateSupportAnswer({ message, kbChunks, language, orgSettings }) {
     steps[3] ? "4. " + steps[3] : "",
     "",
     ...questions,
+    lang === "en"
+      ? "If the issue persists, you can create a ticket."
+      : "Si le probleme persiste, vous pouvez creer un ticket.",
     kbNote,
     footer
   ]

@@ -21,6 +21,7 @@ const settingsSchema = z.object({
   support_email: z.string().email().optional().or(z.literal("")),
   support_phone: z.string().min(1).optional().or(z.literal("")),
   support_hours: z.string().min(1).optional().or(z.literal("")),
+  logo_url: z.string().url().optional().or(z.literal("")),
   escalation_threshold: z.number().int().min(1).max(5).optional(),
   signature: z.string().min(1).optional().or(z.literal("")),
   notify_on_ticket_created: z.boolean().optional(),
@@ -31,6 +32,7 @@ const settingsSchema = z.object({
   sla_hours: z.number().int().min(1).max(720).optional(),
   sla_warning_pct: z.number().int().min(1).max(100).optional(),
   cost_per_ticket: z.number().min(0).optional(),
+  reminder_hours: z.number().int().min(1).max(720).optional(),
   mailbox_enabled: z.boolean().optional(),
   mailbox_provider: z.enum(["gmail", "outlook", "custom"]).optional(),
   mailbox_host: z.string().min(1).optional().or(z.literal("")),
@@ -49,10 +51,20 @@ const settingsSchema = z.object({
   oauth_outlook_client_id: z.string().min(1).optional().or(z.literal("")),
   oauth_outlook_client_secret: z.string().min(1).optional().or(z.literal("")),
   oauth_outlook_redirect_uri: z.string().url().optional().or(z.literal("")),
-  oauth_outlook_scopes: z.string().optional().or(z.literal(""))
+  oauth_outlook_scopes: z.string().optional().or(z.literal("")),
+  glpi_enabled: z.boolean().optional(),
+  glpi_base_url: z.string().url().optional().or(z.literal("")),
+  glpi_app_token: z.string().min(1).optional().or(z.literal("")),
+  glpi_user_token: z.string().min(1).optional().or(z.literal("")),
+  ad_enabled: z.boolean().optional(),
+  ad_url: z.string().url().optional().or(z.literal("")),
+  ad_domain: z.string().min(1).optional().or(z.literal("")),
+  ad_base_dn: z.string().min(1).optional().or(z.literal("")),
+  ad_bind_user: z.string().min(1).optional().or(z.literal("")),
+  ad_bind_password: z.string().min(1).optional().or(z.literal(""))
 });
 
-function sanitizeSettings(settings) {
+function sanitizeSettings(settings, includeSecrets) {
   const safe = { ...settings };
   delete safe.oauth_google_access_token;
   delete safe.oauth_google_refresh_token;
@@ -60,6 +72,11 @@ function sanitizeSettings(settings) {
   delete safe.oauth_outlook_access_token;
   delete safe.oauth_outlook_refresh_token;
   delete safe.oauth_outlook_state;
+  if (!includeSecrets) {
+    delete safe.glpi_app_token;
+    delete safe.glpi_user_token;
+    delete safe.ad_bind_password;
+  }
   return {
     ...safe,
     oauth_google_connected: Boolean(settings.oauth_google_access_token),
@@ -77,7 +94,9 @@ const orgUpdateSchema = z.object({
 router.get("/settings", authRequired, (req, res) => {
   const tenantId = req.user.tenant_id;
   const settings = getOrgSettings({ tenantId });
-  return res.json(sanitizeSettings(settings));
+  const role = req.user.role || "";
+  const includeSecrets = role === "admin" || role === "superadmin";
+  return res.json(sanitizeSettings(settings, includeSecrets));
 });
 
 router.put("/settings", authRequired, requireAdmin, (req, res) => {

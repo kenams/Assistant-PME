@@ -107,6 +107,16 @@ module.exports = {
       conversations = conversations.filter((c) => c.user_id === userId);
     }
 
+    const lastMessageByConversation = new Map();
+    db.messages
+      .filter((m) => m.tenant_id === tenantId && m.content)
+      .forEach((message) => {
+        const current = lastMessageByConversation.get(message.conversation_id);
+        if (!current || new Date(message.created_at) > new Date(current.created_at)) {
+          lastMessageByConversation.set(message.conversation_id, message);
+        }
+      });
+
     if (search) {
       const matchedConversationIds = new Set(
         db.messages
@@ -121,9 +131,7 @@ module.exports = {
       .filter((c) => c.tenant_id === tenantId)
       .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at))
       .map((conversation) => {
-        const lastMessage = db.messages
-          .filter((m) => m.conversation_id === conversation.id)
-          .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0];
+        const lastMessage = lastMessageByConversation.get(conversation.id);
         return {
           id: conversation.id,
           status: conversation.status,

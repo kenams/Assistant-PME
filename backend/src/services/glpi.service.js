@@ -1,7 +1,7 @@
-﻿const { env } = require("../config/env");
+const { env } = require("../config/env");
 
-function normalizeBaseUrl() {
-  let base = env.glpiBaseUrl || "";
+function normalizeBaseUrl(raw) {
+  let base = raw || "";
   if (!base) return "";
   base = base.replace(/\/+$/, "");
   if (!base.endsWith("/apirest.php")) {
@@ -10,33 +10,52 @@ function normalizeBaseUrl() {
   return base;
 }
 
-function buildApiUrl(pathname) {
-  const base = normalizeBaseUrl();
+function resolveConfig(overrides) {
+  if (!overrides) {
+    return {
+      enabled: Boolean(env.glpiEnabled),
+      baseUrl: env.glpiBaseUrl || "",
+      appToken: env.glpiAppToken || "",
+      userToken: env.glpiUserToken || ""
+    };
+  }
+  return {
+    enabled: Boolean(overrides.enabled),
+    baseUrl: overrides.baseUrl || "",
+    appToken: overrides.appToken || "",
+    userToken: overrides.userToken || ""
+  };
+}
+
+function buildApiUrl(pathname, config) {
+  const base = normalizeBaseUrl(config.baseUrl);
   if (!base) return "";
   return `${base}${pathname}`;
 }
 
-function getHeaders(extra = {}) {
+function getHeaders(extra = {}, config) {
   const headers = { ...extra };
-  if (env.glpiAppToken) {
-    headers["App-Token"] = env.glpiAppToken;
+  if (config.appToken) {
+    headers["App-Token"] = config.appToken;
   }
-  if (env.glpiUserToken) {
-    headers["Authorization"] = `user_token ${env.glpiUserToken}`;
+  if (config.userToken) {
+    headers["Authorization"] = `user_token ${config.userToken}`;
   }
   return headers;
 }
 
-function isGlpiEnabled() {
-  return Boolean(env.glpiEnabled && env.glpiBaseUrl && env.glpiUserToken);
+function isGlpiEnabled(configOverride) {
+  const config = resolveConfig(configOverride);
+  return Boolean(config.enabled && config.baseUrl && config.userToken);
 }
 
-async function initSession() {
-  const url = buildApiUrl("/initSession?session_write=true");
+async function initSession(configOverride) {
+  const config = resolveConfig(configOverride);
+  const url = buildApiUrl("/initSession?session_write=true", config);
   if (!url) {
     throw new Error("glpi_not_configured");
   }
-  const res = await fetch(url, { headers: getHeaders() });
+  const res = await fetch(url, { headers: getHeaders({}, config) });
   if (!res.ok) {
     const text = await res.text();
     throw new Error(`glpi_init_failed_${res.status}: ${text.slice(0, 200)}`);
@@ -54,12 +73,13 @@ async function initSession() {
   return token;
 }
 
-async function killSession(sessionToken) {
+async function killSession(sessionToken, configOverride) {
   if (!sessionToken) return;
-  const url = buildApiUrl("/killSession");
+  const config = resolveConfig(configOverride);
+  const url = buildApiUrl("/killSession", config);
   if (!url) return;
   await fetch(url, {
-    headers: getHeaders({ "Session-Token": sessionToken })
+    headers: getHeaders({ "Session-Token": sessionToken }, config)
   });
 }
 
@@ -77,9 +97,10 @@ function mapPriority(priority) {
   }
 }
 
-function buildTicketUrl(externalId) {
+function buildTicketUrl(externalId, configOverride) {
   if (!externalId) return null;
-  let base = env.glpiBaseUrl || "";
+  const config = resolveConfig(configOverride);
+  let base = config.baseUrl || "";
   base = base.replace(/\/+$/, "");
   if (base.endsWith("/apirest.php")) {
     base = base.replace(/\/apirest\.php$/, "");
@@ -88,8 +109,8 @@ function buildTicketUrl(externalId) {
   return `${base}/front/ticket.form.php?id=${externalId}`;
 }
 
-async function createGlpiTicket({ title, description, priority }) {
-  const sessionToken = await initSession();
+async function createGlpiTicket({ title, description, priority, config }) {
+  const sessionToken = await initSession(config);
   try {
     const glpiPriority = mapPriority(priority);
     const payload = {
@@ -104,12 +125,16 @@ async function createGlpiTicket({ title, description, priority }) {
       payload.input.impact = glpiPriority;
     }
 
-    const res = await fetch(buildApiUrl("/Ticket"), {
+    const resolved = resolveConfig(config);
+    const res = await fetch(buildApiUrl("/Ticket", resolved), {
       method: "POST",
-      headers: getHeaders({
-        "Content-Type": "application/json",
-        "Session-Token": sessionToken
-      }),
+      headers: getHeaders(
+        {
+          "Content-Type": "application/json",
+          "Session-Token": sessionToken
+        },
+        resolved
+      ),
       body: JSON.stringify(payload)
     });
 
@@ -122,13 +147,13 @@ async function createGlpiTicket({ title, description, priority }) {
     const id = data && (data.id || (Array.isArray(data) && data[0] && data[0].id));
     return { id: id ? String(id) : null };
   } finally {
-    await killSession(sessionToken);
+    await killSession(sessionToken, config);
   }
 }
 
-async function testGlpiConnection() {
-  const sessionToken = await initSession();
-  await killSession(sessionToken);
+async function testGlpiConnection(config) {
+  const sessionToken = await initSession(config);
+  await killSession(sessionToken, config);
   return { ok: true };
 }
 

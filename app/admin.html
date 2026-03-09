@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Assistant Support IT - Admin</title>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap"
+    />
+    <link rel="stylesheet" href="/app/styles.css" />
+  </head>
+  <body class="admin-lite with-bottom-footer">
+    <header class="topbar">
+      <a class="brand brand-link" href="/app/admin/">
+        <img
+          class="brand-logo"
+          data-brand-logo
+          data-default-logo="/app/assets/logo.svg"
+          src="/app/assets/logo.svg"
+          alt="Kah-Digital"
+        />
+        <span id="brandName">Assistant Support IT</span>
+      </a>
+      <span id="roleBanner" class="role-banner neutral">Espace Admin</span>
+      <div class="actions">
+        <span id="netStatus" class="net-status">online</span>
+        <span id="sessionBadge" class="session-badge hidden"></span>
+        <div class="lang-switcher" data-lang-switcher>
+          <button class="lang-btn" type="button" data-lang="fr">FR</button>
+          <button class="lang-btn" type="button" data-lang="en">EN</button>
+          <button class="lang-btn" type="button" data-lang="es">ES</button>
+          <button class="lang-btn" type="button" data-lang="ar">AR</button>
+        </div>
+        <button id="refreshBtn" class="btn">Rafraichir</button>
+        <button id="logoutBtn" class="btn ghost">Deconnexion</button>
+      </div>
+    </header>
+    <div id="statusBanner" class="status-banner hidden"></div>
+
+    <main>
+      <section class="card" id="loginCard">
+        <h2 id="loginTitle">Connexion</h2>
+        <form id="loginForm" class="form">
+          <input
+            id="loginTenantInput"
+            name="tenant_code"
+            placeholder="Code entreprise (ex: DEFAULT)"
+          />
+          <input id="loginEmailInput" name="email" type="email" placeholder="Email" required />
+          <input
+            id="loginPasswordInput"
+            name="password"
+            type="password"
+            placeholder="Mot de passe"
+            required
+          />
+          <button class="btn primary" type="submit" id="loginSubmitBtn">
+            Se connecter
+          </button>
+          <p id="loginStatus" class="status"></p>
+        </form>
+        <p class="note" id="loginHint">
+          Le code entreprise est fourni par votre administrateur. (Local: DEFAULT)
+        </p>
+        <div class="quick-login" id="quickLoginAdmin">
+          <a
+            id="quickAdminBtn"
+            class="btn ghost"
+            href="/auth/quick-admin?redirect=/app/admin/"
+          >
+            Connexion admin rapide
+          </a>
+          <p class="note">Mode local uniquement.</p>
+        </div>
+      </section>
+
+      <section class="card" id="metricsCard">
+        <div class="card-header">
+          <h3>Dashboard</h3>
+          <button id="metricsRefreshBtn" class="btn ghost">Actualiser</button>
+        </div>
+        <div class="metrics-grid" id="metricsStats"></div>
+        <div class="note">Vue rapide des indicateurs clefs.</div>
+      </section>
+
+      <section class="card" id="recentTicketsCard">
+        <div class="card-header">
+          <h3>Tickets recents</h3>
+          <button id="recentTicketsRefreshBtn" class="btn ghost">Recharger</button>
+        </div>
+        <div class="ticket-cards" id="recentTicketsList"></div>
+      </section>
+
+      <section class="card" id="adminGalleryCard">
+        <div class="card-header">
+          <h3>Galerie captures</h3>
+          <button id="adminGalleryRefreshBtn" class="btn ghost">Recharger</button>
+        </div>
+        <div class="filter-row">
+          <button class="chip active" data-gallery-range="all">Tout</button>
+          <button class="chip" data-gallery-range="7">7j</button>
+          <button class="chip" data-gallery-range="30">30j</button>
+          <input id="adminGallerySearch" type="search" placeholder="Filtrer (id ou url)" />
+          <button id="adminGallerySearchBtn" class="btn ghost" type="button">
+            Filtrer
+          </button>
+          <span class="note" id="adminGalleryCount"></span>
+        </div>
+        <div class="gallery-grid" id="adminGalleryGrid"></div>
+        <p class="note" id="adminGalleryEmpty">Aucune capture pour l'instant.</p>
+      </section>
+
+      <section class="card" id="demoCard">
+        <div class="card-header">
+          <h3>Mode demo client</h3>
+        </div>
+        <div class="actions-inline">
+          <button id="demoSeedBtn" class="btn ghost" type="button">
+            Charger une demo
+          </button>
+          <button id="demoResetBtn" class="btn ghost" type="button">
+            Reinitialiser demo
+          </button>
+          <a class="btn primary" href="/app/user/?demo=1" target="_blank" rel="noopener">
+            Ouvrir demo client
+          </a>
+        </div>
+        <p class="note">Ideal pour presenter l'experience utilisateur.</p>
+      </section>
+
+      <section class="card" id="kbCsvCard">
+        <div class="card-header">
+          <h3>Importer procedures (CSV)</h3>
+        </div>
+        <div class="actions-inline">
+          <input id="kbCsvImportInput" type="file" accept=".csv,text/csv" />
+          <button id="kbExportCsvBtn" class="btn ghost" type="button">
+            Exporter CSV
+          </button>
+          <button id="kbCsvTemplateBtn" class="btn ghost" type="button">
+            Telecharger un modele
+          </button>
+        </div>
+        <div class="kb-export-filters">
+          <input
+            id="kbExportQuery"
+            type="search"
+            placeholder="Mot-cle (optionnel)"
+          />
+          <select id="kbExportLevel" class="kb-filter">
+            <option value="all">Tous niveaux</option>
+            <option value="n1">N1</option>
+            <option value="n2">N2</option>
+            <option value="n3">N3 + Infra</option>
+            <option value="infra">Infra</option>
+          </select>
+          <button id="kbExportFilteredBtn" class="btn ghost" type="button">
+            Exporter filtre
+          </button>
+        </div>
+        <p class="note">
+          Colonnes attendues : title, content, source_type (optionnel), source_url
+          (optionnel).
+        </p>
+      </section>
+
+      <section class="card" id="orgCard">
+        <div class="card-header">
+          <h3>Entreprise</h3>
+          <button id="orgReloadBtn" class="btn ghost">Recharger</button>
+        </div>
+        <form id="orgForm" class="form two-columns">
+          <input name="name" placeholder="Nom entreprise" required />
+          <input name="plan" placeholder="Plan (starter/pro/premium)" />
+          <button class="btn primary" type="submit">Sauver</button>
+          <p id="orgStatus" class="status"></p>
+        </form>
+      </section>
+
+      <section class="card" id="orgSettingsCard">
+        <div class="card-header">
+          <h3>Parametres entreprise</h3>
+          <button id="orgSettingsReloadBtn" class="btn ghost">Recharger</button>
+        </div>
+        <form id="orgSettingsForm" class="form two-columns">
+          <div class="form-section">
+            <strong>Contact support</strong>
+            <input name="support_email" placeholder="Email support" type="email" />
+            <input name="support_phone" placeholder="Telephone support" />
+            <input name="logo_url" placeholder="Logo URL (optionnel)" type="url" />
+            <input
+              name="reminder_hours"
+              type="number"
+              min="1"
+              max="720"
+              placeholder="Rappel ticket (heures)"
+            />
+          </div>
+          <div class="form-section">
+            <strong>Connexion GLPI</strong>
+            <label class="toggle">
+              <input name="glpi_enabled" type="checkbox" />
+              <span>Activer GLPI pour ce tenant</span>
+            </label>
+            <input
+              name="glpi_base_url"
+              placeholder="GLPI Base URL (https://glpi.exemple.tld)"
+              type="url"
+            />
+            <input name="glpi_app_token" placeholder="GLPI App-Token" />
+            <input name="glpi_user_token" placeholder="GLPI User-Token" />
+            <div class="actions-inline">
+              <button id="glpiTestBtn" class="btn ghost" type="button">
+                Tester GLPI
+              </button>
+              <span id="glpiTestStatus" class="status"></span>
+            </div>
+          </div>
+          <div class="form-section">
+            <strong>Active Directory / LDAP</strong>
+            <label class="toggle">
+              <input name="ad_enabled" type="checkbox" />
+              <span>Activer Active Directory</span>
+            </label>
+            <input
+              name="ad_url"
+              placeholder="URL LDAP (ldaps://ad.exemple.tld:636)"
+              type="url"
+            />
+            <input name="ad_domain" placeholder="Domaine (ex: EXEMPLE)" />
+            <input name="ad_base_dn" placeholder="Base DN (ex: DC=exemple,DC=local)" />
+            <input name="ad_bind_user" placeholder="Compte bind (ex: service@exemple.local)" />
+            <input
+              name="ad_bind_password"
+              placeholder="Mot de passe bind"
+              type="password"
+            />
+          </div>
+          <button class="btn primary" type="submit">Sauver</button>
+          <p id="orgSettingsStatus" class="status"></p>
+        </form>
+      </section>
+
+      <section class="card" id="diagnosticsCard">
+        <div class="card-header">
+          <h3>Diagnostics</h3>
+          <div class="actions-inline">
+            <button id="diagnosticsReloadBtn" class="btn ghost">Refresh</button>
+            <button id="diagnosticsDeepBtn" class="btn ghost">Test complet</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table id="diagnosticsTable">
+            <thead>
+              <tr>
+                <th>Module</th>
+                <th>Statut</th>
+                <th>Details</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card" id="invitesCard">
+        <div class="card-header">
+          <h3>Invitations utilisateurs</h3>
+          <button id="invitesReloadBtn" class="btn ghost">Recharger</button>
+        </div>
+        <form id="inviteForm" class="form two-columns">
+          <input name="email" placeholder="Email utilisateur" type="email" required />
+          <select name="role">
+            <option value="user">Utilisateur</option>
+            <option value="agent">Agent</option>
+            <option value="admin">Admin</option>
+          </select>
+          <input
+            name="expires_hours"
+            type="number"
+            min="1"
+            max="720"
+            placeholder="Expiration (heures)"
+          />
+          <button class="btn primary" type="submit">Creer invitation</button>
+          <p id="inviteStatus" class="status"></p>
+        </form>
+        <div class="table-wrap">
+          <table id="invitesTable">
+            <thead>
+              <tr>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Statut</th>
+                <th>Expire</th>
+                <th>Token</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <p class="note">
+          L'utilisateur colle le token sur la page de connexion pour activer son
+          compte.
+        </p>
+      </section>
+
+      <section class="card" id="adminStatusCard">
+        <div class="card-header">
+          <h3>Etat entreprise</h3>
+          <button id="adminStatusRefreshBtn" class="btn ghost">Actualiser</button>
+        </div>
+        <div class="status-pill" id="adminStatusPill">
+          Verification en cours...
+        </div>
+        <div class="status-grid" id="adminStatusGrid"></div>
+      </section>
+
+      <section class="card" id="adminGuideCard">
+        <div class="card-header">
+          <h3>Guide admin (3 etapes)</h3>
+        </div>
+        <ol class="guide-list">
+          <li>Renseigner GLPI (URL, tokens) puis tester la connexion.</li>
+          <li>Configurer Active Directory si besoin.</li>
+          <li>Lancer un test utilisateur pour verifier le flux.</li>
+        </ol>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <button id="logoutBtnBottom" class="btn ghost" type="button">
+        Deconnexion
+      </button>
+      <span class="footer-note" id="footerCredit">Concu par Kah-Digital</span>
+    </footer>
+
+    <div id="imageLightbox" class="image-lightbox hidden" aria-hidden="true">
+      <div class="image-lightbox-overlay" data-lightbox-close></div>
+      <div class="image-lightbox-content">
+        <img id="imageLightboxImg" alt="Capture" />
+        <div class="image-lightbox-actions">
+          <a id="imageLightboxDownload" class="btn ghost" download>Telecharger</a>
+          <button id="imageLightboxClose" class="btn ghost" type="button">
+            Fermer
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script src="/app/i18n.js" defer></script>
+    <script src="/app/app.js" defer></script>
+    <script src="/app/logout.js" defer></script>
+  </body>
+</html>

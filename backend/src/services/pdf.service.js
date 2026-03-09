@@ -1,4 +1,29 @@
 const PDFDocument = require("pdfkit");
+const fs = require("fs");
+const path = require("path");
+
+const uploadDir = path.join(process.cwd(), "data", "uploads");
+
+function extractUploadUrls(text) {
+  if (!text) return [];
+  const matches =
+    String(text).match(/https?:\/\/[^\s)]+\/uploads\/[^\s)]+|\/uploads\/[^\s)]+/g) ||
+    [];
+  return Array.from(new Set(matches));
+}
+
+function resolveUploadPath(url) {
+  const filename = path.basename(url || "");
+  if (!filename) return null;
+  const fullPath = path.join(uploadDir, filename);
+  if (!fullPath.startsWith(uploadDir)) {
+    return null;
+  }
+  if (!fs.existsSync(fullPath)) {
+    return null;
+  }
+  return fullPath;
+}
 
 function buildTicketsPdf({ tickets, filters, tenantName }) {
   return new Promise((resolve) => {
@@ -61,6 +86,58 @@ function buildTicketsPdf({ tickets, filters, tenantName }) {
         doc.addPage();
       }
     });
+
+    const ticketsWithImages = tickets.filter((ticket) => {
+      const urls = extractUploadUrls(ticket.description || "");
+      return urls.length > 0;
+    });
+
+    if (ticketsWithImages.length) {
+      doc.addPage();
+      doc.fontSize(14).fillColor("#111").text("Pieces jointes");
+      doc.moveDown(0.6);
+
+      ticketsWithImages.forEach((ticket) => {
+        const urls = extractUploadUrls(ticket.description || "");
+        if (!urls.length) return;
+        if (doc.y > 700) {
+          doc.addPage();
+        }
+        doc.fontSize(11).fillColor("#111").text(ticket.title || "Ticket");
+        doc.fontSize(9).fillColor("#444").text(
+          `${ticket.category || "-"} | ${ticket.priority || "-"} | ${ticket.status || "-"}`
+        );
+        doc.moveDown(0.3);
+        if (ticket.description) {
+          doc.fontSize(9).fillColor("#333").text(ticket.description.slice(0, 600));
+          doc.moveDown(0.4);
+        }
+
+        urls.forEach((url) => {
+          const filePath = resolveUploadPath(url);
+          if (!filePath) {
+            doc.fontSize(9).fillColor("#777").text(`Image introuvable: ${url}`);
+            doc.moveDown(0.2);
+            return;
+          }
+          try {
+            doc.image(filePath, {
+              fit: [500, 320],
+              align: "left"
+            });
+            doc.moveDown(0.4);
+          } catch (err) {
+            doc.fontSize(9).fillColor("#777").text(`Image invalide: ${url}`);
+            doc.moveDown(0.2);
+          }
+          if (doc.y > 720) {
+            doc.addPage();
+          }
+        });
+
+        doc.moveDown(0.6);
+      });
+    }
 
     doc.end();
   });
@@ -161,4 +238,67 @@ function buildAnalyticsPdf({ tenantName, analytics }) {
   });
 }
 
-module.exports = { buildTicketsPdf, buildRoiPdf, buildAnalyticsPdf };
+function buildUserGuidePdf({ tenantName, support }) {
+  return new Promise((resolve) => {
+    const doc = new PDFDocument({ size: "A4", margin: 48 });
+    const chunks = [];
+    doc.on("data", (chunk) => chunks.push(chunk));
+    doc.on("end", () => resolve(Buffer.concat(chunks)));
+
+    doc.fontSize(20).text("Guide utilisateur - Support IT", { align: "left" });
+    doc.fontSize(10).fillColor("#666").text("Concu par Kah-Digital");
+    doc.moveDown(0.5);
+    doc.fillColor("#111").fontSize(12).text(`Organisation: ${tenantName || "PME"}`);
+    doc.fontSize(10).fillColor("#444").text(`Date: ${new Date().toLocaleString("fr-FR")}`);
+    doc.moveDown(1);
+
+    doc.fontSize(12).fillColor("#111").text("Demarrage rapide");
+    doc.moveDown(0.4);
+    const steps = [
+      "1. Decrivez votre probleme avec des mots simples.",
+      "2. Suivez les solutions proposees par l'assistant.",
+      "3. Si le probleme persiste, creez un ticket en un clic.",
+      "4. Un technicien vous recontacte avec un suivi."
+    ];
+    steps.forEach((step) => {
+      doc.fontSize(10).fillColor("#333").text(step);
+    });
+
+    doc.moveDown(0.8);
+    doc.fontSize(12).fillColor("#111").text("Quand creer un ticket ?");
+    doc.moveDown(0.4);
+    const hints = [
+      "Si le probleme revient apres plusieurs essais.",
+      "Si un message d'erreur bloque votre travail.",
+      "Si le probleme concerne plusieurs postes."
+    ];
+    hints.forEach((hint) => {
+      doc.fontSize(10).fillColor("#333").text(`- ${hint}`);
+    });
+
+    doc.moveDown(0.8);
+    doc.fontSize(12).fillColor("#111").text("Support");
+    doc.moveDown(0.4);
+    const supportEmail = support && support.support_email ? support.support_email : "Non defini";
+    const supportPhone = support && support.support_phone ? support.support_phone : "Non defini";
+    const supportHours = support && support.support_hours ? support.support_hours : "Non defini";
+    doc.fontSize(10).fillColor("#333").text(`Email: ${supportEmail}`);
+    doc.fontSize(10).fillColor("#333").text(`Telephone: ${supportPhone}`);
+    doc.fontSize(10).fillColor("#333").text(`Horaires: ${supportHours}`);
+
+    if (support && support.signature) {
+      doc.moveDown(0.6);
+      doc.fontSize(10).fillColor("#444").text("Signature");
+      doc.fontSize(10).fillColor("#333").text(support.signature);
+    }
+
+    doc.end();
+  });
+}
+
+module.exports = {
+  buildTicketsPdf,
+  buildRoiPdf,
+  buildAnalyticsPdf,
+  buildUserGuidePdf
+};

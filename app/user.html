@@ -1,0 +1,707 @@
+﻿<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Assistant Support IT - Utilisateur</title>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap"
+    />
+    <link rel="stylesheet" href="/app/styles.css" />
+  </head>
+  <body
+    class="user-only minimal-mode ultra-simple unauthenticated with-bottom-footer require-auth"
+  >
+    <header class="topbar">
+      <a class="brand brand-link" id="homeBrand" href="/app/user/">
+        <img
+          class="brand-logo"
+          data-brand-logo
+          data-default-logo="/app/assets/logo.svg"
+          src="/app/assets/logo.svg"
+          alt="Kah-Digital"
+        />
+        <span id="brandName">Assistant Support IT</span>
+      </a>
+      <span id="roleBanner" class="role-banner neutral">Espace Utilisateur</span>
+      <div class="actions">
+        <span id="netStatus" class="net-status">online</span>
+        <span id="sessionBadge" class="session-badge hidden"></span>
+        <div class="lang-switcher" data-lang-switcher>
+          <button class="lang-btn" type="button" data-lang="fr">FR</button>
+          <button class="lang-btn" type="button" data-lang="en">EN</button>
+          <button class="lang-btn" type="button" data-lang="es">ES</button>
+          <button class="lang-btn" type="button" data-lang="ar">AR</button>
+        </div>
+        <button id="userPresentationToggle" class="btn ghost" type="button">
+          Mode presentation
+        </button>
+        <button id="guidedModeToggle" class="btn ghost" type="button">
+          Mode pas-a-pas: OFF
+        </button>
+        <button id="userSimpleToggle" class="btn ghost" type="button">
+          Mode simple: OFF
+        </button>
+        <button id="showSupportBtn" class="btn ghost" type="button">
+          Support
+        </button>
+        <button id="showHistoryBtn" class="btn ghost" type="button">
+          Historique
+        </button>
+        <button id="showTicketsBtn" class="btn ghost" type="button">
+          Mes tickets
+        </button>
+        <button id="logoutBtn" class="btn ghost">Deconnexion</button>
+      </div>
+    </header>
+    <div id="statusBanner" class="status-banner hidden"></div>
+
+    <main>
+      <section class="card" id="loginCard">
+        <h2 id="loginTitle">Connexion</h2>
+        <form id="loginForm" class="form">
+          <input name="tenant_code" placeholder="Code entreprise (ex: DEFAULT)" />
+          <input name="email" type="email" placeholder="Email" required />
+          <input name="password" type="password" placeholder="Mot de passe" required />
+          <button class="btn primary" type="submit">Se connecter</button>
+          <p id="loginStatus" class="status"></p>
+        </form>
+        <p class="note" id="loginHint">
+          Le code entreprise est fourni par votre service IT. (Local: DEFAULT)
+        </p>
+        <div class="quick-login" id="quickLoginUser">
+          <button id="quickUserBtn" class="btn ghost" type="button">
+            Connexion utilisateur rapide
+          </button>
+          <p class="note" id="quickLoginNote">
+            Compte utilisateur: user@assistant.local / user123
+          </p>
+        </div>
+        <div class="invite-activate">
+          <h4 id="inviteTitle">Activer une invitation</h4>
+          <form id="inviteAcceptForm" class="form inline">
+            <input
+              id="inviteTokenInput"
+              name="invite_token"
+              placeholder="Token invitation"
+              required
+            />
+            <input
+              id="invitePasswordInput"
+              name="invite_password"
+              type="password"
+              placeholder="Choisir un mot de passe"
+              required
+            />
+            <button class="btn ghost" type="submit">Activer</button>
+          </form>
+          <p id="inviteAcceptStatus" class="status"></p>
+        </div>
+      </section>
+
+      <section class="hero-start" id="kioskStart">
+        <div class="hero-card">
+          <div class="hero-badge">Support IT</div>
+          <h1 id="heroTitle">Bienvenue</h1>
+          <p id="heroSubtitle">
+            Exposez votre probleme et obtenez une solution en quelques secondes.
+          </p>
+          <div class="hero-highlights">
+            <div class="hero-pill" id="heroPillGuide">Guide pas a pas</div>
+            <div class="hero-pill" id="heroPillTicket">Ticket instantane</div>
+            <div class="hero-pill" id="heroPillFollow">Suivi simple</div>
+          </div>
+          <button id="startBtn" class="btn primary">Commencer</button>
+          <p class="note" id="heroNote">Cliquez pour demarrer.</p>
+        </div>
+      </section>
+
+      <section class="grid">
+        <div class="card" id="kbCard">
+          <div class="card-header">
+            <h3 id="assistantTitle">Assistant Support</h3>
+            <div class="tab-switch">
+              <button id="assistantTabBtn" class="btn ghost active" type="button">
+                Assistant
+              </button>
+              <button id="kbTabBtn" class="btn ghost" type="button">
+                Base de connaissances
+              </button>
+            </div>
+            <div class="actions-inline">
+              <button id="newChatBtn" class="btn ghost">Nouveau probleme</button>
+              <button id="printSummaryBtn" class="btn ghost">Resume imprimable</button>
+            </div>
+          </div>
+          <div id="assistantTabPanel" class="tab-panel active">
+            <div class="user-hint">
+            <span id="userHintStep1"><strong>Etape 1</strong> Decris ton probleme.</span>
+            <span id="userHintStep2"><strong>Etape 2</strong> Suis les solutions proposees.</span>
+            <span id="userHintStep3"><strong>Etape 3</strong> Si besoin, cree un ticket en un clic.</span>
+            </div>
+            <div class="beginner-step" id="beginnerStep">
+              Etape 1: Decris ton probleme pour demarrer.
+            </div>
+            <div class="summary-card" id="userSummaryCard">
+              <div class="quick-title" id="summaryTitle">Resume</div>
+              <div class="summary-grid">
+              <div class="summary-item clickable" data-summary-filter="all">
+                <strong id="summaryTotal">0</strong>
+                <span id="summaryLabelTickets">Tickets</span>
+              </div>
+              <div class="summary-item clickable" data-summary-filter="open">
+                <strong id="summaryOpen">0</strong>
+                <span id="summaryLabelOpen">En cours</span>
+              </div>
+              <div class="summary-item clickable" data-summary-filter="resolved">
+                <strong id="summaryResolved">0</strong>
+                <span id="summaryLabelResolved">Resolus</span>
+              </div>
+              </div>
+              <div class="summary-last">
+                <strong id="summaryLastLabel">Dernier message</strong>
+                <span id="summaryLast">-</span>
+              </div>
+            </div>
+            <div class="status-card" id="statusCard">
+              <div class="quick-title" id="statusTitle">Statut du dossier</div>
+              <div class="timeline" id="statusTimeline">
+                <div class="timeline-step" data-step="assistant">
+                  <span class="dot"></span>
+                  <span id="statusStepAssistant">Assistant</span>
+                </div>
+                <div class="timeline-step" data-step="ticket">
+                  <span class="dot"></span>
+                  <span id="statusStepTicket">Ticket cree</span>
+                </div>
+                <div class="timeline-step" data-step="resolved">
+                  <span class="dot"></span>
+                  <span id="statusStepResolved">Resolus</span>
+                </div>
+              </div>
+              <span id="statusPill" class="status-pill">En attente</span>
+              <div class="status-note" id="statusNote">
+                En attente d'un nouveau message.
+              </div>
+            </div>
+            <div class="context-card" id="contextCard">
+              <div class="quick-title" id="contextTitle">Contexte rapide</div>
+              <div class="context-grid">
+                <label>
+                  <span id="contextDeviceLabel">Poste</span>
+                  <select id="contextDevice">
+                    <option value="">Non precise</option>
+                    <option value="PC fixe">PC fixe</option>
+                    <option value="PC HP">PC HP</option>
+                    <option value="Laptop">Laptop</option>
+                    <option value="Mobile">Mobile</option>
+                  </select>
+                </label>
+                <label>
+                  <span id="contextOsLabel">OS</span>
+                  <select id="contextOs">
+                    <option value="">Non precise</option>
+                    <option value="Windows">Windows</option>
+                    <option value="Windows 11">Windows 11</option>
+                    <option value="macOS">macOS</option>
+                    <option value="Linux">Linux</option>
+                    <option value="Autre">Autre</option>
+                  </select>
+                </label>
+                <label>
+                  <span id="contextLocationLabel">Site</span>
+                  <select id="contextLocation">
+                    <option value="">Non precise</option>
+                    <option value="Siege">Siege</option>
+                    <option value="Teletravail">Teletravail</option>
+                    <option value="Agence">Agence</option>
+                    <option value="Client">Client</option>
+                  </select>
+                </label>
+                <label>
+                  <span id="contextUrgencyLabel">Urgence</span>
+                  <select id="contextUrgency">
+                    <option value="">Normale</option>
+                    <option value="Haute">Haute</option>
+                    <option value="Critique">Critique</option>
+                  </select>
+                </label>
+              </div>
+              <p class="note" id="contextSummary">
+                Ces infos aident a resoudre plus vite.
+              </p>
+            </div>
+            <div class="quick-issues">
+              <div class="quick-title" id="quickIssuesTitle">Problemes rapides</div>
+              <div class="quick-search">
+                <input
+                  id="quickIssueSearchInput"
+                  type="search"
+                  placeholder="Rechercher un probleme deja traite"
+                />
+                <button id="quickIssueSearchBtn" class="btn ghost" type="button">
+                  Rechercher
+                </button>
+              </div>
+              <div class="quick-buttons" id="quickIssuesContainer">
+                <button class="chip" data-quick="outlook">
+                  <span class="chip-icon" aria-hidden="true"></span>
+                  Outlook ne s'ouvre pas
+                </button>
+                <button class="chip" data-quick="internet">
+                  <span class="chip-icon" aria-hidden="true"></span>
+                  Plus d'internet
+                </button>
+                <button class="chip" data-quick="printer">
+                  <span class="chip-icon" aria-hidden="true"></span>
+                  Imprimante ne repond pas
+                </button>
+                <button class="chip" data-quick="password">
+                  <span class="chip-icon" aria-hidden="true"></span>
+                  Mot de passe oublie
+                </button>
+              </div>
+              <div class="quick-detail hidden" id="quickIssueDetail">
+                <div class="quick-detail-header">
+                  <div>
+                    <div class="quick-title" id="quickDetailTitle">
+                      Probleme selectionne
+                    </div>
+                    <p class="note" id="quickDetailMessage"></p>
+                  </div>
+                  <button id="quickDetailCloseBtn" class="btn ghost" type="button">
+                    Fermer
+                  </button>
+                </div>
+                <div class="quick-detail-actions">
+                  <button id="quickDetailProcedureBtn" class="btn ghost" type="button">
+                    Voir procedure
+                  </button>
+                  <button id="quickDetailStartBtn" class="btn primary" type="button">
+                    Demarrer le chat
+                  </button>
+                </div>
+              </div>
+              <p class="note" id="quickIssuesNote">
+                Clique sur un probleme pour afficher la procedure ou demarrer le chat.
+              </p>
+              <div class="actions-inline">
+                <button id="showFreeTextBtn" class="btn ghost" type="button">
+                  Autre probleme
+                </button>
+                <button id="userAutoTestBtn" class="btn ghost" type="button">
+                  Test auto
+                </button>
+              </div>
+            </div>
+            <div class="quick-guide hidden" id="quickGuide">
+              <div class="quick-title" id="quickGuideTitle">Guide rapide</div>
+              <div class="guide-steps" id="quickGuideSteps"></div>
+              <p class="note" id="quickGuideNote">
+                Le guide ne remplace pas un technicien.
+              </p>
+            </div>
+            <div class="next-step-card hidden" id="nextStepCard">
+              <div class="quick-title" id="nextStepTitle">Prochaine etape</div>
+              <p class="note" id="nextStepText">
+                Decrivez votre probleme pour commencer.
+              </p>
+              <div class="next-step-actions" id="nextStepActions">
+                <button id="nextStepProcedureBtn" class="btn ghost" type="button">
+                  Voir procedure rapide
+                </button>
+                <button id="nextStepKbBtn" class="btn ghost" type="button">
+                  Ouvrir base de connaissances
+                </button>
+                <button id="nextStepTicketBtn" class="btn primary" type="button">
+                  Creer un ticket
+                </button>
+              </div>
+              <div class="quick-replies" id="nextStepReplies"></div>
+            </div>
+            <div class="kb-actions">
+              <select id="langSelect">
+                <option value="fr">FR</option>
+                <option value="en">EN</option>
+                <option value="es">ES</option>
+                <option value="ar">AR</option>
+              </select>
+            </div>
+            <div id="chatWindow" class="chat-window"></div>
+            <div class="chat-search">
+              <input
+                id="chatSearchInput"
+                type="search"
+                placeholder="Rechercher dans cette conversation"
+              />
+              <button id="chatSearchBtn" class="btn ghost" type="button">
+                Rechercher
+              </button>
+              <button id="chatSearchClearBtn" class="btn ghost" type="button">
+                Reinitialiser
+              </button>
+            </div>
+            <div class="chat-gallery hidden" id="chatGallery">
+              <div class="quick-title">
+                <span id="chatGalleryTitle">Captures</span>
+                <span class="muted" id="chatGalleryCount"></span>
+              </div>
+              <div class="gallery-grid" id="chatGalleryGrid"></div>
+              <p class="note" id="chatGalleryEmpty">Aucune capture pour cette conversation.</p>
+            </div>
+            <form id="chatForm" class="chat-form">
+              <input id="chatMessageInput" name="message" placeholder="Ecrire un message" required />
+              <button class="btn primary" type="submit">Envoyer</button>
+            </form>
+            <div class="chat-attachments">
+              <input id="chatImageInput" class="hidden" type="file" accept="image/*" />
+              <button id="chatImageBtn" class="btn ghost" type="button">
+                Ajouter une capture
+              </button>
+              <span class="note" id="chatAttachmentHint">
+                Glissez-deposez ou collez une image.
+              </span>
+            </div>
+            <div class="sources" id="chatSources"></div>
+          <div class="feedback" id="feedbackBox">
+            <div class="feedback-title" id="feedbackTitle">Le probleme est-il resolu ?</div>
+            <div class="feedback-actions">
+              <button id="resolveYesBtn" class="btn ghost">
+                Oui, c'est resolu
+              </button>
+              <button id="createTicketBtn" class="btn primary" type="button">
+                Ca n'a pas marche
+              </button>
+            </div>
+            <div id="feedbackHint" class="note"></div>
+            <div class="feedback-details">
+              <label id="feedbackCommentLabel" for="feedbackComment">
+                Ce qui n'a pas marche (optionnel)
+              </label>
+              <input
+                  id="feedbackComment"
+                  placeholder="Ex: Outlook ne se lance toujours pas"
+                />
+              </div>
+            </div>
+            <div class="ticket-preview hidden" id="ticketPreview">
+              <div class="quick-title" id="ticketPreviewHeading">Recap avant creation</div>
+              <div class="preview-grid">
+                <div>
+                  <strong id="ticketPreviewLabelTitle">Titre</strong>
+                  <span id="ticketPreviewTitle">-</span>
+                </div>
+                <div>
+                  <strong id="ticketPreviewLabelCategory">Categorie</strong>
+                  <span id="ticketPreviewCategory">-</span>
+                </div>
+                <div>
+                  <strong id="ticketPreviewLabelPriority">Priorite</strong>
+                  <span id="ticketPreviewPriority">-</span>
+                </div>
+                <div>
+                  <strong id="ticketPreviewLabelSummary">Resume</strong>
+                  <span id="ticketPreviewSummary">-</span>
+                </div>
+              </div>
+              <div class="preview-actions">
+                <button id="ticketPreviewConfirm" class="btn primary" type="button">
+                  Creer le ticket
+                </button>
+                <button id="ticketPreviewCancel" class="btn ghost" type="button">
+                  Annuler
+                </button>
+              </div>
+            </div>
+            <div id="ticketBadge" class="ticket-badge hidden"></div>
+          </div>
+          <div id="kbTabPanel" class="tab-panel hidden">
+            <div class="kb-search">
+              <input
+                id="kbSearchInputUser"
+                type="search"
+                placeholder="Rechercher une procedure"
+              />
+              <select id="kbLevelFilter" class="kb-filter">
+                <option value="all">Tous niveaux</option>
+                <option value="n1">N1</option>
+                <option value="n2">N2</option>
+                <option value="n3">N3</option>
+                <option value="infra">Infra</option>
+              </select>
+              <button id="kbSearchBtnUser" class="btn ghost" type="button">
+                Rechercher
+              </button>
+            </div>
+            <div id="kbSearchResultsUser" class="kb-results"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card ticket-thanks hidden" id="ticketThanks">
+        <h3 id="ticketThanksHeader">Merci, c'est enregistre</h3>
+        <p id="ticketThanksMsg">
+          Votre ticket a ete cree. Un technicien va vous recontacter.
+        </p>
+        <div class="ticket-summary">
+          <div class="ticket-summary-row">
+            <strong id="ticketThanksLabelTitle">Titre</strong>
+            <span id="ticketThanksTitle">-</span>
+          </div>
+          <div class="ticket-summary-row">
+            <strong id="ticketThanksLabelDetails">Details</strong>
+            <span id="ticketThanksDetails">-</span>
+          </div>
+          <div class="ticket-summary-row">
+            <strong id="ticketThanksLabelEta">Estimation</strong>
+            <span id="ticketThanksEta">-</span>
+          </div>
+        </div>
+        <button id="thanksNewBtn" class="btn primary" type="button">
+          Nouveau probleme
+        </button>
+      </section>
+      <section class="card tickets-panel hidden" id="myTicketsPanel">
+        <div class="panel-header">
+          <h3 id="myTicketsTitle">Mes tickets</h3>
+          <div class="actions-inline">
+            <button id="reloadMyTicketsBtn" class="btn ghost" type="button">
+              Rafraichir
+            </button>
+            <button id="myTicketsExportBtn" class="btn ghost" type="button">
+              Exporter PDF
+            </button>
+            <button id="myTicketsExportCsvBtn" class="btn ghost" type="button">
+              Exporter CSV
+            </button>
+            <button id="backToChatBtn" class="btn ghost" type="button">
+              Retour au chat
+            </button>
+          </div>
+        </div>
+        <div class="filter-row">
+          <button class="chip" data-my-tickets-filter="all">
+            <span id="myTicketsFilterAllLabel">Tous</span>
+            <span class="chip-count" id="myTicketsCountAll">0</span>
+          </button>
+          <button class="chip" data-my-tickets-filter="open">
+            <span id="myTicketsFilterOpenLabel">En cours</span>
+            <span class="chip-count" id="myTicketsCountOpen">0</span>
+          </button>
+          <button class="chip" data-my-tickets-filter="resolved">
+            <span id="myTicketsFilterResolvedLabel">Resolus</span>
+            <span class="chip-count" id="myTicketsCountResolved">0</span>
+          </button>
+        </div>
+        <div class="history-pagination">
+          <button id="ticketsPrevBtn" class="btn ghost" type="button">
+            Precedent
+          </button>
+          <span id="ticketsPageInfo" class="note">Page 1</span>
+          <button id="ticketsNextBtn" class="btn ghost" type="button">
+            Suivant
+          </button>
+        </div>
+        <div class="tickets-search">
+          <input
+            id="myTicketsSearchInput"
+            type="search"
+            placeholder="Rechercher un ticket"
+          />
+          <select id="myTicketsSortSelect" class="kb-filter">
+            <option value="newest">Plus recent</option>
+            <option value="oldest">Plus ancien</option>
+            <option value="priority">Priorite</option>
+            <option value="status">Statut</option>
+          </select>
+          <button id="myTicketsSearchBtn" class="btn ghost" type="button">
+            Rechercher
+          </button>
+        </div>
+        <div class="reminders-card hidden" id="ticketRemindersCard">
+          <div class="quick-title" id="ticketRemindersTitle">Rappels</div>
+          <div id="ticketRemindersList" class="history-list"></div>
+        </div>
+        <div class="ticket-cards" id="myTicketsList"></div>
+        <div class="ticket-detail hidden" id="ticketDetailPanel">
+          <div class="quick-title" id="ticketDetailHeading">Suivi du ticket</div>
+        <div class="ticket-detail-header">
+          <strong id="ticketDetailTitle">-</strong>
+          <span id="ticketDetailStatus" class="ticket-status">-</span>
+        </div>
+        <div class="ticket-detail-meta" id="ticketDetailMeta">-</div>
+          <div class="timeline ticket-timeline" id="ticketDetailTimeline">
+            <div class="timeline-step" data-step="open">
+              <span class="dot"></span>
+              <span id="ticketTimelineOpen">Ouvert</span>
+            </div>
+            <div class="timeline-step" data-step="pending">
+              <span class="dot"></span>
+              <span id="ticketTimelinePending">En cours</span>
+            </div>
+            <div class="timeline-step" data-step="resolved">
+              <span class="dot"></span>
+              <span id="ticketTimelineResolved">Resolus</span>
+            </div>
+          </div>
+        <p class="note" id="ticketDetailSummary">-</p>
+        <div class="ticket-attachments hidden" id="ticketDetailImages">
+          <div class="quick-title">
+            <span id="ticketDetailImagesTitle">Captures du ticket</span>
+            <span class="muted" id="ticketDetailImagesCount"></span>
+          </div>
+          <div class="gallery-grid" id="ticketDetailImagesGrid"></div>
+        </div>
+        <div class="actions-inline">
+          <button id="ticketResumeBtn" class="btn ghost" type="button">
+            Reprendre conversation
+          </button>
+        </div>
+      </div>
+      </section>
+
+      <section class="card history-panel hidden" id="historyPanel">
+        <div class="panel-header">
+          <h3 id="historyTitle">Historique des conversations</h3>
+          <div class="actions-inline">
+            <button id="historyReloadBtn" class="btn ghost" type="button">
+              Rafraichir
+            </button>
+            <button id="closeHistoryBtn" class="btn ghost" type="button">
+              Fermer
+            </button>
+          </div>
+        </div>
+        <div class="history-search">
+          <input
+            id="historySearchInputUser"
+            type="search"
+            placeholder="Rechercher dans l'historique"
+          />
+          <button id="historySearchBtnUser" class="btn ghost" type="button">
+            Rechercher
+          </button>
+        </div>
+        <div class="history-pagination">
+          <button id="historyPrevBtn" class="btn ghost" type="button">
+            Precedent
+          </button>
+          <span id="historyPageInfo" class="note">Page 1</span>
+          <button id="historyNextBtn" class="btn ghost" type="button">
+            Suivant
+          </button>
+        </div>
+        <div id="historyList" class="history-list"></div>
+        <div class="history-detail hidden" id="historyDetailPanel">
+          <div class="panel-header">
+            <h4 id="historyDetailTitle">Conversation</h4>
+            <div class="actions-inline">
+              <button id="historyDetailOpenBtn" class="btn ghost" type="button">
+                Ouvrir dans le chat
+              </button>
+            </div>
+          </div>
+          <div class="history-search">
+            <input
+              id="historyDetailSearchInput"
+              type="search"
+              placeholder="Filtrer cette conversation"
+            />
+            <button id="historyDetailSearchBtn" class="btn ghost" type="button">
+              Filtrer
+            </button>
+          </div>
+          <div id="historyDetailList" class="history-list"></div>
+        </div>
+      </section>
+
+      <section class="card support-panel hidden" id="supportHoursCard">
+        <div class="panel-header">
+          <h3 id="supportTitle">Support & horaires</h3>
+          <div class="actions-inline">
+            <button id="downloadGuideBtn" class="btn ghost" type="button">
+              Telecharger le guide
+            </button>
+            <button id="closeSupportBtn" class="btn ghost" type="button">
+              Fermer
+            </button>
+          </div>
+        </div>
+        <div class="support-grid">
+          <div class="support-item">
+            <strong id="supportLabelStatus">Statut</strong>
+            <span id="supportStatusText">-</span>
+          </div>
+          <div class="support-item">
+            <strong id="supportLabelNext">Prochaine ouverture</strong>
+            <span id="supportNextText">-</span>
+          </div>
+          <div class="support-item">
+            <strong id="supportLabelTimezone">Fuseau</strong>
+            <span id="supportTimezoneText">-</span>
+          </div>
+          <div class="support-item">
+            <strong id="supportLabelHours">Horaires</strong>
+            <span id="supportHoursText">-</span>
+          </div>
+        </div>
+        <p class="note" id="supportNote">
+          Besoin d'aide urgente ? Creez un ticket ou contactez le support.
+        </p>
+      </section>
+
+      <section class="card simple-dashboard hidden" id="simpleDashboard">
+        <h3 id="simpleDashboardTitle">Tableau de bord</h3>
+        <div class="summary-grid">
+          <div class="summary-item">
+            <strong id="simpleSummaryTotal">0</strong>
+            <span id="simpleSummaryLabelTotal">Tickets</span>
+          </div>
+          <div class="summary-item">
+            <strong id="simpleSummaryOpen">0</strong>
+            <span id="simpleSummaryLabelOpen">En cours</span>
+          </div>
+          <div class="summary-item">
+            <strong id="simpleSummaryResolved">0</strong>
+            <span id="simpleSummaryLabelResolved">Resolus</span>
+          </div>
+        </div>
+        <div class="actions-inline">
+          <button id="simpleStartBtn" class="btn primary" type="button">
+            Poser un probleme
+          </button>
+          <button id="simpleTicketsBtn" class="btn ghost" type="button">
+            Voir mes tickets
+          </button>
+        </div>
+      </section>
+    </main>
+
+    <div id="imageLightbox" class="image-lightbox hidden" aria-hidden="true">
+      <div class="image-lightbox-overlay" data-lightbox-close></div>
+      <div class="image-lightbox-content">
+        <img id="imageLightboxImg" alt="Capture" />
+        <div class="image-lightbox-actions">
+          <a id="imageLightboxDownload" class="btn ghost" download>Telecharger</a>
+          <button id="imageLightboxClose" class="btn ghost" type="button">
+            Fermer
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <footer class="page-footer">
+      <button id="logoutBtnBottom" class="btn ghost" type="button">
+        Deconnexion
+      </button>
+      <span class="footer-note" id="footerCredit">Concu par Kah-Digital</span>
+    </footer>
+
+    <script src="/app/i18n.js" defer></script>
+    <script src="/app/app.js" defer></script>
+    <script src="/app/logout.js" defer></script>
+  </body>
+</html>
+
+

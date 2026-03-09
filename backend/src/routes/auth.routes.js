@@ -5,11 +5,12 @@ const { env } = require("../config/env");
 const { authRequired } = require("../middleware/auth");
 const {
   findUserByEmail,
+  findUserByEmailInTenant,
   findUserById,
   verifyPassword,
   createUser
 } = require("../services/users.service");
-const { getDefaultTenantId } = require("../services/tenants.service");
+const { getDefaultTenantId, getTenantByCode } = require("../services/tenants.service");
 const { logEvent } = require("../services/audit.service");
 const { validateOr400 } = require("../utils/validate");
 const { loginLimiter } = require("../middleware/rate-limit");
@@ -18,7 +19,8 @@ const router = express.Router();
 
 const loginSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(6)
+  password: z.string().min(6),
+  tenant_code: z.string().min(2).optional()
 });
 
 router.post("/login", loginLimiter(), (req, res) => {
@@ -31,7 +33,16 @@ router.post("/login", loginLimiter(), (req, res) => {
     return res.status(500).json({ error: "missing_jwt_secret" });
   }
 
-  const user = findUserByEmail(payload.email);
+  let user = null;
+  if (payload.tenant_code) {
+    const tenant = getTenantByCode(payload.tenant_code);
+    if (!tenant) {
+      return res.status(401).json({ error: "invalid_credentials" });
+    }
+    user = findUserByEmailInTenant({ tenantId: tenant.id, email: payload.email });
+  } else {
+    user = findUserByEmail(payload.email);
+  }
   if (!user || !verifyPassword(payload.password, user.password_hash)) {
     return res.status(401).json({ error: "invalid_credentials" });
   }
@@ -70,7 +81,7 @@ router.post("/login", loginLimiter(), (req, res) => {
 });
 
 router.post("/quick-admin", (req, res) => {
-  if (env.nodeEnv !== "development" && env.nodeEnv !== "test") {
+  if (env.disableQuickLogin || (env.nodeEnv !== "development" && env.nodeEnv !== "test")) {
     return res.status(403).json({ error: "forbidden" });
   }
 
@@ -113,7 +124,7 @@ router.post("/quick-admin", (req, res) => {
 });
 
 router.get("/quick-admin", (req, res) => {
-  if (env.nodeEnv !== "development" && env.nodeEnv !== "test") {
+  if (env.disableQuickLogin || (env.nodeEnv !== "development" && env.nodeEnv !== "test")) {
     return res.status(403).json({ error: "forbidden" });
   }
 
@@ -169,7 +180,7 @@ router.get("/me", authRequired, (req, res) => {
 });
 
 router.post("/quick-user", (req, res) => {
-  if (env.nodeEnv !== "development" && env.nodeEnv !== "test") {
+  if (env.disableQuickLogin || (env.nodeEnv !== "development" && env.nodeEnv !== "test")) {
     return res.status(403).json({ error: "forbidden" });
   }
 

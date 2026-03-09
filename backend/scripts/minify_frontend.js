@@ -4,16 +4,7 @@ const terser = require("terser");
 
 const root = path.join(__dirname, "..", "..");
 const targets = [
-  { src: path.join(root, "app", "app.js"), out: path.join(root, "app", "app.min.js") },
-  {
-    src: path.join(root, "dashboard", "dashboard.js"),
-    out: path.join(root, "dashboard", "dashboard.min.js")
-  },
-  { src: path.join(root, "crm", "crm.js"), out: path.join(root, "crm", "crm.min.js") },
-  {
-    src: path.join(root, "superadmin", "superadmin.js"),
-    out: path.join(root, "superadmin", "superadmin.min.js")
-  }
+  { src: path.join(root, "app", "app.js"), out: path.join(root, "app", "app.min.js") }
 ];
 
 async function run() {

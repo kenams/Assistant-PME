@@ -1,0 +1,4 @@
+{
+  "watch": ["src"],
+  "ignore": ["data/**", "data/*", "*.log"]
+}

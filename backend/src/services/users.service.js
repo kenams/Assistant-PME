@@ -13,6 +13,7 @@ function ensureSeeded() {
     db.tenants.push({
       id: tenantId,
       name: env.seedTenantName,
+      code: (env.seedTenantName || "DEFAULT").toUpperCase().replace(/[^A-Z0-9]/g, ""),
       plan: "starter",
       created_at: new Date().toISOString()
     });

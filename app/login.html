@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Assistant Support IT - Connexion</title>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap"
+    />
+    <link rel="stylesheet" href="/app/styles.css" />
+  </head>
+  <body class="user-only minimal-mode ultra-simple unauthenticated login-only with-bottom-footer">
+    <header class="topbar">
+      <a class="brand brand-link" id="homeBrand" href="/app/">
+        <img
+          class="brand-logo"
+          data-brand-logo
+          data-default-logo="/app/assets/logo.svg"
+          src="/app/assets/logo.svg"
+          alt="Kah-Digital"
+        />
+        <span id="brandName">Assistant Support IT</span>
+      </a>
+      <span id="roleBanner" class="role-banner neutral">Connexion</span>
+      <div class="actions">
+        <span id="netStatus" class="net-status">online</span>
+        <div class="lang-switcher" data-lang-switcher>
+          <button class="lang-btn" type="button" data-lang="fr">FR</button>
+          <button class="lang-btn" type="button" data-lang="en">EN</button>
+          <button class="lang-btn" type="button" data-lang="es">ES</button>
+          <button class="lang-btn" type="button" data-lang="ar">AR</button>
+        </div>
+      </div>
+    </header>
+    <div id="statusBanner" class="status-banner hidden"></div>
+
+    <main>
+      <section class="card login-card" id="loginCard">
+        <div class="login-header">
+          <div class="hero-badge">Support IT</div>
+          <h2 id="loginTitle">Connexion utilisateur</h2>
+          <p class="note" id="loginSubtitle">
+            Accedez a l'assistant pour obtenir de l'aide ou creer un ticket.
+          </p>
+        </div>
+        <form id="loginForm" class="form">
+          <input
+            id="loginTenantInput"
+            name="tenant_code"
+            placeholder="Code entreprise (ex: DEFAULT)"
+          />
+          <input id="loginEmailInput" name="email" type="email" placeholder="Email" required />
+          <input
+            id="loginPasswordInput"
+            name="password"
+            type="password"
+            placeholder="Mot de passe"
+            required
+          />
+          <button class="btn primary" type="submit" id="loginSubmitBtn">
+            Se connecter
+          </button>
+          <p id="loginStatus" class="status"></p>
+        </form>
+        <p class="note" id="loginHint">
+          Le code entreprise est fourni par votre service IT. (Local: DEFAULT)
+        </p>
+        <p class="note subtle" id="loginTestAccount">
+          Compte test local: <strong>user@assistant.local</strong> / <strong>user123</strong>
+        </p>
+      </section>
+    </main>
+
+    <footer class="page-footer">
+      <span class="footer-note" id="footerCredit">Concu par Kah-Digital</span>
+    </footer>
+
+    <script src="/app/i18n.js" defer></script>
+    <script src="/app/app.js" defer></script>
+    <script src="/app/logout.js" defer></script>
+  </body>
+</html>

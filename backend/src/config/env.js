@@ -10,6 +10,12 @@ const env = {
   dataStorePath:
     process.env.DATA_STORE_PATH ||
     path.join(process.cwd(), "data", "db.json"),
+  dataBackupDir:
+    process.env.DATA_BACKUP_DIR ||
+    path.join(process.cwd(), "data", "backups"),
+  dataBackupMax: parseInt(process.env.DATA_BACKUP_MAX || "20", 10),
+  dataBackupEnabled:
+    (process.env.DATA_BACKUP_ENABLED || "true").toLowerCase() !== "false",
   jwtSecret: process.env.JWT_SECRET || "",
   llmMode: process.env.LLM_MODE || "mock",
   openaiApiKey: process.env.OPENAI_API_KEY || "",
@@ -27,6 +33,9 @@ const env = {
   rateLimitMax: parseInt(process.env.RATE_LIMIT_MAX || "120", 10),
   rateLimitIngestMax: parseInt(process.env.RATE_LIMIT_INGEST_MAX || "30", 10),
   rateLimitLoginMax: parseInt(process.env.RATE_LIMIT_LOGIN_MAX || "10", 10),
+  corsOrigins: process.env.CORS_ORIGINS || "",
+  disableQuickLogin:
+    (process.env.DISABLE_QUICK_LOGIN || "").toLowerCase() === "true",
   requireIngestToken: (process.env.REQUIRE_INGEST_TOKEN || "").toLowerCase() === "true",
   leadAllowlistDomains: process.env.LEAD_ALLOWLIST_DOMAINS || "",
   leadToken: process.env.LEAD_TOKEN || "",

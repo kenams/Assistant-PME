@@ -7,11 +7,11 @@
     "dev": "nodemon src/index.js",
     "start": "node src/index.js",
     "kb:import": "node scripts/import_kb.js",
+    "demo:seed": "node scripts/demo_pack.js append",
+    "demo:reset": "node scripts/demo_pack.js reset",
     "frontend:minify": "node scripts/minify_frontend.js",
-    "frontend:watch": "nodemon --watch ../app --watch ../dashboard --watch ../crm --watch ../superadmin --ext js,html,css --exec \"node scripts/minify_frontend.js\"",
-    "test": "node --test ./tests/*.test.js",
-    "test:e2e": "playwright test",
-    "test:all": "npm run test && npm run test:e2e"
+    "frontend:watch": "nodemon --watch ../app --ext js,html,css --exec \"node scripts/minify_frontend.js\"",
+    "test": "node scripts/run_tests.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
@@ -30,7 +30,6 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@playwright/test": "^1.52.0",
     "nodemon": "^3.1.4",
     "terser": "^5.37.0"
   }

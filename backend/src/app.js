@@ -27,6 +27,7 @@ const notificationsRoutes = require("./routes/notifications.routes");
 const ingestRoutes = require("./routes/ingest.routes");
 const oauthRoutes = require("./routes/oauth.routes");
 const tenantsRoutes = require("./routes/tenants.routes");
+const docsRoutes = require("./routes/docs.routes");
 
 const app = express();
 const logger = createLogger();
@@ -58,7 +59,19 @@ app.use(
     }
   })
 );
-app.use(cors());
+const corsOrigins = env.corsOrigins
+  ? env.corsOrigins
+      .split(",")
+      .map((origin) => origin.trim())
+      .filter(Boolean)
+  : null;
+app.use(
+  cors(
+    corsOrigins && corsOrigins.length
+      ? { origin: corsOrigins, credentials: true }
+      : undefined
+  )
+);
 const rawBodySaver = (req, res, buf, encoding) => {
   if (buf && buf.length) {
     req.rawBody = buf.toString(encoding || "utf8");
@@ -70,10 +83,7 @@ app.use(defaultLimiter());
 
 const publicRoot = path.join(__dirname, "..", "..");
 const appDir = path.join(publicRoot, "app");
-const landingDir = path.join(publicRoot, "landing");
-const dashboardDir = path.join(publicRoot, "dashboard");
-const crmDir = path.join(publicRoot, "crm");
-const superadminDir = path.join(publicRoot, "superadmin");
+const uploadDir = path.join(process.cwd(), "data", "uploads");
 const staticOptions = {
   index: "index.html",
   redirect: false,
@@ -83,28 +93,44 @@ const staticOptions = {
 };
 
 app.get("/app", (req, res) => {
-  res.sendFile(path.join(appDir, "index.html"));
+  res.sendFile(path.join(appDir, "login.html"));
 });
 app.get("/app/", (req, res) => {
-  res.sendFile(path.join(appDir, "index.html"));
+  res.sendFile(path.join(appDir, "login.html"));
 });
 app.get("/app/index.html", (req, res) => {
   res.sendFile(path.join(appDir, "index.html"));
 });
+app.get("/app/login", (req, res) => {
+  res.sendFile(path.join(appDir, "login.html"));
+});
+app.get("/app/login/", (req, res) => {
+  res.sendFile(path.join(appDir, "login.html"));
+});
+app.get("/app/login/index.html", (req, res) => {
+  res.sendFile(path.join(appDir, "login.html"));
+});
+app.get("/app/user", (req, res) => {
+  res.sendFile(path.join(appDir, "user.html"));
+});
+app.get("/app/user/", (req, res) => {
+  res.sendFile(path.join(appDir, "user.html"));
+});
+app.get("/app/user/index.html", (req, res) => {
+  res.sendFile(path.join(appDir, "user.html"));
+});
+app.get("/app/admin", (req, res) => {
+  res.sendFile(path.join(appDir, "admin.html"));
+});
+app.get("/app/admin/", (req, res) => {
+  res.sendFile(path.join(appDir, "admin.html"));
+});
+app.get("/app/admin/index.html", (req, res) => {
+  res.sendFile(path.join(appDir, "admin.html"));
+});
 app.use("/app", express.static(appDir, staticOptions));
-app.get("/superadmin", (req, res) => {
-  res.sendFile(path.join(superadminDir, "index.html"));
-});
-app.get("/superadmin/", (req, res) => {
-  res.sendFile(path.join(superadminDir, "index.html"));
-});
-app.get("/superadmin/index.html", (req, res) => {
-  res.sendFile(path.join(superadminDir, "index.html"));
-});
-app.use("/landing", express.static(landingDir, staticOptions));
-app.use("/dashboard", express.static(dashboardDir, staticOptions));
-app.use("/crm", express.static(crmDir, staticOptions));
-app.use("/superadmin", express.static(superadminDir, staticOptions));
+app.use("/uploads", express.static(uploadDir, staticOptions));
+// Removed legacy static apps (landing/crm/dashboard/superadmin) to keep a single app surface.
 
 app.get("/debug/paths", (req, res) => {
   const fs = require("fs");
@@ -135,6 +161,7 @@ app.use("/notifications", notificationsRoutes);
 app.use("/ingest", ingestRoutes);
 app.use("/oauth", oauthRoutes);
 app.use("/tenants", tenantsRoutes);
+app.use("/docs", docsRoutes);
 
 app.use((req, res) => {
   return res.status(404).json({ error: "not_found" });

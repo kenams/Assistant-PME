@@ -9,7 +9,7 @@ const {
   listTicketsByUser,
   updateTicket
 } = require("../services/tickets.service");
-const { findConversation } = require("../services/conversations.service");
+const { findConversation, getHistory } = require("../services/conversations.service");
 const { getTenantById } = require("../services/users.service");
 const { logEvent } = require("../services/audit.service");
 const { createNotification } = require("../services/notifications.service");
@@ -30,6 +30,11 @@ const ticketUpdateSchema = z.object({
   status: z.enum(["open", "pending", "resolved", "closed"]).optional(),
   priority: z.enum(["low", "medium", "high"]).optional(),
   category: z.string().min(1).optional()
+});
+
+const ticketDraftSchema = z.object({
+  conversation_id: z.string().optional(),
+  message: z.string().min(1).optional()
 });
 
 function parseDateParam(value, endOfDay) {
@@ -95,6 +100,30 @@ router.post("/", authRequired, async (req, res) => {
   });
 
   return res.status(201).json(ticket);
+});
+
+router.post("/draft", authRequired, (req, res) => {
+  const payload = validateOr400(ticketDraftSchema, res, req.body);
+  if (!payload) {
+    return;
+  }
+  const tenantId = req.user.tenant_id;
+  const { conversation_id, message } = payload;
+  let sourceMessage = message || "";
+  if (!sourceMessage && conversation_id) {
+    const conversation = findConversation({ tenantId, conversationId: conversation_id });
+    if (!conversation) {
+      return res.status(404).json({ error: "conversation_not_found" });
+    }
+    if (req.user.role === "user" && conversation.user_id !== req.user.sub) {
+      return res.status(403).json({ error: "forbidden" });
+    }
+    const messages = getHistory({ tenantId, conversationId: conversation_id });
+    const lastUser = [...messages].reverse().find((msg) => msg.role === "user");
+    sourceMessage = lastUser ? lastUser.content : "Demande utilisateur";
+  }
+  const draft = draftTicket({ message: sourceMessage || "Demande utilisateur" });
+  return res.json({ draft });
 });
 
 router.get("/", authRequired, requireStaff, (req, res) => {
@@ -189,6 +218,47 @@ router.get("/mine", authRequired, (req, res) => {
   const userId = req.user.sub;
   const items = listTicketsByUser({ tenantId, userId });
   return res.json({ items });
+});
+
+router.get("/mine/export.csv", authRequired, (req, res) => {
+  const tenantId = req.user.tenant_id;
+  const userId = req.user.sub;
+  const items = listTicketsByUser({ tenantId, userId });
+  const headers = [
+    "created_at",
+    "title",
+    "description",
+    "category",
+    "priority",
+    "status"
+  ];
+  const rows = items.map((ticket) => [
+    ticket.created_at,
+    ticket.title,
+    ticket.description,
+    ticket.category,
+    ticket.priority,
+    ticket.status
+  ]);
+  const csv = buildCsv(headers, rows);
+  res.setHeader("Content-Type", "text/csv; charset=utf-8");
+  res.setHeader("Content-Disposition", "attachment; filename=\"mes_tickets.csv\"");
+  return res.send(csv);
+});
+
+router.get("/mine/export.pdf", authRequired, async (req, res) => {
+  const tenantId = req.user.tenant_id;
+  const userId = req.user.sub;
+  const items = listTicketsByUser({ tenantId, userId });
+  const tenant = getTenantById(tenantId);
+  const pdf = await buildTicketsPdf({
+    tickets: items,
+    filters: { owner: "me" },
+    tenantName: tenant ? tenant.name : null
+  });
+  res.setHeader("Content-Type", "application/pdf");
+  res.setHeader("Content-Disposition", "attachment; filename=\"mes_tickets.pdf\"");
+  return res.send(pdf);
 });
 
 module.exports = router;

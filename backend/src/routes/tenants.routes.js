@@ -16,6 +16,7 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 *
 const tenantSchema = z.object({
   name: z.string().min(2),
   plan: z.string().min(1).optional(),
+  code: z.string().min(2).optional(),
   admin_email: z.string().email(),
   admin_password: z.string().min(6)
 });
@@ -34,11 +35,15 @@ router.post("/", authRequired, requireSuperAdmin, (req, res) => {
   const result = createTenant({
     name: payload.name,
     plan: payload.plan,
+    code: payload.code,
     adminEmail: payload.admin_email,
     adminPassword: payload.admin_password
   });
   if (result.error === "email_exists") {
     return res.status(409).json({ error: "email_exists" });
+  }
+  if (result.error === "code_exists") {
+    return res.status(409).json({ error: "code_exists" });
   }
   return res.status(201).json(result);
 });

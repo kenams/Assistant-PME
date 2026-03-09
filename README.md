@@ -6,21 +6,17 @@ Objectif:
 - 5 premiers clients en 60 jours
 - 20 clients en 6 mois
 
-Ce repo contient la base produit (docs + backend MVP + landing).
+Ce repo contient la base produit (docs + backend MVP + app).
 
 ## Stack minimale (gratuite)
 - Backend: Node.js (Express)
 - Storage: fichier JSON local
 - Auth: JWT
 - IA: mode mock (OpenAI optionnel)
-- Landing: HTML/CSS statique
 
 ## Dossiers
 - docs/ : specs, roadmap, prompt, schema DB
 - backend/ : backend Express
-- landing/ : landing page simple
-- dashboard/ : dashboard local (leads + tickets)
-- crm/ : mini CRM local (prospects)
 - app/ : interface chat + KB + tickets
 
 ## Demarrer (backend)
@@ -28,6 +24,24 @@ Ce repo contient la base produit (docs + backend MVP + landing).
 2. Copier `.env.example` vers `.env`
 3. `npm install`
 4. `npm run dev`
+
+## Mise en production (version stable)
+
+### Checklist rapide
+1. `NODE_ENV=production`
+2. `JWT_SECRET` rempli (obligatoire)
+3. `DISABLE_QUICK_LOGIN=true`
+4. `CORS_ORIGINS` limite aux domaines de l'app
+5. Nettoyer les donnees de demo avant livraison client
+
+### Onboarding client
+1. Creer le tenant + code entreprise
+2. Configurer GLPI (URL + tokens) si le client le veut
+3. Configurer AD/LDAP si necessaire
+
+### Notes
+- Les boutons **connexion rapide** et **test auto** sont masques hors localhost.
+- GLPI/AD se configurent uniquement cote admin.
 
 ## Configuration (env)
 - `LLM_MODE=mock` (par defaut)
@@ -39,6 +53,8 @@ Ce repo contient la base produit (docs + backend MVP + landing).
 - Gmail/Outlook: activer dans l'app > Parametres support (IMAP + app password)
 - Poll IMAP: `MAIL_POLL_INTERVAL_MIN=5`
 - Rate limit: `RATE_LIMIT_*` + `REQUIRE_INGEST_TOKEN`
+- CORS (prod): `CORS_ORIGINS` (liste d'origines separees par des virgules)
+- Desactiver les connexions rapides: `DISABLE_QUICK_LOGIN=true`
 - Super admin: `SUPER_ADMIN_EMAIL`
 - Leads anti-spam: `LEAD_ALLOWLIST_DOMAINS`, `REQUIRE_LEAD_TOKEN`, `LEAD_TOKEN`, `REQUIRE_LEAD_CHALLENGE`
 - Ingest allowlist: `INGEST_ALLOWLIST_DOMAINS`
@@ -76,6 +92,7 @@ Ces valeurs peuvent etre changees dans `.env`.
 - GET  /chat/conversations
 - GET  /chat/search?query=...
 - POST /chat/feedback
+- POST /chat/escalate
 - POST /kb/documents
 - POST /kb/upload
 - POST /kb/search
@@ -150,26 +167,12 @@ Ces valeurs peuvent etre changees dans `.env`.
 - GET  /billing/invoices/:id/print (auth)
 - GET  /billing/invoices/:id/email (auth)
 
-## Landing page
-- Ouvrir `landing/index.html` dans un navigateur.
-- Le formulaire envoie vers `http://localhost:3001/leads` (backend local).
-
-## Dashboard local
-- Ouvrir `dashboard/index.html` dans un navigateur.
-- Se connecter avec le compte admin.
-- Boutons PDF: une fenetre print s'ouvre, puis enregistrer en PDF.
-
-## CRM local
-- Ouvrir `crm/index.html` dans un navigateur.
-- Se connecter avec le compte admin.
-
 ## App (Chat + KB + Tickets)
 - Lancer le backend puis ouvrir `http://localhost:3001/app/`.
 - Se connecter avec le compte admin.
-
-## Superadmin (multi-tenant)
-- Ouvrir `http://localhost:3001/superadmin/`.
-- Le compte doit etre `SUPER_ADMIN_EMAIL`.
+- Pour pointer vers un autre backend: ajouter `?api_base=https://mon-api.tld` (memorise dans le navigateur).
+- Interface utilisateur simple: `http://localhost:3001/app/user/`.
+- Mode kiosque (sans actions): `http://localhost:3001/app/user/?kiosk=1`.
 
 ## Demo (seed)
 - Dans l'app > Admin tools: `Demo data` ou `Reset + demo`.
@@ -193,6 +196,12 @@ Ces valeurs peuvent etre changees dans `.env`.
 - docs/ARCHITECTURE_BACKEND.md
 - docs/SCHEMA_DB.md
 - docs/PROMPT_SUPPORT_IT.md
+- docs/AI_SETUP.md
+- docs/INSTALL_GUIDE.md
+- docs/PROD_CHECKLIST.md
+- docs/PROD_CHECKLIST_DETAILED.md
+- docs/CLIENT_HANDOVER.md
+- docs/CLIENT_EMAIL_TEMPLATE.md
 - docs/PROSPECTION_KIT.md
 - docs/SCRIPTS_PROSPECTION.md
 - docs/LISTE_100_PME_TEMPLATE.csv

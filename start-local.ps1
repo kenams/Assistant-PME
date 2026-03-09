@@ -8,5 +8,6 @@ if (-not (Test-Path $nodeModules)) {
 }
 
 Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd `"$backend`"; npm run dev"
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd `"$backend`"; npm run frontend:watch"
 Start-Sleep -Seconds 2
-Start-Process "http://localhost:3001/app/"
+Start-Process "http://localhost:3001/app/user/"

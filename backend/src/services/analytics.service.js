@@ -1,5 +1,7 @@
-const { loadDb } = require("./store.service");
+const { loadDb, getStoreVersion } = require("./store.service");
 const { getOrgSettings } = require("./org.service");
+
+const analyticsCache = new Map();
 
 function round(value, digits = 1) {
   const factor = 10 ** digits;
@@ -121,6 +123,12 @@ function computeSla({ tickets, settings }) {
 }
 
 function computeAnalytics(tenantId) {
+  const version = getStoreVersion();
+  const cached = analyticsCache.get(tenantId);
+  if (cached && cached.version === version) {
+    return cached.data;
+  }
+
   const db = loadDb();
   const conversations = (db.conversations || []).filter(
     (c) => c.tenant_id === tenantId
@@ -132,28 +140,37 @@ function computeAnalytics(tenantId) {
   );
   const settings = getOrgSettings({ tenantId });
 
-  const messagesByConversation = new Map();
-  messages.forEach((msg) => {
-    if (!messagesByConversation.has(msg.conversation_id)) {
-      messagesByConversation.set(msg.conversation_id, []);
-    }
-    messagesByConversation.get(msg.conversation_id).push(msg);
-  });
-
   let responseSum = 0;
   let responseCount = 0;
   let resolutionSum = 0;
   let resolutionCount = 0;
 
+  const firstTimes = new Map();
+  messages.forEach((msg) => {
+    if (!msg.conversation_id || !msg.created_at) return;
+    const entry =
+      firstTimes.get(msg.conversation_id) || {
+        userTime: null,
+        assistantTime: null
+      };
+    const createdAt = new Date(msg.created_at).getTime();
+    if (Number.isNaN(createdAt)) return;
+    if (msg.role === "user") {
+      if (!entry.userTime || createdAt < entry.userTime) {
+        entry.userTime = createdAt;
+      }
+    } else if (msg.role === "assistant") {
+      if (!entry.assistantTime || createdAt < entry.assistantTime) {
+        entry.assistantTime = createdAt;
+      }
+    }
+    firstTimes.set(msg.conversation_id, entry);
+  });
+
   conversations.forEach((conversation) => {
-    const convoMessages = (messagesByConversation.get(conversation.id) || []).slice();
-    convoMessages.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
-    const firstUser = convoMessages.find((m) => m.role === "user");
-    const firstAssistant = convoMessages.find((m) => m.role === "assistant");
-    if (firstUser && firstAssistant) {
-      const diff =
-        new Date(firstAssistant.created_at).getTime() -
-        new Date(firstUser.created_at).getTime();
+    const times = firstTimes.get(conversation.id);
+    if (times && times.userTime && times.assistantTime) {
+      const diff = times.assistantTime - times.userTime;
       if (diff >= 0) {
         responseSum += diff;
         responseCount += 1;
@@ -212,7 +229,7 @@ function computeAnalytics(tenantId) {
     tickets: ticketsByDay.get(day) || 0
   }));
 
-  return {
+  const result = {
     response_avg_minutes: responseAvgMinutes,
     resolution_avg_minutes: resolutionAvgMinutes,
     tickets_by_status: ticketsByStatus,
@@ -227,6 +244,9 @@ function computeAnalytics(tenantId) {
     sla: computeSla({ tickets, settings }),
     roi: computeRoi({ conversations, tickets, settings })
   };
+
+  analyticsCache.set(tenantId, { version, data: result });
+  return result;
 }
 
 module.exports = { computeAnalytics };
