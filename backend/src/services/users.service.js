@@ -5,28 +5,65 @@ const { hashPassword, verifyPassword } = require("../utils/crypto");
 
 function ensureSeeded() {
   return withDb((db) => {
-    if (db.users.length > 0) {
-      return;
+    const now = new Date().toISOString();
+    let tenant = db.tenants[0] || null;
+    if (!tenant) {
+      const tenantId = crypto.randomUUID();
+      tenant = {
+        id: tenantId,
+        name: env.seedTenantName,
+        code: (env.seedTenantName || "DEFAULT")
+          .toUpperCase()
+          .replace(/[^A-Z0-9]/g, ""),
+        plan: "starter",
+        created_at: now
+      };
+      db.tenants.push(tenant);
     }
 
-    const tenantId = crypto.randomUUID();
-    db.tenants.push({
-      id: tenantId,
-      name: env.seedTenantName,
-      code: (env.seedTenantName || "DEFAULT").toUpperCase().replace(/[^A-Z0-9]/g, ""),
-      plan: "starter",
-      created_at: new Date().toISOString()
-    });
+    const adminExists = db.users.find(
+      (u) => u.email.toLowerCase() === env.seedAdminEmail.toLowerCase()
+    );
+    const shouldResetSeed =
+      (env.forceSeedReset || "").toString().toLowerCase() === "true";
+    const shouldResetAdmin =
+      shouldResetSeed || env.seedAdminEmail.toLowerCase().endsWith("@assistant.local");
+    if (!adminExists) {
+      db.users.push({
+        id: crypto.randomUUID(),
+        tenant_id: tenant.id,
+        email: env.seedAdminEmail,
+        password_hash: hashPassword(env.seedAdminPassword),
+        role: "admin",
+        created_at: now
+      });
+    } else if (shouldResetAdmin) {
+      adminExists.password_hash = hashPassword(env.seedAdminPassword);
+      adminExists.tenant_id = tenant.id;
+      adminExists.role = "admin";
+      adminExists.updated_at = now;
+    }
 
-    const userId = crypto.randomUUID();
-    db.users.push({
-      id: userId,
-      tenant_id: tenantId,
-      email: env.seedAdminEmail,
-      password_hash: hashPassword(env.seedAdminPassword),
-      role: "admin",
-      created_at: new Date().toISOString()
-    });
+    const userExists = db.users.find(
+      (u) => u.email.toLowerCase() === env.seedUserEmail.toLowerCase()
+    );
+    const shouldResetUser =
+      shouldResetSeed || env.seedUserEmail.toLowerCase().endsWith("@assistant.local");
+    if (!userExists) {
+      db.users.push({
+        id: crypto.randomUUID(),
+        tenant_id: tenant.id,
+        email: env.seedUserEmail,
+        password_hash: hashPassword(env.seedUserPassword),
+        role: "user",
+        created_at: now
+      });
+    } else if (shouldResetUser) {
+      userExists.password_hash = hashPassword(env.seedUserPassword);
+      userExists.tenant_id = tenant.id;
+      userExists.role = "user";
+      userExists.updated_at = now;
+    }
   });
 }
 
