@@ -350,7 +350,8 @@ main {
 }
 
 body.user-mode main {
-  max-width: 980px;
+  max-width: 1200px;
+  width: 100%;
   margin: 0 auto;
 }
 
@@ -898,6 +899,12 @@ body.user-only main > details:nth-of-type(4) {
   text-orientation: mixed;
 }
 
+.quick-issues .note {
+  white-space: normal;
+  word-break: normal;
+  overflow-wrap: break-word;
+}
+
 .summary-card {
   display: grid;
   gap: 10px;
@@ -1272,8 +1279,8 @@ body.user-only main > details:nth-of-type(4) {
 }
 
 .quick-buttons {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 12px;
 }
 
@@ -1567,10 +1574,8 @@ body.presentation-client .footer {
 }
 
 .quick-buttons .chip {
-  display: flex;
-  flex: 1 1 260px;
-  min-width: 220px;
-  justify-content: center;
+  display: block;
+  width: 100%;
   text-align: center;
   white-space: normal;
   word-break: normal;
@@ -1578,6 +1583,17 @@ body.presentation-client .footer {
   line-height: 1.4;
   padding: 10px 16px;
   min-height: 44px;
+}
+
+.chip-icon {
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+
+.chip-label {
+  display: inline;
+  vertical-align: middle;
 }
 
 .chip:hover {
