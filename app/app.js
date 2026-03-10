@@ -21,7 +21,7 @@ if (resetParam === "1") {
     window.location.replace(window.location.pathname);
   }
 }
-const storedApiBase = localStorage.getItem("assistant_api_base");
+let storedApiBase = localStorage.getItem("assistant_api_base");
 const storedLogo = localStorage.getItem("assistant_logo_url");
 const resolvedOrigin =
   window.location.origin && window.location.origin !== "null"
@@ -32,13 +32,23 @@ const isVercelHost = /\\.vercel\\.app$/i.test(window.location.hostname || "");
 const defaultRemoteApi = "https://assistant-pme.onrender.com";
 const isFileOrigin =
   window.location.protocol === "file:" || window.location.origin === "null";
+if (isVercelHost && storedApiBase) {
+  const lowerStored = storedApiBase.toLowerCase();
+  const isSelf =
+    lowerStored.includes(window.location.hostname.toLowerCase()) ||
+    lowerStored.endsWith(".vercel.app");
+  if (isSelf) {
+    storedApiBase = "";
+    localStorage.removeItem("assistant_api_base");
+  }
+}
 const fallbackApiBase =
   !isLocalHost && !apiParam && !storedApiBase && isVercelHost ? defaultRemoteApi : "";
 let API_BASE = isLocalHost
   ? resolvedOrigin
   : apiParam || storedApiBase || fallbackApiBase || resolvedOrigin;
-if (isVercelHost && API_BASE === resolvedOrigin) {
-  API_BASE = defaultRemoteApi;
+if (isVercelHost) {
+  API_BASE = apiParam || storedApiBase || defaultRemoteApi;
 }
 if (apiParam) {
   localStorage.setItem("assistant_api_base", apiParam);
@@ -362,7 +372,7 @@ if (kioskMode) {
         if (loginPasswordInput && queryPassword && !loginPasswordInput.value) {
           loginPasswordInput.value = queryPassword.toString();
         }
-        if (isLocalHost) {
+        if (isLocalHost || isVercelHost) {
           if (loginEmailInput && !loginEmailInput.value) {
             loginEmailInput.value = "user@assistant.local";
           }
