@@ -29,6 +29,16 @@ const resolvedOrigin =
     : "http://localhost:3001";
 const isLocalHost = ["localhost", "127.0.0.1"].includes(window.location.hostname);
 const isVercelHost = /\\.vercel\\.app$/i.test(window.location.hostname || "");
+const canonicalVercelHost = "assistant-pme.vercel.app";
+if (isVercelHost && window.location.hostname !== canonicalVercelHost) {
+  try {
+    const canonicalUrl = new URL(window.location.href);
+    canonicalUrl.hostname = canonicalVercelHost;
+    window.location.replace(canonicalUrl.toString());
+  } catch (err) {
+    window.location.replace(`https://${canonicalVercelHost}`);
+  }
+}
 const defaultRemoteApi = "https://assistant-pme.onrender.com";
 const isFileOrigin =
   window.location.protocol === "file:" || window.location.origin === "null";
