@@ -1,5 +1,20 @@
 {
   "rewrites": [
+    { "source": "/health", "destination": "https://assistant-pme.onrender.com/health" },
+    { "source": "/auth/:path*", "destination": "https://assistant-pme.onrender.com/auth/:path*" },
+    { "source": "/chat/:path*", "destination": "https://assistant-pme.onrender.com/chat/:path*" },
+    { "source": "/tickets/:path*", "destination": "https://assistant-pme.onrender.com/tickets/:path*" },
+    { "source": "/kb/:path*", "destination": "https://assistant-pme.onrender.com/kb/:path*" },
+    { "source": "/users/:path*", "destination": "https://assistant-pme.onrender.com/users/:path*" },
+    { "source": "/admin/:path*", "destination": "https://assistant-pme.onrender.com/admin/:path*" },
+    { "source": "/org/:path*", "destination": "https://assistant-pme.onrender.com/org/:path*" },
+    { "source": "/notifications/:path*", "destination": "https://assistant-pme.onrender.com/notifications/:path*" },
+    { "source": "/ingest/:path*", "destination": "https://assistant-pme.onrender.com/ingest/:path*" },
+    { "source": "/oauth/:path*", "destination": "https://assistant-pme.onrender.com/oauth/:path*" },
+    { "source": "/tenants/:path*", "destination": "https://assistant-pme.onrender.com/tenants/:path*" },
+    { "source": "/docs/:path*", "destination": "https://assistant-pme.onrender.com/docs/:path*" },
+    { "source": "/billing/:path*", "destination": "https://assistant-pme.onrender.com/billing/:path*" },
+    { "source": "/leads/:path*", "destination": "https://assistant-pme.onrender.com/leads/:path*" },
     { "source": "/", "destination": "/app/index.html" },
     { "source": "/app", "destination": "/app/index.html" },
     { "source": "/app/", "destination": "/app/index.html" },
@@ -10,5 +25,15 @@
     { "source": "/app/user/", "destination": "/app/user.html" },
     { "source": "/app/admin", "destination": "/app/admin.html" },
     { "source": "/app/admin/", "destination": "/app/admin.html" }
+  ],
+  "headers": [
+    {
+      "source": "/app/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "no-store" }]
+    },
+    {
+      "source": "/(.*)\\.js",
+      "headers": [{ "key": "Cache-Control", "value": "no-store" }]
+    }
   ]
 }
