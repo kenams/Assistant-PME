@@ -410,6 +410,18 @@ if (kioskMode) {
         });
       }
 
+      if (loginForm && (isLocalHost || isVercelHost)) {
+        if (tenantCodeInput && !tenantCodeInput.value) {
+          tenantCodeInput.value = "DEFAULT";
+        }
+        if (loginEmailInput && !loginEmailInput.value) {
+          loginEmailInput.value = "user@assistant.local";
+        }
+        if (loginPasswordInput && !loginPasswordInput.value) {
+          loginPasswordInput.value = "user123";
+        }
+      }
+
       const getTenantCode = () => {
         const fromInput = tenantCodeInput ? tenantCodeInput.value : "";
         const fromStorage = localStorage.getItem("assistant_tenant_code");
