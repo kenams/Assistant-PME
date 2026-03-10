@@ -6679,7 +6679,9 @@ initDemoState();
         }
       }
 
-      resolveYesBtn.addEventListener("click", () => sendFeedback(true));
+      if (resolveYesBtn) {
+        resolveYesBtn.addEventListener("click", () => sendFeedback(true));
+      }
       if (createTicketBtn) {
         createTicketBtn.addEventListener("click", async () => {
           if (!conversationId) {
