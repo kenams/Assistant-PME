@@ -891,6 +891,13 @@ body.user-only main > details:nth-of-type(4) {
   margin-bottom: 12px;
 }
 
+.quick-issues,
+.quick-issues * {
+  min-width: 0;
+  writing-mode: horizontal-tb;
+  text-orientation: mixed;
+}
+
 .summary-card {
   display: grid;
   gap: 10px;
@@ -1233,6 +1240,12 @@ body.user-only main > details:nth-of-type(4) {
   letter-spacing: 0.02em;
 }
 
+.quick-issues .note {
+  white-space: normal;
+  word-break: normal;
+  overflow-wrap: break-word;
+}
+
 .tab-switch {
   display: inline-flex;
   gap: 8px;
@@ -1259,10 +1272,9 @@ body.user-only main > details:nth-of-type(4) {
 }
 
 .quick-buttons {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: 12px;
-  align-items: stretch;
 }
 
 .quick-search {
@@ -1556,7 +1568,8 @@ body.presentation-client .footer {
 
 .quick-buttons .chip {
   display: flex;
-  width: 100%;
+  flex: 1 1 260px;
+  min-width: 220px;
   justify-content: center;
   text-align: center;
   white-space: normal;
