@@ -3300,7 +3300,7 @@ if (kioskMode) {
         return config;
       }
 
-      async function login(email, password, tenantCode) {
+      async function login(email, password, tenantCode, retry = false) {
         const payload = {
           email,
           password
@@ -3314,6 +3314,11 @@ if (kioskMode) {
           body: JSON.stringify(payload)
         });
         if (!res.ok) {
+          if (!retry && res.status === 404 && API_BASE !== defaultRemoteApi) {
+            API_BASE = defaultRemoteApi;
+            localStorage.setItem("assistant_api_base", API_BASE);
+            return login(email, password, tenantCode, true);
+          }
           const err = new Error("login_failed");
           err.status = res.status;
           err.payload = await safeJson(res);
