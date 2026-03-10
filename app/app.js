@@ -3,6 +3,25 @@ const apiParam = queryParams.get("api_base");
 const tenantParam = queryParams.get("tenant");
 const logoParam = queryParams.get("logo");
 const demoParam = queryParams.get("demo");
+const resetParam = queryParams.get("reset");
+if (resetParam === "1") {
+  const keys = Object.keys(localStorage);
+  keys.forEach((key) => {
+    if (key.startsWith("assistant_") || key.startsWith("cache_")) {
+      localStorage.removeItem(key);
+    }
+  });
+  if ("caches" in window) {
+    caches.keys().then((names) => names.forEach((name) => caches.delete(name)));
+  }
+  try {
+    const url = new URL(window.location.href);
+    url.searchParams.delete("reset");
+    window.location.replace(url.toString());
+  } catch (err) {
+    window.location.replace(window.location.pathname);
+  }
+}
 const storedApiBase = localStorage.getItem("assistant_api_base");
 const storedLogo = localStorage.getItem("assistant_logo_url");
 const resolvedOrigin =
