@@ -360,6 +360,14 @@ initDemoState();
         if (loginPasswordInput && queryPassword && !loginPasswordInput.value) {
           loginPasswordInput.value = queryPassword.toString();
         }
+        if (isLocalHost) {
+          if (loginEmailInput && !loginEmailInput.value) {
+            loginEmailInput.value = "user@assistant.local";
+          }
+          if (loginPasswordInput && !loginPasswordInput.value) {
+            loginPasswordInput.value = "user123";
+          }
+        }
         if (queryTenantCode || queryEmail || queryPassword) {
           try {
             const url = new URL(window.location.href);
