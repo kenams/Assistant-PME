@@ -35,14 +35,20 @@ const isFileOrigin =
   window.location.protocol === "file:" || window.location.origin === "null";
 const fallbackApiBase =
   !isLocalHost && !apiParam && !storedApiBase && isVercelHost ? defaultRemoteApi : "";
-const API_BASE = isLocalHost
+let API_BASE = isLocalHost
   ? resolvedOrigin
   : apiParam || storedApiBase || fallbackApiBase || resolvedOrigin;
+if (isVercelHost && API_BASE === resolvedOrigin) {
+  API_BASE = defaultRemoteApi;
+}
 if (apiParam) {
   localStorage.setItem("assistant_api_base", apiParam);
 }
 if (isLocalHost) {
   localStorage.removeItem("assistant_api_base");
+}
+if (isVercelHost && (!storedApiBase || storedApiBase === resolvedOrigin)) {
+  localStorage.setItem("assistant_api_base", API_BASE);
 }
 if (fallbackApiBase) {
   localStorage.setItem("assistant_api_base", fallbackApiBase);
