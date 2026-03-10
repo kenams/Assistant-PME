@@ -5705,6 +5705,19 @@ if (kioskMode) {
       if (quickUserBtn) {
         quickUserBtn.addEventListener("click", async () => {
           try {
+            if (!isLocalHost) {
+              const submitBtn = loginForm
+                ? loginForm.querySelector("button[type=\"submit\"]")
+                : null;
+              await handleLoginFlow(
+                "user@assistant.local",
+                "user123",
+                getTenantCode() || "DEFAULT",
+                submitBtn,
+                { auto: true }
+              );
+              return;
+            }
             setStatus(t("auth.userLoginPending"), false);
             notify(t("auth.userLoginInfo"), "info");
             await quickUserLogin();
