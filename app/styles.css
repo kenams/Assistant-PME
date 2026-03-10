@@ -1259,9 +1259,10 @@ body.user-only main > details:nth-of-type(4) {
 }
 
 .quick-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+  align-items: stretch;
 }
 
 .quick-search {
@@ -1286,8 +1287,7 @@ body.user-only main > details:nth-of-type(4) {
 }
 
 .quick-buttons .btn {
-  flex: 1 1 240px;
-  min-width: 220px;
+  width: 100%;
   justify-content: center;
 }
 
@@ -1555,14 +1555,14 @@ body.presentation-client .footer {
 }
 
 .quick-buttons .chip {
-  flex: 1 1 240px;
-  min-width: 220px;
+  display: flex;
+  width: 100%;
   justify-content: center;
   text-align: center;
   white-space: normal;
-  word-break: keep-all;
+  word-break: normal;
   overflow-wrap: break-word;
-  line-height: 1.35;
+  line-height: 1.4;
   padding: 10px 16px;
   min-height: 44px;
 }
@@ -3249,12 +3249,23 @@ body.presentation .feedback {
 
   .quick-buttons .chip,
   .quick-buttons .btn {
-    flex: 1 1 100%;
-    min-width: 100%;
+    width: 100%;
   }
 
   .chat-window {
     height: 320px;
+  }
+}
+
+@media (max-width: 840px) {
+  .quick-buttons {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .quick-buttons {
+    grid-template-columns: 1fr;
   }
 }
 
