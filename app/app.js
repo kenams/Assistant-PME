@@ -10,14 +10,23 @@ const resolvedOrigin =
     ? window.location.origin
     : "http://localhost:3001";
 const isLocalHost = ["localhost", "127.0.0.1"].includes(window.location.hostname);
+const isVercelHost = /\\.vercel\\.app$/i.test(window.location.hostname || "");
+const defaultRemoteApi = "https://assistant-pme.onrender.com";
 const isFileOrigin =
   window.location.protocol === "file:" || window.location.origin === "null";
-const API_BASE = isLocalHost ? resolvedOrigin : apiParam || storedApiBase || resolvedOrigin;
+const fallbackApiBase =
+  !isLocalHost && !apiParam && !storedApiBase && isVercelHost ? defaultRemoteApi : "";
+const API_BASE = isLocalHost
+  ? resolvedOrigin
+  : apiParam || storedApiBase || fallbackApiBase || resolvedOrigin;
 if (apiParam) {
   localStorage.setItem("assistant_api_base", apiParam);
 }
 if (isLocalHost) {
   localStorage.removeItem("assistant_api_base");
+}
+if (fallbackApiBase) {
+  localStorage.setItem("assistant_api_base", fallbackApiBase);
 }
 if (logoParam) {
   localStorage.setItem("assistant_logo_url", logoParam);
@@ -360,12 +369,19 @@ initDemoState();
         if (loginPasswordInput && queryPassword && !loginPasswordInput.value) {
           loginPasswordInput.value = queryPassword.toString();
         }
-        if (isLocalHost) {
+        const shouldPrefillDemo =
+          demoParam ||
+          localStorage.getItem("assistant_demo") === "1" ||
+          (isLocalHost && !demoState.expired);
+        if (shouldPrefillDemo) {
           if (loginEmailInput && !loginEmailInput.value) {
             loginEmailInput.value = "user@assistant.local";
           }
           if (loginPasswordInput && !loginPasswordInput.value) {
             loginPasswordInput.value = "user123";
+          }
+          if (tenantCodeInput && !tenantCodeInput.value) {
+            tenantCodeInput.value = "DEFAULT";
           }
         }
         if (queryTenantCode || queryEmail || queryPassword) {
