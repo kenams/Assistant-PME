@@ -2,6 +2,7 @@ const queryParams = new URLSearchParams(window.location.search || "");
 const apiParam = queryParams.get("api_base");
 const tenantParam = queryParams.get("tenant");
 const logoParam = queryParams.get("logo");
+const demoParam = queryParams.get("demo");
 const storedApiBase = localStorage.getItem("assistant_api_base");
 const storedLogo = localStorage.getItem("assistant_logo_url");
 const resolvedOrigin =
@@ -22,6 +23,9 @@ if (logoParam) {
   localStorage.setItem("assistant_logo_url", logoParam);
 }
 const logoUrl = logoParam || storedLogo;
+if (demoParam) {
+  localStorage.setItem("assistant_demo", "1");
+}
 if (tenantParam) {
   localStorage.setItem("assistant_tenant_code", tenantParam);
 }
@@ -34,9 +38,36 @@ const userPresentationParam = queryParams.get("presentation") === "1";
 if (kioskMode) {
   document.body.classList.add("kiosk-mode");
 }
+const demoDurationMs = 24 * 60 * 60 * 1000;
+let demoState = { active: false, expired: false, until: 0 };
+
+function initDemoState() {
+  const now = Date.now();
+  let until = Number(localStorage.getItem("assistant_demo_until") || 0);
+  if (demoParam) {
+    localStorage.setItem("assistant_demo", "1");
+  }
+  if (localStorage.getItem("assistant_demo") === "1") {
+    if (!until || until < now) {
+      until = now + demoDurationMs;
+      localStorage.setItem("assistant_demo_until", String(until));
+    }
+  }
+  if (until && now > until) {
+    demoState.expired = true;
+    localStorage.removeItem("assistant_demo");
+    localStorage.removeItem("assistant_demo_until");
+    localStorage.removeItem("assistant_token");
+  }
+  demoState.active = localStorage.getItem("assistant_demo") === "1";
+  demoState.until = until;
+}
+
+initDemoState();
       const loginCard = document.getElementById("loginCard");
       const loginForm = document.getElementById("loginForm");
       const loginStatus = document.getElementById("loginStatus");
+      const demoBanner = document.getElementById("demoBanner");
       const refreshBtn = document.getElementById("refreshBtn");
       const logoutBtn = document.getElementById("logoutBtn");
       const logoutBtnBottom = document.getElementById("logoutBtnBottom");
@@ -57,9 +88,21 @@ if (kioskMode) {
       const quickUserBtn = document.getElementById("quickUserBtn");
       const quickLoginAdmin = document.getElementById("quickLoginAdmin");
       const quickLoginUser = document.getElementById("quickLoginUser");
+      const demoClientBtn = document.getElementById("demoClientBtn");
       const tenantCodeInput = loginForm
         ? loginForm.querySelector("input[name=\"tenant_code\"]")
         : null;
+      const loginEmailInput = loginForm
+        ? loginForm.querySelector("input[name=\"email\"]")
+        : null;
+      const loginPasswordInput = loginForm
+        ? loginForm.querySelector("input[name=\"password\"]")
+        : null;
+      let queryTenantCode = "";
+      let queryEmail = "";
+      let queryPassword = "";
+      let autoLoginFromQuery = null;
+      let autoLoginAttempted = false;
       const userAutoTestBtn = document.getElementById("userAutoTestBtn");
       const quickIssueButtons = document.querySelectorAll("[data-quick]");
       const quickGuide = document.getElementById("quickGuide");
@@ -78,6 +121,8 @@ if (kioskMode) {
       const quickDetailStartBtn = document.getElementById("quickDetailStartBtn");
       const quickDetailCloseBtn = document.getElementById("quickDetailCloseBtn");
       const quickGuideNote = document.getElementById("quickGuideNote");
+      const quickTicketInput = document.getElementById("quickTicketInput");
+      const quickTicketBtn = document.getElementById("quickTicketBtn");
       const assistantTabBtn = document.getElementById("assistantTabBtn");
       const kbTabBtn = document.getElementById("kbTabBtn");
       const assistantTabPanel = document.getElementById("assistantTabPanel");
@@ -296,10 +341,42 @@ if (kioskMode) {
         const queryTenant = tenantParam
           ? tenantParam.toString().trim().toUpperCase()
           : "";
+        queryTenantCode = queryParams.get("tenant_code") || "";
+        queryEmail = queryParams.get("email") || "";
+        queryPassword = queryParams.get("password") || "";
         if (queryTenant && !tenantCodeInput.value) {
           tenantCodeInput.value = queryTenant;
+        } else if (queryTenantCode && !tenantCodeInput.value) {
+          tenantCodeInput.value = queryTenantCode.toString().trim().toUpperCase();
         } else if (savedTenantCode && !tenantCodeInput.value) {
           tenantCodeInput.value = savedTenantCode;
+        }
+        if (!tenantCodeInput.value && isLocalHost) {
+          tenantCodeInput.value = "DEFAULT";
+        }
+        if (loginEmailInput && queryEmail && !loginEmailInput.value) {
+          loginEmailInput.value = queryEmail.toString().trim();
+        }
+        if (loginPasswordInput && queryPassword && !loginPasswordInput.value) {
+          loginPasswordInput.value = queryPassword.toString();
+        }
+        if (queryTenantCode || queryEmail || queryPassword) {
+          try {
+            const url = new URL(window.location.href);
+            url.searchParams.delete("tenant_code");
+            url.searchParams.delete("email");
+            url.searchParams.delete("password");
+            window.history.replaceState({}, "", url.toString());
+          } catch (err) {
+            // ignore URL cleanup errors
+          }
+        }
+        if (queryEmail && queryPassword) {
+          autoLoginFromQuery = {
+            email: queryEmail.toString().trim(),
+            password: queryPassword.toString(),
+            tenantCode: (tenantCodeInput.value || "").toString().trim().toUpperCase()
+          };
         }
         tenantCodeInput.addEventListener("input", () => {
           const next = getTenantCode();
@@ -343,6 +420,10 @@ if (kioskMode) {
         applyBrandLogo(logoUrl || "");
       }
 
+      if (demoState.active) {
+        document.body.classList.add("demo-mode");
+      }
+
       if (!isLocalHost) {
         if (quickLoginAdmin) {
           quickLoginAdmin.style.display = "none";
@@ -352,6 +433,9 @@ if (kioskMode) {
         }
         if (userAutoTestBtn) {
           userAutoTestBtn.style.display = "none";
+        }
+        if (demoClientBtn) {
+          demoClientBtn.style.display = "none";
         }
       }
 
@@ -668,6 +752,7 @@ if (kioskMode) {
       let reminderHours = 72;
       let myTicketsLoading = false;
       let historyLoading = false;
+      let guidedFlow = [];
 
       const langButtons = Array.from(document.querySelectorAll("[data-lang]"));
 
@@ -704,7 +789,7 @@ if (kioskMode) {
       const applyI18n = () => {
         const active = getActiveLang();
         document.documentElement.lang = active;
-        document.documentElement.dir = active === "ar" ? "rtl" : "ltr";
+        document.documentElement.dir = "ltr";
         updateLangButtons();
 
         const isAdminPage =
@@ -749,6 +834,7 @@ if (kioskMode) {
         setText("loginHint", isAdminPage ? "login.hint.admin" : "login.hint.user");
         setHtml("loginTestAccount", "login.testAccount");
         setText("quickUserBtn", "login.quick");
+        setText("demoClientBtn", "login.demo");
         setText("quickLoginNote", "login.quickNote");
         setText("inviteTitle", "login.inviteTitle");
         setPlaceholder("inviteTokenInput", "login.inviteTokenPlaceholder");
@@ -827,6 +913,10 @@ if (kioskMode) {
         setText("quickDetailStartBtn", "quick.detail.start");
         setText("showFreeTextBtn", "quick.other");
         setText("userAutoTestBtn", "quick.autotest");
+        setText("quickTicketTitle", "ticket.quick.title");
+        setPlaceholder("quickTicketInput", "ticket.quick.placeholder");
+        setText("quickTicketBtn", "ticket.quick.button");
+        setText("quickTicketNote", "ticket.quick.note");
         setText("quickGuideTitle", "guide.title");
         setText("quickGuideNote", "guide.note");
         setText("nextStepTitle", "next.title");
@@ -941,6 +1031,17 @@ if (kioskMode) {
         setText("imageLightboxDownload", "lightbox.download");
         setText("imageLightboxClose", "lightbox.close");
         setText("footerCredit", "footer.credit");
+        if (demoBanner) {
+          if (demoState.expired) {
+            demoBanner.textContent = t("demo.expired");
+            demoBanner.classList.remove("hidden");
+          } else if (demoState.active) {
+            demoBanner.textContent = t("demo.banner");
+            demoBanner.classList.remove("hidden");
+          } else {
+            demoBanner.classList.add("hidden");
+          }
+        }
 
         if (contextCard) {
           updateContextSummary();
@@ -2811,7 +2912,7 @@ if (kioskMode) {
         }
       }
 
-      let guidedFlow = buildGuidedFlow();
+      guidedFlow = buildGuidedFlow();
 
       function applyGuidedAnswer(stepKey, value) {
         if (!value && stepKey !== "urgency") return;
@@ -3204,7 +3305,70 @@ if (kioskMode) {
         setToken(data.token);
         if (tenantCode) {
           localStorage.setItem("assistant_tenant_code", tenantCode);
-        }      }
+        }
+      }
+
+      async function handleLoginFlow(email, password, tenantCode, submitBtn, options = {}) {
+        let cleanEmail = (email || "").toString().trim();
+        const cleanPassword = (password || "").toString();
+        let cleanTenant = (tenantCode || "").toString().trim();
+        const isAuto = options.auto === true;
+        if (demoState.expired) {
+          setStatus(t("demo.expired"), true);
+          return false;
+        }
+        if (!cleanEmail && cleanTenant.includes("@")) {
+          cleanEmail = cleanTenant;
+          cleanTenant = "";
+        }
+        if (!cleanTenant && isLocalHost) {
+          cleanTenant = getTenantCode() || "DEFAULT";
+        }
+        cleanEmail = cleanEmail.toLowerCase();
+        if (loginEmailInput && !loginEmailInput.value && cleanEmail) {
+          loginEmailInput.value = cleanEmail;
+        }
+        if (tenantCodeInput && !tenantCodeInput.value && cleanTenant) {
+          tenantCodeInput.value = cleanTenant;
+        }
+        if (!cleanEmail || !cleanPassword) {
+          setStatus(t("auth.invalidCredentials"), true);
+          return false;
+        }
+        try {
+          if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = t("auth.loginPending");
+          }
+          await login(cleanEmail, cleanPassword, cleanTenant);
+          setAuthState(true);
+          setStatus("", false);
+          setBanner(null);
+          await loadMe();
+          setKioskWaiting(false);
+          refreshAll();
+          return true;
+        } catch (err) {
+          const code = err && err.payload && err.payload.error ? err.payload.error : "";
+          if (err && err.status === 429) {
+            setStatus(t("auth.tooManyAttempts"), true);
+          } else if (code === "missing_jwt_secret") {
+            setStatus(t("auth.serverNotConfigured"), true);
+          } else if (err && err.status >= 500) {
+            setStatus(t("error.server"), true);
+          } else if (isAuto) {
+            setStatus(t("auth.autoLogin.fail"), true);
+          } else {
+            setStatus(t("auth.invalidCredentials"), true);
+          }
+          return false;
+        } finally {
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = t("login.submit");
+          }
+        }
+      }
 
       async function quickAdminLogin() {
         const res = await fetch(`${API_BASE}/auth/quick-admin`, {
@@ -3315,6 +3479,12 @@ if (kioskMode) {
           loadQuickIssues();
           setUserPresentation(userPresentationEnabled);
           startUserRefreshTimer();
+          if (localStorage.getItem("assistant_demo") === "1") {
+            localStorage.removeItem("assistant_demo");
+            setTimeout(() => {
+              runUserTestScenario();
+            }, 600);
+          }
         }
         if (kioskMode) {
           setKioskWaiting(false);
@@ -5443,35 +5613,39 @@ if (kioskMode) {
           const formData = new FormData(loginForm);
           const tenantCode = (formData.get("tenant_code") || "").toString().trim();
           const submitBtn = loginForm.querySelector("button[type=\"submit\"]");
-          try {
-            if (submitBtn) {
-              submitBtn.disabled = true;
-              submitBtn.textContent = t("auth.loginPending");
-            }
-            await login(formData.get("email"), formData.get("password"), tenantCode);
-            setAuthState(true);
-            setStatus("", false);
-            setBanner(null);
-            await loadMe();
-            setKioskWaiting(false);
-            refreshAll();
-          } catch (err) {
-            const code = err && err.payload && err.payload.error ? err.payload.error : "";
-            if (err && err.status === 429) {
-              setStatus(t("auth.tooManyAttempts"), true);
-            } else if (code === "missing_jwt_secret") {
-              setStatus(t("auth.serverNotConfigured"), true);
-            } else if (err && err.status >= 500) {
-              setStatus(t("error.server"), true);
-            } else {
-              setStatus(t("auth.invalidCredentials"), true);
-            }
-          }
-          if (submitBtn) {
-            submitBtn.disabled = false;
-            submitBtn.textContent = t("login.submit");
-          }
+          await handleLoginFlow(
+            formData.get("email"),
+            formData.get("password"),
+            tenantCode,
+            submitBtn
+          );
         });
+      }
+
+      function tryAutoLoginFromQuery() {
+        if (!isLocalHost || !loginForm || !autoLoginFromQuery || autoLoginAttempted) {
+          return;
+        }
+        if (getToken()) {
+          autoLoginAttempted = true;
+          return;
+        }
+        autoLoginAttempted = true;
+        setStatus(t("auth.autoLogin.start"), false);
+        const submitBtn = loginForm.querySelector("button[type=\"submit\"]");
+        handleLoginFlow(
+          autoLoginFromQuery.email,
+          autoLoginFromQuery.password,
+          autoLoginFromQuery.tenantCode,
+          submitBtn,
+          { auto: true }
+        );
+      }
+
+      if (autoLoginFromQuery) {
+        setTimeout(() => {
+          tryAutoLoginFromQuery();
+        }, 200);
       }
 
       if (inviteAcceptForm) {
@@ -5535,7 +5709,7 @@ if (kioskMode) {
         });
       }
 
-            if (quickUserBtn) {
+      if (quickUserBtn) {
         quickUserBtn.addEventListener("click", async () => {
           try {
             setStatus(t("auth.userLoginPending"), false);
@@ -5554,7 +5728,31 @@ if (kioskMode) {
         });
       }
 
-      if (userAutoTestBtn) { {
+      if (demoClientBtn) {
+        demoClientBtn.addEventListener("click", async () => {
+          const now = Date.now();
+          localStorage.setItem("assistant_demo", "1");
+          localStorage.setItem("assistant_demo_until", String(now + demoDurationMs));
+          demoState.active = true;
+          demoState.expired = false;
+          demoState.until = now + demoDurationMs;
+          document.body.classList.add("demo-mode");
+          if (demoBanner) {
+            demoBanner.textContent = t("demo.banner");
+            demoBanner.classList.remove("hidden");
+          }
+          const submitBtn = loginForm ? loginForm.querySelector("button[type=\"submit\"]") : null;
+          await handleLoginFlow(
+            "user@assistant.local",
+            "user123",
+            getTenantCode() || "DEFAULT",
+            submitBtn,
+            { auto: true }
+          );
+        });
+      }
+
+      if (userAutoTestBtn) {
         userAutoTestBtn.addEventListener("click", () => {
           runUserTestScenario();
         });
@@ -5602,7 +5800,6 @@ if (kioskMode) {
           localStorage.removeItem("assistant_api_base");
           reloadWithoutApiParam();
         });
-      }
       }
 
       if (refreshBtn) {
@@ -6216,6 +6413,18 @@ if (kioskMode) {
         });
       }
 
+      if (quickTicketBtn && quickTicketInput) {
+        quickTicketBtn.addEventListener("click", () => {
+          handleQuickTicketRequest();
+        });
+        quickTicketInput.addEventListener("keydown", (event) => {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            handleQuickTicketRequest();
+          }
+        });
+      }
+
       function isChatTarget(target) {
         if (!target) return false;
         return (
@@ -6346,6 +6555,37 @@ if (kioskMode) {
         } catch (err) {
           notify(t("ticket.draftFailed"), "error");
           return null;
+        }
+      }
+
+      async function handleQuickTicketRequest() {
+        if (!quickTicketInput || !quickTicketBtn) return;
+        const message = (quickTicketInput.value || "").trim();
+        if (!message) {
+          notify(t("ticket.quick.empty"), "error");
+          return;
+        }
+        if (!getToken()) {
+          setStatus(t("auth.connectBeforeMessage"), true);
+          notify(t("auth.connectBeforeMessage"), "error");
+          return;
+        }
+        quickTicketBtn.disabled = true;
+        quickTicketBtn.textContent = t("ticket.quick.pending");
+        try {
+          await sendChatMessage(message);
+          await waitForChatIdle();
+          const draft = await loadTicketDraft();
+          if (draft) {
+            pendingTicketDraft = draft;
+            showTicketPreview(draft);
+          } else {
+            notify(t("ticket.autoEscalationNote"), "info");
+          }
+          quickTicketInput.value = "";
+        } finally {
+          quickTicketBtn.disabled = false;
+          quickTicketBtn.textContent = t("ticket.quick.button");
         }
       }
 
