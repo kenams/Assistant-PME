@@ -566,12 +566,12 @@ initDemoState();
       let currentRole = null;
       let currentLang = localStorage.getItem("assistant_lang") || "fr";
       const i18nConfig = window.APP_I18N || {
-        supportedLangs: ["fr", "en", "es", "ar"],
+        supportedLangs: ["fr", "en", "es"],
         translations: { fr: {} }
       };
       const supportedLangs = Array.isArray(i18nConfig.supportedLangs)
         ? i18nConfig.supportedLangs
-        : ["fr", "en", "es", "ar"];
+        : ["fr", "en", "es"];
       const translations = i18nConfig.translations || { fr: {} };
       if (!supportedLangs.includes(currentLang)) {
         currentLang = "fr";
