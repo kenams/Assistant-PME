@@ -32,7 +32,6 @@
           <button class="lang-btn" type="button" data-lang="fr">FR</button>
           <button class="lang-btn" type="button" data-lang="en">EN</button>
           <button class="lang-btn" type="button" data-lang="es">ES</button>
-          <button class="lang-btn" type="button" data-lang="ar">AR</button>
         </div>
         <button id="userPresentationToggle" class="btn ghost" type="button">
           Mode presentation
@@ -343,8 +342,24 @@
                 <option value="fr">FR</option>
                 <option value="en">EN</option>
                 <option value="es">ES</option>
-                <option value="ar">AR</option>
               </select>
+            </div>
+            <div class="quick-ticket-card" id="quickTicketCard">
+              <div class="quick-title" id="quickTicketTitle">Demande rapide</div>
+              <div class="quick-ticket-actions">
+                <input
+                  id="quickTicketInput"
+                  type="text"
+                  placeholder="Decris le probleme en 1 phrase"
+                />
+                <button id="quickTicketBtn" class="btn primary" type="button">
+                  Nouveau ticket
+                </button>
+              </div>
+              <p class="note" id="quickTicketNote">
+                Cree un ticket sans attendre la fin du chat. Une conversation sera ouverte
+                automatiquement.
+              </p>
             </div>
             <div id="chatWindow" class="chat-window"></div>
             <div class="chat-search">
@@ -713,7 +728,15 @@
       <button id="logoutBtnBottom" class="btn ghost" type="button">
         Deconnexion
       </button>
-      <span class="footer-note" id="footerCredit">Concu par Kah-Digital</span>
+      <a
+        class="footer-note footer-link"
+        id="footerCredit"
+        href="https://kah-digital-site.vercel.app/"
+        target="_blank"
+        rel="noopener"
+      >
+        Concu par Kah-Digital
+      </a>
     </footer>
 
     <script src="/app/i18n.js" defer></script>

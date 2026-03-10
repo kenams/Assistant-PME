@@ -2,7 +2,6 @@ const queryParams = new URLSearchParams(window.location.search || "");
 const apiParam = queryParams.get("api_base");
 const tenantParam = queryParams.get("tenant");
 const logoParam = queryParams.get("logo");
-const demoParam = queryParams.get("demo");
 const resetParam = queryParams.get("reset");
 if (resetParam === "1") {
   const keys = Object.keys(localStorage);
@@ -57,9 +56,6 @@ if (logoParam) {
   localStorage.setItem("assistant_logo_url", logoParam);
 }
 const logoUrl = logoParam || storedLogo;
-if (demoParam) {
-  localStorage.setItem("assistant_demo", "1");
-}
 if (tenantParam) {
   localStorage.setItem("assistant_tenant_code", tenantParam);
 }
@@ -72,36 +68,9 @@ const userPresentationParam = queryParams.get("presentation") === "1";
 if (kioskMode) {
   document.body.classList.add("kiosk-mode");
 }
-const demoDurationMs = 24 * 60 * 60 * 1000;
-let demoState = { active: false, expired: false, until: 0 };
-
-function initDemoState() {
-  const now = Date.now();
-  let until = Number(localStorage.getItem("assistant_demo_until") || 0);
-  if (demoParam) {
-    localStorage.setItem("assistant_demo", "1");
-  }
-  if (localStorage.getItem("assistant_demo") === "1") {
-    if (!until || until < now) {
-      until = now + demoDurationMs;
-      localStorage.setItem("assistant_demo_until", String(until));
-    }
-  }
-  if (until && now > until) {
-    demoState.expired = true;
-    localStorage.removeItem("assistant_demo");
-    localStorage.removeItem("assistant_demo_until");
-    localStorage.removeItem("assistant_token");
-  }
-  demoState.active = localStorage.getItem("assistant_demo") === "1";
-  demoState.until = until;
-}
-
-initDemoState();
       const loginCard = document.getElementById("loginCard");
       const loginForm = document.getElementById("loginForm");
       const loginStatus = document.getElementById("loginStatus");
-      const demoBanner = document.getElementById("demoBanner");
       const refreshBtn = document.getElementById("refreshBtn");
       const logoutBtn = document.getElementById("logoutBtn");
       const logoutBtnBottom = document.getElementById("logoutBtnBottom");
@@ -122,7 +91,6 @@ initDemoState();
       const quickUserBtn = document.getElementById("quickUserBtn");
       const quickLoginAdmin = document.getElementById("quickLoginAdmin");
       const quickLoginUser = document.getElementById("quickLoginUser");
-      const demoClientBtn = document.getElementById("demoClientBtn");
       const tenantCodeInput = loginForm
         ? loginForm.querySelector("input[name=\"tenant_code\"]")
         : null;
@@ -394,11 +362,7 @@ initDemoState();
         if (loginPasswordInput && queryPassword && !loginPasswordInput.value) {
           loginPasswordInput.value = queryPassword.toString();
         }
-        const shouldPrefillDemo =
-          demoParam ||
-          localStorage.getItem("assistant_demo") === "1" ||
-          (isLocalHost && !demoState.expired);
-        if (shouldPrefillDemo) {
+        if (isLocalHost) {
           if (loginEmailInput && !loginEmailInput.value) {
             loginEmailInput.value = "user@assistant.local";
           }
@@ -469,10 +433,6 @@ initDemoState();
         applyBrandLogo(logoUrl || "");
       }
 
-      if (demoState.active) {
-        document.body.classList.add("demo-mode");
-      }
-
       if (!isLocalHost) {
         if (quickLoginAdmin) {
           quickLoginAdmin.style.display = "none";
@@ -482,9 +442,6 @@ initDemoState();
         }
         if (userAutoTestBtn) {
           userAutoTestBtn.style.display = "none";
-        }
-        if (demoClientBtn) {
-          demoClientBtn.style.display = "none";
         }
       }
 
@@ -883,7 +840,6 @@ initDemoState();
         setText("loginHint", isAdminPage ? "login.hint.admin" : "login.hint.user");
         setHtml("loginTestAccount", "login.testAccount");
         setText("quickUserBtn", "login.quick");
-        setText("demoClientBtn", "login.demo");
         setText("quickLoginNote", "login.quickNote");
         setText("inviteTitle", "login.inviteTitle");
         setPlaceholder("inviteTokenInput", "login.inviteTokenPlaceholder");
@@ -1080,18 +1036,6 @@ initDemoState();
         setText("imageLightboxDownload", "lightbox.download");
         setText("imageLightboxClose", "lightbox.close");
         setText("footerCredit", "footer.credit");
-        if (demoBanner) {
-          if (demoState.expired) {
-            demoBanner.textContent = t("demo.expired");
-            demoBanner.classList.remove("hidden");
-          } else if (demoState.active) {
-            demoBanner.textContent = t("demo.banner");
-            demoBanner.classList.remove("hidden");
-          } else {
-            demoBanner.classList.add("hidden");
-          }
-        }
-
         if (contextCard) {
           updateContextSummary();
         }
@@ -3362,10 +3306,6 @@ initDemoState();
         const cleanPassword = (password || "").toString();
         let cleanTenant = (tenantCode || "").toString().trim();
         const isAuto = options.auto === true;
-        if (demoState.expired) {
-          setStatus(t("demo.expired"), true);
-          return false;
-        }
         if (!cleanEmail && cleanTenant.includes("@")) {
           cleanEmail = cleanTenant;
           cleanTenant = "";
@@ -3528,12 +3468,6 @@ initDemoState();
           loadQuickIssues();
           setUserPresentation(userPresentationEnabled);
           startUserRefreshTimer();
-          if (localStorage.getItem("assistant_demo") === "1") {
-            localStorage.removeItem("assistant_demo");
-            setTimeout(() => {
-              runUserTestScenario();
-            }, 600);
-          }
         }
         if (kioskMode) {
           setKioskWaiting(false);
@@ -5774,30 +5708,6 @@ initDemoState();
             setStatus(t("auth.userLoginFail"), true);
             notify(t("auth.userLoginFail"), "error");
           }
-        });
-      }
-
-      if (demoClientBtn) {
-        demoClientBtn.addEventListener("click", async () => {
-          const now = Date.now();
-          localStorage.setItem("assistant_demo", "1");
-          localStorage.setItem("assistant_demo_until", String(now + demoDurationMs));
-          demoState.active = true;
-          demoState.expired = false;
-          demoState.until = now + demoDurationMs;
-          document.body.classList.add("demo-mode");
-          if (demoBanner) {
-            demoBanner.textContent = t("demo.banner");
-            demoBanner.classList.remove("hidden");
-          }
-          const submitBtn = loginForm ? loginForm.querySelector("button[type=\"submit\"]") : null;
-          await handleLoginFlow(
-            "user@assistant.local",
-            "user123",
-            getTenantCode() || "DEFAULT",
-            submitBtn,
-            { auto: true }
-          );
         });
       }
 
