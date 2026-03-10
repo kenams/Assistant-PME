@@ -26,6 +26,13 @@
   box-sizing: border-box;
 }
 
+img,
+svg,
+video {
+  max-width: 100%;
+  height: auto;
+}
+
 .hidden {
   display: none;
 }
@@ -1259,9 +1266,10 @@ body.user-only main > details:nth-of-type(4) {
 }
 
 .quick-buttons {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 8px;
+  align-items: stretch;
 }
 
 .quick-search {
@@ -1286,7 +1294,7 @@ body.user-only main > details:nth-of-type(4) {
 }
 
 .quick-buttons .btn {
-  flex: 1 1 170px;
+  width: 100%;
   justify-content: center;
 }
 
@@ -1544,6 +1552,7 @@ body.presentation-client .footer {
   border-radius: 999px;
   padding: 8px 14px;
   min-height: 36px;
+  line-height: 1.2;
   border: 1px solid rgba(47, 111, 167, 0.25);
   background: #ffffff;
   color: var(--text);
@@ -1554,11 +1563,14 @@ body.presentation-client .footer {
 }
 
 .quick-buttons .chip {
-  flex: 1 1 170px;
+  width: 100%;
+  min-width: 0;
   justify-content: center;
   text-align: center;
   white-space: normal;
-  word-break: break-word;
+  word-break: normal;
+  overflow-wrap: break-word;
+  line-height: 1.2;
 }
 
 .chip:hover {
@@ -3209,6 +3221,109 @@ body.presentation .feedback {
   .footer {
     flex-direction: column;
     gap: 6px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .topbar {
+    padding: 16px 4vw;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  main {
+    padding: 24px 4vw 48px;
+  }
+
+  .grid {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+
+  .card {
+    padding: 18px;
+  }
+
+  .brand {
+    font-size: 0.92rem;
+  }
+
+  .brand-logo {
+    height: 22px;
+  }
+}
+
+@media (max-width: 840px) {
+  .actions {
+    gap: 8px;
+  }
+
+  .actions .btn {
+    padding: 8px 12px;
+    font-size: 0.75rem;
+  }
+
+  .role-banner {
+    font-size: 0.8rem;
+  }
+
+  .login-card {
+    width: min(96vw, 560px);
+  }
+}
+
+@media (max-width: 640px) {
+  .topbar {
+    align-items: flex-start;
+  }
+
+  .actions {
+    width: 100%;
+  }
+
+  .actions .btn,
+  .actions .net-status,
+  .actions .lang-switcher {
+    font-size: 0.7rem;
+  }
+
+  .quick-search {
+    grid-template-columns: 1fr;
+  }
+
+  .quick-search .btn {
+    width: 100%;
+  }
+
+  .quick-buttons .chip,
+  .quick-buttons .btn {
+    flex: 1 1 100%;
+  }
+
+  .chat-window {
+    height: 320px;
+  }
+
+  .login-card {
+    padding: 18px;
+  }
+}
+
+@media (max-width: 420px) {
+  .topbar {
+    padding: 14px 5vw;
+  }
+
+  h2,
+  h3 {
+    font-size: 1.2rem;
+  }
+
+  .btn.primary {
+    width: 100%;
+  }
+
+  .hero-card h1 {
+    font-size: 1.4rem;
   }
 }
 
