@@ -29,7 +29,6 @@ const userOnlyMode =
   document.body.classList.contains("user-only") || queryParams.get("mode") === "user";
 const kioskMode =
   document.body.classList.contains("kiosk-mode") || queryParams.get("kiosk") === "1";
-const demoClientMode = queryParams.get("demo") === "1";
 const advancedMode = queryParams.get("advanced") === "1";
 const userPresentationParam = queryParams.get("presentation") === "1";
 if (kioskMode) {
@@ -53,23 +52,14 @@ if (kioskMode) {
       const apiResetBtn = document.getElementById("apiResetBtn");
       const simpleModeToggle = document.getElementById("simpleModeToggle");
       const adminCleanToggle = document.getElementById("adminCleanToggle");
-      const demoClientBtn = document.getElementById("demoClientBtn");
-      const demoAdfSeedBtn = document.getElementById("demoAdfSeedBtn");
-      const demoAdfOpenBtn = document.getElementById("demoAdfOpenBtn");
       const homeBrand = document.getElementById("homeBrand");
       const quickAdminBtn = document.getElementById("quickAdminBtn");
       const quickUserBtn = document.getElementById("quickUserBtn");
       const quickLoginAdmin = document.getElementById("quickLoginAdmin");
       const quickLoginUser = document.getElementById("quickLoginUser");
-      const demoLoginPanel = document.getElementById("demoLoginPanel");
-      const demoLoginBtn = document.getElementById("demoLoginBtn");
-      const demoLoginNote = document.getElementById("demoLoginNote");
       const tenantCodeInput = loginForm
         ? loginForm.querySelector("input[name=\"tenant_code\"]")
         : null;
-      const demoBtn = document.getElementById("demoBtn");
-      const demoBtnInline = document.getElementById("demoBtnInline");
-      const userDemoBtn = document.getElementById("userDemoBtn");
       const userAutoTestBtn = document.getElementById("userAutoTestBtn");
       const quickIssueButtons = document.querySelectorAll("[data-quick]");
       const quickGuide = document.getElementById("quickGuide");
@@ -99,7 +89,6 @@ if (kioskMode) {
       const userPresentationToggle = document.getElementById("userPresentationToggle");
       const guidedModeToggle = document.getElementById("guidedModeToggle");
       const userSimpleToggle = document.getElementById("userSimpleToggle");
-      const demoModeBtn = document.getElementById("demoModeBtn");
       const beginnerModeToggle = document.getElementById("beginnerModeToggle");
       const beginnerStep = document.getElementById("beginnerStep");
       const summaryTotal = document.getElementById("summaryTotal");
@@ -142,18 +131,24 @@ if (kioskMode) {
       const metricsCard = document.getElementById("metricsCard");
       const metricsRefreshBtn = document.getElementById("metricsRefreshBtn");
       const metricsStats = document.getElementById("metricsStats");
+      const miniDashboardCard = document.getElementById("miniDashboardCard");
+      const miniDashboardRefreshBtn = document.getElementById("miniDashboardRefreshBtn");
+      const miniStatusBars = document.getElementById("miniStatusBars");
+      const miniPriorityBars = document.getElementById("miniPriorityBars");
+      const miniVolumeBars = document.getElementById("miniVolumeBars");
+      const miniKpiResponseValue = document.getElementById("miniKpiResponseValue");
+      const miniKpiResolutionValue = document.getElementById("miniKpiResolutionValue");
+      const miniKpiRatingValue = document.getElementById("miniKpiRatingValue");
+      const miniKpiSlaValue = document.getElementById("miniKpiSlaValue");
       const recentTicketsCard = document.getElementById("recentTicketsCard");
       const recentTicketsList = document.getElementById("recentTicketsList");
       const recentTicketsRefreshBtn = document.getElementById("recentTicketsRefreshBtn");
       const kbCsvImportInput = document.getElementById("kbCsvImportInput");
       const kbCsvTemplateBtn = document.getElementById("kbCsvTemplateBtn");
-      const demoCard = document.getElementById("demoCard");
       const kbCsvCard = document.getElementById("kbCsvCard");
       const kbExportQuery = document.getElementById("kbExportQuery");
       const kbExportLevel = document.getElementById("kbExportLevel");
       const kbExportFilteredBtn = document.getElementById("kbExportFilteredBtn");
-      const demoSeedBtn = document.getElementById("demoSeedBtn");
-      const demoResetBtn = document.getElementById("demoResetBtn");
       const adminGalleryCard = document.getElementById("adminGalleryCard");
       const adminGalleryGrid = document.getElementById("adminGalleryGrid");
       const adminGalleryRefreshBtn = document.getElementById("adminGalleryRefreshBtn");
@@ -306,16 +301,11 @@ if (kioskMode) {
         } else if (savedTenantCode && !tenantCodeInput.value) {
           tenantCodeInput.value = savedTenantCode;
         }
-        if (demoClientMode && !tenantCodeInput.value) {
-          tenantCodeInput.value = "ADF";
-          localStorage.setItem("assistant_tenant_code", "ADF");
-        }
         tenantCodeInput.addEventListener("input", () => {
           const next = getTenantCode();
           if (next) {
             localStorage.setItem("assistant_tenant_code", next);
           }
-          applyTenantDefaults();
           applyTenantBranding();
         });
       }
@@ -483,19 +473,6 @@ if (kioskMode) {
         "ad-locked": "password",
         "network-outage": "network"
       };
-      const tenantBrandingMap = {
-        ADF: {
-          code: "ADF",
-          brandKey: "tenant.adf.brand",
-          badgeKey: "tenant.adf.badge",
-          subtitleKey: "tenant.adf.subtitle",
-          loginHintKey: "tenant.adf.loginHint",
-          testAccountKey: "tenant.adf.testAccount",
-          demoLoginNoteKey: "tenant.adf.demoNote",
-          logo: "/app/assets/logo-adf.svg",
-          demoEmail: "user@groupeadf.demo"
-        }
-      };
       const issueTemplateMap = {
         outlook: "app_restart",
         teams: "app_restart",
@@ -588,75 +565,6 @@ if (kioskMode) {
         if (message === messageKey) return fallback || resolved;
         return message;
       };
-      const getTenantBranding = () => {
-        const code = getTenantCode();
-        return code ? tenantBrandingMap[code] || null : null;
-      };
-      const buildTenantQuickIssues = (tenantCode) => {
-        if (!tenantCode) return [];
-        if (tenantCode !== "ADF") return [];
-        const keys = [
-          "teams",
-          "sharepoint",
-          "vpn",
-          "access",
-          "account",
-          "onboarding",
-          "return",
-          "outlook",
-          "password"
-        ];
-        return keys.map((key) => ({
-          key,
-          label: getIssueLabel(key, key),
-          message: getIssueMessage(key, key)
-        }));
-      };
-      applyTenantBranding = () => {
-        const branding = getTenantBranding();
-        document.body.classList.toggle("tenant-adf", Boolean(branding && branding.code));
-        if (!branding) {
-          return;
-        }
-        const brandNameEl = document.getElementById("brandName");
-        if (brandNameEl) {
-          brandNameEl.textContent = t(branding.brandKey);
-        }
-        const heroBadge = document.getElementById("heroBadge");
-        if (heroBadge && branding.badgeKey) {
-          heroBadge.textContent = t(branding.badgeKey);
-        }
-        const heroSubtitle = document.getElementById("heroSubtitle");
-        if (heroSubtitle && branding.subtitleKey) {
-          heroSubtitle.textContent = t(branding.subtitleKey);
-        }
-        const loginHintEl = document.getElementById("loginHint");
-        if (loginHintEl && branding.loginHintKey) {
-          loginHintEl.textContent = t(branding.loginHintKey);
-        }
-        const loginTestEl = document.getElementById("loginTestAccount");
-        if (loginTestEl && branding.testAccountKey) {
-          loginTestEl.innerHTML = t(branding.testAccountKey);
-        }
-        if (demoLoginNote && branding.demoLoginNoteKey) {
-          demoLoginNote.textContent = t(branding.demoLoginNoteKey);
-        }
-        if (demoLoginPanel) {
-          const showDemoPanel =
-            isLocalHost && demoClientMode && getTenantCode() === "ADF";
-          demoLoginPanel.classList.toggle("hidden", !showDemoPanel);
-        }
-        if (!logoParam && branding.logo && (demoClientMode || tenantParam)) {
-          applyBrandLogo(branding.logo);
-          localStorage.setItem("assistant_logo_url", branding.logo);
-        }
-        if (quickIssuesContainer && !getToken()) {
-          const fallbackItems = buildTenantQuickIssues(branding.code);
-          if (fallbackItems.length) {
-            renderQuickIssues(fallbackItems);
-          }
-        }
-      };
       const buildGuideSteps = (templateKey) => {
         const keys = guideTemplates[templateKey] || guideTemplates.generic || [];
         return keys
@@ -664,7 +572,6 @@ if (kioskMode) {
           .filter((step) => step && !step.startsWith("guide.template."));
       };
       function buildGuidedFlow() {
-        const tenantCode = getTenantCode();
         const baseIssueOptions = [
           {
             label: getIssueLabel("internet", "Plus d'internet"),
@@ -685,22 +592,6 @@ if (kioskMode) {
               getIssueLabel("printer", "Imprimante ne repond pas")
           }
         ];
-        if (tenantCode === "ADF") {
-          baseIssueOptions.unshift(
-            {
-              label: getIssueLabel("sharepoint", "Acces SharePoint"),
-              value:
-                getIssueMessage("sharepoint", "Acces SharePoint") ||
-                getIssueLabel("sharepoint", "Acces SharePoint")
-            },
-            {
-              label: getIssueLabel("vpn", "VPN ne se connecte pas"),
-              value:
-                getIssueMessage("vpn", "VPN ne se connecte pas") ||
-                getIssueLabel("vpn", "VPN ne se connecte pas")
-            }
-          );
-        }
         return [
           {
             key: "device",
@@ -848,7 +739,6 @@ if (kioskMode) {
         setText("logoutBtn", "action.logout");
         setText("logoutBtnBottom", "action.logout");
         setText("refreshBtn", "tickets.refresh");
-        setText("demoModeBtn", "demo.mode");
 
         setText("loginTitle", isAdminPage ? "login.title.admin" : "login.title.user");
         setText("loginSubtitle", "login.subtitle");
@@ -858,8 +748,6 @@ if (kioskMode) {
         setText("loginSubmitBtn", "login.submit");
         setText("loginHint", isAdminPage ? "login.hint.admin" : "login.hint.user");
         setHtml("loginTestAccount", "login.testAccount");
-        setText("demoLoginBtn", "demo.login.btn");
-        setText("demoLoginNote", "demo.login.note");
         setText("quickUserBtn", "login.quick");
         setText("quickLoginNote", "login.quickNote");
         setText("inviteTitle", "login.inviteTitle");
@@ -1036,8 +924,19 @@ if (kioskMode) {
         setText("simpleSummaryLabelResolved", "dashboard.label.resolved");
         setText("simpleStartBtn", "dashboard.ask");
         setText("simpleTicketsBtn", "dashboard.viewTickets");
-        setText("demoAdfSeedBtn", "demo.adf.seed");
-        setText("demoAdfOpenBtn", "demo.adf.open");
+        setText("miniDashboardTitle", "mini.dashboard.title");
+        setText("miniDashboardNote", "mini.dashboard.note");
+        setText("miniStatusTitle", "mini.status.title");
+        setText("miniPriorityTitle", "mini.priority.title");
+        setText("miniVolumeTitle", "mini.volume.title");
+        setText("miniKpiResponseLabel", "mini.kpi.response");
+        setText("miniKpiResolutionLabel", "mini.kpi.resolution");
+        setText("miniKpiRatingLabel", "mini.kpi.rating");
+        setText("miniKpiSlaLabel", "mini.kpi.sla");
+        setText("miniDashboardRefreshBtn", "mini.dashboard.refresh");
+        setText("checklistTitle", "checklist.title");
+        setText("checklistReloadBtn", "checklist.refresh");
+        setText("checklistExportBtn", "checklist.export");
 
         setText("imageLightboxDownload", "lightbox.download");
         setText("imageLightboxClose", "lightbox.close");
@@ -1091,7 +990,7 @@ if (kioskMode) {
         label: "Lun-Ven 9h - 18h",
         alwaysOpen: false
       };
-      let demoScenarioRunning = false;
+      let scenarioRunning = false;
       let orgSettingsLoaded = false;
       let orgInfoLoaded = false;
       let orgSettingsAutoTimer = null;
@@ -1130,17 +1029,13 @@ if (kioskMode) {
           if (!field) return;
           field.addEventListener("change", updateContextSummary);
         });
-        applyTenantDefaults();
       }
       updateGuidedToggleLabel();
       updateSimpleToggleLabel();
       applyI18n();
-        if (userOnlyMode && !advancedMode) {
-          document.body.classList.add("user-basic");
-        }
-        if (demoModeBtn && isLocalHost) {
-          demoModeBtn.style.display = "inline-flex";
-        }
+      if (userOnlyMode && !advancedMode) {
+        document.body.classList.add("user-basic");
+      }
       if (simpleUserModeEnabled) {
         document.body.classList.add("simple-user");
       }
@@ -1158,9 +1053,6 @@ if (kioskMode) {
       }
       if (beginnerModeToggle) {
         beginnerModeToggle.style.display = "none";
-      }
-      if (demoClientBtn) {
-        demoClientBtn.style.display = "none";
       }
 
       if (apiBaseInput) {
@@ -2070,69 +1962,30 @@ if (kioskMode) {
         }
       }
 
-      async function runDemoScenario() {
-        if (demoScenarioRunning || !demoClientMode) return;
-        demoScenarioRunning = true;
-        resetConversation();
-        if (getTenantCode() === "ADF") {
-          guidedModeEnabled = true;
-          localStorage.setItem("assistant_guided_mode", "on");
-          updateGuidedToggleLabel();
-        }
-        ensureWelcomeMessage();
-        await sleep(500);
-        const issueKey = getTenantCode() === "ADF" ? "sharepoint" : "internet";
-        const issueMessage =
-          getTenantCode() === "ADF"
-            ? getIssueMessage("sharepoint", t("demo.adf.issue")) || t("demo.adf.issue")
-            : getIssueMessage("internet", t("demo.issue")) || t("demo.issue");
-        await sendChatMessage(issueMessage);
-        await waitForChatIdle();
-        await sleep(700);
-        const followup =
-          getTenantCode() === "ADF" ? t("demo.adf.followup") : t("demo.followup");
-        await sendChatMessage(followup, { keepGuide: true });
-        await waitForChatIdle();
-        await sleep(700);
-        if (createTicketBtn && !createTicketBtn.disabled) {
-          createTicketBtn.click();
-        }
-        demoScenarioRunning = false;
-      }
-
       async function runUserTestScenario() {
-        if (demoScenarioRunning) return;
+        if (scenarioRunning) return;
         if (!getToken()) {
           setStatus(t("auth.connectBeforeTest"), true);
           notify(t("auth.connectBeforeTest"), "error");
           return;
         }
-        demoScenarioRunning = true;
+        scenarioRunning = true;
         resetConversation();
-        if (getTenantCode() === "ADF") {
-          guidedModeEnabled = true;
-          localStorage.setItem("assistant_guided_mode", "on");
-          updateGuidedToggleLabel();
-        }
         ensureWelcomeMessage();
         await sleep(400);
-        const issueKey = getTenantCode() === "ADF" ? "vpn" : "outlook";
         const issueMessage =
-          getTenantCode() === "ADF"
-            ? getIssueMessage("vpn", t("demo.adf.issue")) || t("demo.adf.issue")
-            : getIssueMessage("outlook", t("demo.issue")) || t("demo.issue");
+          getIssueMessage("outlook", t("issue.outlook.message")) ||
+          t("issue.outlook.message");
         await sendChatMessage(issueMessage);
         await waitForChatIdle();
         await sleep(600);
-        const followup =
-          getTenantCode() === "ADF" ? t("demo.adf.followup") : t("demo.followup");
-        await sendChatMessage(followup, { keepGuide: true });
+        await sendChatMessage(t("reply.stillSame"), { keepGuide: true });
         await waitForChatIdle();
         await sleep(400);
         if (createTicketBtn && !createTicketBtn.disabled) {
           createTicketBtn.click();
         }
-        demoScenarioRunning = false;
+        scenarioRunning = false;
       }
 
       async function sendChatMessage(message, options = {}) {
@@ -2497,7 +2350,20 @@ if (kioskMode) {
 
       function formatMessageForSummary(text) {
         const imageUrl = getImageUrlFromMessage(text);
-        return imageUrl ? `[Image] ${imageUrl}` : text;
+        return imageUrl ? t("chat.imageSent") : text;
+      }
+
+      function updateSummaryLastMessage(text) {
+        const formatted = truncateText(formatMessageForSummary(text || ""), 120);
+        if (summaryLast) {
+          summaryLast.textContent = formatted || "-";
+        }
+        updatePresentationKpis({
+          total: summaryTotal ? Number(summaryTotal.textContent) : 0,
+          open: summaryOpen ? Number(summaryOpen.textContent) : 0,
+          resolved: summaryResolved ? Number(summaryResolved.textContent) : 0,
+          last: formatted || "-"
+        });
       }
 
       function renderMessageHtml(text, query) {
@@ -2864,23 +2730,6 @@ if (kioskMode) {
         contextSummary.textContent = formatContextSummary(context);
       }
 
-      function applyTenantDefaults() {
-        const tenantCode = getTenantCode();
-        if (tenantCode !== "ADF") return;
-        let updated = false;
-        if (contextDevice && !contextDevice.value) {
-          contextDevice.value = "PC HP";
-          updated = true;
-        }
-        if (contextOs && !contextOs.value) {
-          contextOs.value = "Windows 11";
-          updated = true;
-        }
-        if (updated) {
-          updateContextSummary();
-        }
-      }
-
       function setConversationStatus(status, note) {
         conversationStatus = status || "idle";
         updateTimeline(note);
@@ -3088,9 +2937,9 @@ if (kioskMode) {
           const updated = ticket.updated_at
             ? t("ticket.updated", { date: formatDate(ticket.updated_at) })
             : "";
-          ticketDetailMeta.textContent = `${formatDate(ticket.created_at)} • ${
+          ticketDetailMeta.textContent = `${formatDate(ticket.created_at)} - ${
             ticket.category || "-"
-          } • ${ticket.priority || "-"}${updated ? ` • ${updated}` : ""}`;
+          } - ${ticket.priority || "-"}${updated ? ` - ${updated}` : ""}`;
         }
         if (ticketDetailSummary) {
           ticketDetailSummary.textContent =
@@ -3355,9 +3204,7 @@ if (kioskMode) {
         setToken(data.token);
         if (tenantCode) {
           localStorage.setItem("assistant_tenant_code", tenantCode);
-        }
-        applyTenantDefaults();
-      }
+        }      }
 
       async function quickAdminLogin() {
         const res = await fetch(`${API_BASE}/auth/quick-admin`, {
@@ -3373,13 +3220,9 @@ if (kioskMode) {
 
       async function quickUserLogin() {
         const tenantCode = getTenantCode();
-        const branding = getTenantBranding();
         const payload = {};
         if (tenantCode) {
           payload.tenant_code = tenantCode;
-        }
-        if (branding && branding.demoEmail && demoClientMode) {
-          payload.email = branding.demoEmail;
         }
         const res = await fetch(`${API_BASE}/auth/quick-user`, {
           method: "POST",
@@ -3393,9 +3236,7 @@ if (kioskMode) {
         setToken(data.token);
         if (tenantCode) {
           localStorage.setItem("assistant_tenant_code", tenantCode);
-        }
-        applyTenantDefaults();
-      }
+        }      }
 
       function bootstrapTokenFromUrl() {
         const url = new URL(window.location.href);
@@ -3474,11 +3315,6 @@ if (kioskMode) {
           loadQuickIssues();
           setUserPresentation(userPresentationEnabled);
           startUserRefreshTimer();
-          if (demoClientMode) {
-            setTimeout(() => {
-              runDemoScenario();
-            }, 800);
-          }
         }
         if (kioskMode) {
           setKioskWaiting(false);
@@ -3936,6 +3772,124 @@ if (kioskMode) {
         }
       }
 
+      function renderMiniBars(container, data, labelMap, colorMap) {
+        if (!container) return;
+        const entries = Object.entries(data || {});
+        if (!entries.length) {
+          container.innerHTML = `<div class="ticket-empty">${t(
+            "mini.dashboard.empty"
+          )}</div>`;
+          return;
+        }
+        const total = entries.reduce((acc, [, value]) => acc + (value || 0), 0) || 1;
+        const sorted = entries.sort((a, b) => (b[1] || 0) - (a[1] || 0));
+        container.innerHTML = sorted
+          .map(([key, value]) => {
+            const label = labelMap[key] || key;
+            const pct = Math.max(4, Math.round(((value || 0) / total) * 100));
+            const color = colorMap[key] || "linear-gradient(90deg, #2f3b52, #1e9aa2)";
+            return `<div class="mini-bar">
+              <span class="mini-bar-label">${label}</span>
+              <div class="mini-bar-track">
+                <div class="mini-bar-fill" style="width:${pct}%; background:${color}"></div>
+              </div>
+              <span class="mini-bar-value">${value || 0}</span>
+            </div>`;
+          })
+          .join("");
+      }
+
+      function renderMiniVolume(container, items) {
+        if (!container) return;
+        const data = Array.isArray(items) ? items : [];
+        if (!data.length) {
+          container.innerHTML = `<div class="ticket-empty">${t(
+            "mini.dashboard.empty"
+          )}</div>`;
+          return;
+        }
+        const maxValue =
+          data.reduce((acc, item) => Math.max(acc, item.tickets || 0), 0) || 1;
+        container.innerHTML = data
+          .map((item) => {
+            const value = item.tickets || 0;
+            const height = Math.max(6, Math.round((value / maxValue) * 100));
+            return `<div class="mini-volume-bar" style="height:${height}%;">
+              <span>${item.day.slice(5)} - ${value}</span>
+            </div>`;
+          })
+          .join("");
+      }
+
+      async function loadMiniDashboard() {
+        if (!miniDashboardCard) return;
+        try {
+          const analytics = await fetchWithAuth("/admin/analytics");
+          const statusLabels = {
+            open: t("mini.status.open"),
+            pending: t("mini.status.pending"),
+            resolved: t("mini.status.resolved"),
+            closed: t("mini.status.closed")
+          };
+          const statusColors = {
+            open: "linear-gradient(90deg, #2f3b52, #4a6fa8)",
+            pending: "linear-gradient(90deg, #5b7bb2, #7ea2d9)",
+            resolved: "linear-gradient(90deg, #2ea85f, #78dc8c)",
+            closed: "linear-gradient(90deg, #8aa0b8, #b6c5d6)"
+          };
+          const priorityLabels = {
+            low: t("mini.priority.low"),
+            medium: t("mini.priority.medium"),
+            high: t("mini.priority.high"),
+            urgent: t("mini.priority.urgent")
+          };
+          const priorityColors = {
+            low: "linear-gradient(90deg, #2ea85f, #7ddca4)",
+            medium: "linear-gradient(90deg, #f2c14f, #f6d67b)",
+            high: "linear-gradient(90deg, #f28c28, #f5a15b)",
+            urgent: "linear-gradient(90deg, #e0675f, #f08a84)"
+          };
+          renderMiniBars(
+            miniStatusBars,
+            analytics.tickets_by_status,
+            statusLabels,
+            statusColors
+          );
+          renderMiniBars(
+            miniPriorityBars,
+            analytics.tickets_by_priority,
+            priorityLabels,
+            priorityColors
+          );
+          renderMiniVolume(miniVolumeBars, analytics.volume_last_14_days);
+          if (miniKpiResponseValue) {
+            miniKpiResponseValue.textContent = `${analytics.response_avg_minutes} min`;
+          }
+          if (miniKpiResolutionValue) {
+            miniKpiResolutionValue.textContent = `${analytics.resolution_avg_minutes} min`;
+          }
+          if (miniKpiRatingValue) {
+            const rating = analytics.feedback?.average_rating || 0;
+            const rate = analytics.feedback?.resolved_rate || 0;
+            miniKpiRatingValue.textContent = `${rating}/5 - ${rate}%`;
+          }
+          if (miniKpiSlaValue) {
+            const sla = analytics.sla || {};
+            miniKpiSlaValue.textContent = `${sla.at_risk_count || 0} / ${
+              sla.breached_open_count || 0
+            }`;
+          }
+        } catch (err) {
+          renderMiniBars(miniStatusBars, {}, {}, {});
+          renderMiniBars(miniPriorityBars, {}, {}, {});
+          renderMiniVolume(miniVolumeBars, []);
+          if (miniKpiResponseValue) miniKpiResponseValue.textContent = "-";
+          if (miniKpiResolutionValue) miniKpiResolutionValue.textContent = "-";
+          if (miniKpiRatingValue) miniKpiRatingValue.textContent = "-";
+          if (miniKpiSlaValue) miniKpiSlaValue.textContent = "-";
+        }
+      }
+
       async function loadOrg() {
         if (!orgForm) return;
         try {
@@ -4291,6 +4245,7 @@ if (kioskMode) {
         if (shouldScroll) {
           chatWindow.scrollTop = chatWindow.scrollHeight;
         }
+        updateSummaryLastMessage(text || "");
       }
 
       let typingBubble = null;
@@ -5580,7 +5535,7 @@ if (kioskMode) {
         });
       }
 
-      if (quickUserBtn) {
+            if (quickUserBtn) {
         quickUserBtn.addEventListener("click", async () => {
           try {
             setStatus(t("auth.userLoginPending"), false);
@@ -5599,34 +5554,7 @@ if (kioskMode) {
         });
       }
 
-      if (demoLoginBtn) {
-        demoLoginBtn.addEventListener("click", async () => {
-          try {
-            if (demoClientMode && !getTenantCode()) {
-              localStorage.setItem("assistant_tenant_code", "ADF");
-              if (tenantCodeInput) {
-                tenantCodeInput.value = "ADF";
-              }
-              applyTenantDefaults();
-              applyTenantBranding();
-            }
-            setStatus(t("auth.userLoginPending"), false);
-            notify(t("auth.userLoginInfo"), "info");
-            await quickUserLogin();
-            setAuthState(true);
-            setStatus("", false);
-            setBanner(null);
-            await loadMe();
-            setKioskWaiting(false);
-            refreshAll();
-          } catch (err) {
-            setStatus(t("auth.userLoginFail"), true);
-            notify(t("auth.userLoginFail"), "error");
-          }
-        });
-      }
-
-      if (userAutoTestBtn) {
+      if (userAutoTestBtn) { {
         userAutoTestBtn.addEventListener("click", () => {
           runUserTestScenario();
         });
@@ -5675,47 +5603,6 @@ if (kioskMode) {
           reloadWithoutApiParam();
         });
       }
-      if (demoModeBtn) {
-        if (!isLocalHost) {
-          demoModeBtn.style.display = "none";
-        }
-        demoModeBtn.addEventListener("click", () => {
-          const params = new URLSearchParams();
-          params.set("demo", "1");
-          params.set("presentation", "1");
-          const tenantCode = getTenantCode();
-          if (tenantCode) {
-            params.set("tenant", tenantCode);
-          }
-          const branding = getTenantBranding();
-          const logo =
-            (branding && branding.logo) || localStorage.getItem("assistant_logo_url");
-          if (logo) {
-            params.set("logo", logo);
-          }
-          window.location.href = `/app/user/?${params.toString()}`;
-        });
-      }
-      if (demoClientBtn) {
-        demoClientBtn.addEventListener("click", async () => {
-          demoClientBtn.classList.add("pending");
-          demoClientBtn.textContent = t("demo.client.pending");
-          try {
-            await fetchWithAuth("/admin/demo/seed", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ mode: "reset" })
-            });
-            demoClientBtn.classList.remove("pending");
-            demoClientBtn.classList.add("success");
-            demoClientBtn.textContent = t("demo.client.ok");
-            window.open("/app/user/?demo=1", "_blank", "noopener");
-          } catch (err) {
-            demoClientBtn.classList.remove("pending");
-            demoClientBtn.textContent = t("demo.client.label");
-            notify(t("demo.client.failed"), "error");
-          }
-        });
       }
 
       if (refreshBtn) {
@@ -5931,15 +5818,6 @@ if (kioskMode) {
         setInterval(updateSupportStatus, 60000);
       }
 
-      if (demoBtn) {
-        demoBtn.addEventListener("click", () => runDemo());
-      }
-      if (demoBtnInline) {
-        demoBtnInline.addEventListener("click", () => runDemo());
-      }
-      if (userDemoBtn) {
-        userDemoBtn.addEventListener("click", () => runUserDemoTicket());
-      }
       if (quickIssueButtons && quickIssueButtons.length) {
         quickIssueButtons.forEach((btn) => {
           bindQuickIssueButton(btn);
@@ -6298,15 +6176,6 @@ if (kioskMode) {
           });
         });
       }
-      if (demoSeedBtn) {
-        demoSeedBtn.addEventListener("click", () => seedDemo("append"));
-      }
-      if (demoResetBtn) {
-        demoResetBtn.addEventListener("click", () => seedDemo("reset"));
-      }
-      if (demoAdfSeedBtn) {
-        demoAdfSeedBtn.addEventListener("click", () => seedDemo("reset", "ADF"));
-      }
       const kioskStart = document.getElementById("kioskStart");
       const startBtn = document.getElementById("startBtn");
       if (kioskStart && userOnlyMode) {
@@ -6463,122 +6332,6 @@ if (kioskMode) {
             closeImageLightbox();
           }
         });
-      }
-
-      async function runDemo() {
-        if (!getToken()) {
-          setStatus(t("auth.connectBeforeDemo"), true);
-          return;
-        }
-        conversationId = null;
-        chatWindow.innerHTML = "";
-        chatSources.textContent = "";
-        chatTickets.textContent = "";
-        feedbackBox.style.display = "none";
-
-        if (currentRole === "admin" || currentRole === "agent") {
-          try {
-            await fetchWithAuth("/kb/documents", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                title: t("demo.kb.title"),
-                source_type: "procedure",
-                content: t("demo.kb.content")
-              })
-            });
-            loadKb();
-          } catch (err) {
-            // ignore demo KB errors
-          }
-        }
-
-        const message = t("demo.outlook");
-        appendMessage("user", message);
-        try {
-          const data = await fetchWithAuth("/chat", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ message, language: currentLang })
-          });
-          conversationId = data.conversation_id;
-          appendMessage("assistant", data.answer || "");
-          renderSources(data.sources || []);
-          loadConversations();
-          loadConversationTickets(conversationId);
-          feedbackBox.style.display = "flex";
-        } catch (err) {
-          appendMessage("assistant", t("error.backend"));
-          notify(t("error.backendUnavailable"), "error");
-        }
-      }
-
-      async function runUserDemoTicket() {
-        if (!getToken()) {
-          setStatus(t("auth.connectBeforeDemo"), true);
-          return;
-        }
-        conversationId = null;
-        chatWindow.innerHTML = "";
-        chatSources.textContent = "";
-        chatTickets.textContent = "";
-        feedbackBox.style.display = "none";
-        setCreateTicketState("idle");
-        setTicketBadgeState("hidden");
-
-        const message = t("demo.loginIssue");
-        appendMessage("user", message);
-        try {
-          const data = await fetchWithAuth("/chat", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ message, language: currentLang })
-          });
-          conversationId = data.conversation_id;
-          appendMessage("assistant", data.answer || "");
-          renderSources(data.sources || []);
-          loadConversations();
-          loadConversationTickets(conversationId);
-          feedbackBox.style.display = "flex";
-
-          const ticket = await fetchWithAuth("/chat/escalate", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              conversation_id: conversationId,
-              reason: t("demo.userReason")
-            })
-          });
-          setCreateTicketState(ticket.created ? "created" : "exists");
-          setTicketBadgeState(ticket.created ? "created" : "exists", ticket.ticket);
-          showTicketThanks(ticket.created ? "created" : "exists");
-          if (getViewRole() === "user") {
-            loadMyTickets();
-          } else {
-            loadTickets();
-          }
-          notify(t("demo.ticketCreated"), "info");
-        } catch (err) {
-          appendMessage("assistant", t("error.backend"));
-          notify(t("demo.failed"), "error");
-        }
-      }
-
-      async function seedDemo(mode, tenantCode = "") {
-        try {
-          await fetchWithAuth("/admin/demo/seed", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              mode,
-              tenant_code: tenantCode || undefined
-            })
-          });
-          notify(t("demo.initialized"), "info");
-          refreshAll();
-        } catch (err) {
-          notify(t("demo.failed"), "error");
-        }
       }
 
       async function loadTicketDraft() {
@@ -7558,6 +7311,9 @@ if (kioskMode) {
       if (metricsRefreshBtn) {
         metricsRefreshBtn.addEventListener("click", () => loadMetricsSummary());
       }
+      if (miniDashboardRefreshBtn) {
+        miniDashboardRefreshBtn.addEventListener("click", () => loadMiniDashboard());
+      }
       if (recentTicketsRefreshBtn) {
         recentTicketsRefreshBtn.addEventListener("click", () => loadRecentTickets());
       }
@@ -7836,6 +7592,7 @@ if (kioskMode) {
           tasks.push(loadDiagnostics(false));
           tasks.push(loadChecklist());
           tasks.push(loadMetricsSummary());
+          tasks.push(loadMiniDashboard());
           tasks.push(loadRecentTickets());
           tasks.push(loadAdminGallery());
           if (viewRole === "superadmin") {
@@ -7905,8 +7662,8 @@ if (kioskMode) {
           setDisplay(userGuideCard, "none");
           setDisplay(onboardingCard, isAdmin ? "block" : "none");
           setDisplay(metricsCard, isAdmin ? "block" : "none");
+          setDisplay(miniDashboardCard, isAdmin ? "block" : "none");
           setDisplay(recentTicketsCard, isAdmin ? "block" : "none");
-          setDisplay(demoCard, isAdmin ? "block" : "none");
           setDisplay(kbCsvCard, isAdmin ? "block" : "none");
           setDisplay(kbManageCard, "block");
           setDisplay(orgSettingsCard, isAdmin ? "block" : "none");
@@ -7926,7 +7683,6 @@ if (kioskMode) {
           } else {
             setAdminClean(false);
           }
-          setDisplay(demoClientBtn, isAdmin ? "inline-flex" : "none");
           setDisplay(beginnerModeToggle, "none");
           setBeginnerMode(false);
           setDisplay(tenantsCard, viewRole === "superadmin" ? "block" : "none");
@@ -7950,8 +7706,8 @@ if (kioskMode) {
           setDisplay(adminGuideCard, "none");
           setDisplay(setupChecklistCard, "none");
           setDisplay(metricsCard, "none");
-          setDisplay(recentTicketsCard, "none");
-          setDisplay(demoCard, "none");
+          setDisplay(miniDashboardCard, "none");
+          setDisplay(recentTicketsCard, "none");;
           setDisplay(kbCsvCard, "none");
           setDisplay(tenantsCard, "none");
           setDisplay(superadminCard, "none");
@@ -7960,8 +7716,7 @@ if (kioskMode) {
           setDisplay(onboardingCard, "none");
           setDisplay(apiConfigBtn, "none");
           setDisplay(adminCleanToggle, "none");
-          setAdminClean(false);
-          setDisplay(demoClientBtn, "none");
+          setAdminClean(false);;
           setDisplay(beginnerModeToggle, "inline-flex");
           setBeginnerMode(beginnerModeEnabled);
           setBeginnerStep(t("beginner.step1"));
@@ -7991,8 +7746,7 @@ if (kioskMode) {
         setDisplay(simpleModeToggle, "none");
         setSimpleMode(false);
         setDisplay(adminCleanToggle, "none");
-        setAdminClean(false);
-        setDisplay(demoClientBtn, "none");
+        setAdminClean(false);;
         setDisplay(beginnerModeToggle, "none");
         setBeginnerMode(false);
         setDisplay(usersCard, "none");
@@ -8011,9 +7765,19 @@ if (kioskMode) {
         setDisplay(setupChecklistCard, "none");
         setDisplay(userGuideCard, "none");
         setDisplay(metricsCard, "none");
-        setDisplay(recentTicketsCard, "none");
-        setDisplay(demoCard, "none");
+        setDisplay(miniDashboardCard, "none");
+        setDisplay(recentTicketsCard, "none");;
         setDisplay(kbCsvCard, "none");
         setDisplay(tenantsCard, "none");
         setDisplay(superadminCard, "none");
       }
+
+
+
+
+
+
+
+
+
+

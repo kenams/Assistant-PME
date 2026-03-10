@@ -84,6 +84,48 @@
         <div class="note">Vue rapide des indicateurs clefs.</div>
       </section>
 
+      <section class="card" id="miniDashboardCard">
+        <div class="card-header">
+          <h3 id="miniDashboardTitle">Mini dashboard</h3>
+          <button id="miniDashboardRefreshBtn" class="btn ghost">Actualiser</button>
+        </div>
+        <div class="mini-kpis">
+          <div class="mini-kpi tile-1">
+            <span id="miniKpiResponseLabel">Temps de reponse</span>
+            <strong id="miniKpiResponseValue">-</strong>
+          </div>
+          <div class="mini-kpi tile-3">
+            <span id="miniKpiResolutionLabel">Temps de resolution</span>
+            <strong id="miniKpiResolutionValue">-</strong>
+          </div>
+          <div class="mini-kpi tile-5">
+            <span id="miniKpiRatingLabel">Satisfaction</span>
+            <strong id="miniKpiRatingValue">-</strong>
+          </div>
+          <div class="mini-kpi tile-4">
+            <span id="miniKpiSlaLabel">SLA</span>
+            <strong id="miniKpiSlaValue">-</strong>
+          </div>
+        </div>
+        <div class="mini-charts">
+          <div class="mini-chart">
+            <strong id="miniStatusTitle">Statuts tickets</strong>
+            <div id="miniStatusBars" class="mini-bars"></div>
+          </div>
+          <div class="mini-chart">
+            <strong id="miniPriorityTitle">Priorites</strong>
+            <div id="miniPriorityBars" class="mini-bars"></div>
+          </div>
+          <div class="mini-chart">
+            <strong id="miniVolumeTitle">Volume 14 jours</strong>
+            <div id="miniVolumeBars" class="mini-volume"></div>
+          </div>
+        </div>
+        <p class="note" id="miniDashboardNote">
+          Donnees des 14 derniers jours, mises a jour automatiquement.
+        </p>
+      </section>
+
       <section class="card" id="recentTicketsCard">
         <div class="card-header">
           <h3>Tickets recents</h3>
@@ -109,36 +151,6 @@
         </div>
         <div class="gallery-grid" id="adminGalleryGrid"></div>
         <p class="note" id="adminGalleryEmpty">Aucune capture pour l'instant.</p>
-      </section>
-
-      <section class="card" id="demoCard">
-        <div class="card-header">
-          <h3>Mode demo client</h3>
-        </div>
-        <div class="actions-inline">
-          <button id="demoSeedBtn" class="btn ghost" type="button">
-            Charger une demo
-          </button>
-          <button id="demoResetBtn" class="btn ghost" type="button">
-            Reinitialiser demo
-          </button>
-          <a class="btn primary" href="/app/user/?demo=1" target="_blank" rel="noopener">
-            Ouvrir demo client
-          </a>
-          <button id="demoAdfSeedBtn" class="btn ghost" type="button">
-            Preparer demo ADF
-          </button>
-          <a
-            id="demoAdfOpenBtn"
-            class="btn primary"
-            href="/app/user/?demo=1&tenant=ADF&presentation=1&logo=%2Fapp%2Fassets%2Flogo-adf.svg"
-            target="_blank"
-            rel="noopener"
-          >
-            Ouvrir demo ADF
-          </a>
-        </div>
-        <p class="note">Ideal pour presenter l'experience utilisateur.</p>
       </section>
 
       <section class="card" id="kbCsvCard">
@@ -328,6 +340,17 @@
           Verification en cours...
         </div>
         <div class="status-grid" id="adminStatusGrid"></div>
+      </section>
+
+      <section class="card" id="setupChecklistCard">
+        <div class="card-header">
+          <h3 id="checklistTitle">Checklist pre-prod</h3>
+          <div class="actions-inline">
+            <button id="checklistReloadBtn" class="btn ghost">Rafraichir</button>
+            <button id="checklistExportBtn" class="btn ghost">Exporter CSV</button>
+          </div>
+        </div>
+        <div id="setupChecklist"></div>
       </section>
 
       <section class="card" id="adminGuideCard">

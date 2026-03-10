@@ -32,7 +32,6 @@ Ce repo contient la base produit (docs + backend MVP + app).
 2. `JWT_SECRET` rempli (obligatoire)
 3. `DISABLE_QUICK_LOGIN=true`
 4. `CORS_ORIGINS` limite aux domaines de l'app
-5. Nettoyer les donnees de demo avant livraison client
 
 ### Onboarding client
 1. Creer le tenant + code entreprise
@@ -173,10 +172,6 @@ Ces valeurs peuvent etre changees dans `.env`.
 - Pour pointer vers un autre backend: ajouter `?api_base=https://mon-api.tld` (memorise dans le navigateur).
 - Interface utilisateur simple: `http://localhost:3001/app/user/`.
 - Mode kiosque (sans actions): `http://localhost:3001/app/user/?kiosk=1`.
-
-## Demo (seed)
-- Dans l'app > Admin tools: `Demo data` ou `Reset + demo`.
-- Endpoint: `POST /admin/demo/seed` (body `{ mode: "append" | "reset" }`).
 
 ## Frontend (minifier)
 - Generer les fichiers `.min.js` :

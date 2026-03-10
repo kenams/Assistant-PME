@@ -7,9 +7,6 @@
     "dev": "nodemon src/index.js",
     "start": "node src/index.js",
     "kb:import": "node scripts/import_kb.js",
-    "demo:seed": "node scripts/demo_pack.js append",
-    "demo:reset": "node scripts/demo_pack.js reset",
-    "demo:adf": "node scripts/seed_adf.js reset",
     "frontend:minify": "node scripts/minify_frontend.js",
     "frontend:watch": "nodemon --watch ../app --ext js,html,css --exec \"node scripts/minify_frontend.js\"",
     "test": "node scripts/run_tests.js"

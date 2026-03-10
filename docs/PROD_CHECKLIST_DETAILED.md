@@ -10,7 +10,6 @@
 - `JWT_SECRET` fort.
 - `DISABLE_QUICK_LOGIN=true`.
 - `CORS_ORIGINS` limite aux domaines client.
-- Comptes de demo supprimes ou mots de passe changes.
 
 ## C) Donnees / sauvegardes
 - Stockage persistant configure.
