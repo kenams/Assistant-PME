@@ -74,30 +74,6 @@ function ensureSeeded() {
       userExists.role = "user";
       userExists.updated_at = now;
     }
-
-    const altUserEmail = (env.seedUserAltEmail || "").toLowerCase();
-    const altUserExists = altUserEmail
-      ? db.users.find((u) => u.email.toLowerCase() === altUserEmail)
-      : null;
-    const shouldResetAltUser =
-      shouldResetSeed || (altUserEmail && altUserEmail.endsWith("@assistant.local"));
-    if (altUserEmail && !altUserExists) {
-      db.users.push({
-        id: crypto.randomUUID(),
-        tenant_id: tenant.id,
-        email: env.seedUserAltEmail,
-        password_hash: hashPassword(env.seedUserAltPassword || env.seedUserPassword),
-        role: "user",
-        created_at: now
-      });
-    } else if (altUserExists && shouldResetAltUser) {
-      altUserExists.password_hash = hashPassword(
-        env.seedUserAltPassword || env.seedUserPassword
-      );
-      altUserExists.tenant_id = tenant.id;
-      altUserExists.role = "user";
-      altUserExists.updated_at = now;
-    }
   });
 }
 

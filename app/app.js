@@ -21,7 +21,7 @@ if (resetParam === "1") {
     window.location.replace(window.location.pathname);
   }
 }
-let storedApiBase = localStorage.getItem("assistant_api_base");
+const storedApiBase = localStorage.getItem("assistant_api_base");
 const storedLogo = localStorage.getItem("assistant_logo_url");
 const resolvedOrigin =
   window.location.origin && window.location.origin !== "null"
@@ -32,26 +32,13 @@ const isVercelHost = /\\.vercel\\.app$/i.test(window.location.hostname || "");
 const defaultRemoteApi = "https://assistant-pme.onrender.com";
 const isFileOrigin =
   window.location.protocol === "file:" || window.location.origin === "null";
-if (isVercelHost && storedApiBase) {
-  const lowerStored = storedApiBase.toLowerCase();
-  const isSelf =
-    lowerStored.includes(window.location.hostname.toLowerCase()) ||
-    lowerStored.endsWith(".vercel.app");
-  if (isSelf) {
-    storedApiBase = "";
-    localStorage.removeItem("assistant_api_base");
-  }
-}
 const fallbackApiBase =
   !isLocalHost && !apiParam && !storedApiBase && isVercelHost ? defaultRemoteApi : "";
 let API_BASE = isLocalHost
   ? resolvedOrigin
   : apiParam || storedApiBase || fallbackApiBase || resolvedOrigin;
-if (isVercelHost) {
-  API_BASE = apiParam || defaultRemoteApi;
-  if (storedApiBase && storedApiBase !== defaultRemoteApi) {
-    localStorage.removeItem("assistant_api_base");
-  }
+if (isVercelHost && API_BASE === resolvedOrigin) {
+  API_BASE = defaultRemoteApi;
 }
 if (apiParam) {
   localStorage.setItem("assistant_api_base", apiParam);
@@ -59,8 +46,8 @@ if (apiParam) {
 if (isLocalHost) {
   localStorage.removeItem("assistant_api_base");
 }
-if (isVercelHost && !apiParam) {
-  localStorage.setItem("assistant_api_base", defaultRemoteApi);
+if (isVercelHost && (!storedApiBase || storedApiBase === resolvedOrigin)) {
+  localStorage.setItem("assistant_api_base", API_BASE);
 }
 if (fallbackApiBase) {
   localStorage.setItem("assistant_api_base", fallbackApiBase);
@@ -375,7 +362,7 @@ if (kioskMode) {
         if (loginPasswordInput && queryPassword && !loginPasswordInput.value) {
           loginPasswordInput.value = queryPassword.toString();
         }
-        if (isLocalHost || isVercelHost) {
+        if (isLocalHost) {
           if (loginEmailInput && !loginEmailInput.value) {
             loginEmailInput.value = "user@assistant.local";
           }
@@ -411,18 +398,6 @@ if (kioskMode) {
           }
           applyTenantBranding();
         });
-      }
-
-      if (loginForm && (isLocalHost || isVercelHost)) {
-        if (tenantCodeInput && !tenantCodeInput.value) {
-          tenantCodeInput.value = "DEFAULT";
-        }
-        if (loginEmailInput && !loginEmailInput.value) {
-          loginEmailInput.value = "user@assistant.local";
-        }
-        if (loginPasswordInput && !loginPasswordInput.value) {
-          loginPasswordInput.value = "user123";
-        }
       }
 
       const getTenantCode = () => {
@@ -3300,7 +3275,7 @@ if (kioskMode) {
         return config;
       }
 
-      async function login(email, password, tenantCode, retry = false) {
+      async function login(email, password, tenantCode) {
         const payload = {
           email,
           password
@@ -3314,11 +3289,6 @@ if (kioskMode) {
           body: JSON.stringify(payload)
         });
         if (!res.ok) {
-          if (!retry && res.status === 404 && API_BASE !== defaultRemoteApi) {
-            API_BASE = defaultRemoteApi;
-            localStorage.setItem("assistant_api_base", API_BASE);
-            return login(email, password, tenantCode, true);
-          }
           const err = new Error("login_failed");
           err.status = res.status;
           err.payload = await safeJson(res);
@@ -5725,19 +5695,6 @@ if (kioskMode) {
       if (quickUserBtn) {
         quickUserBtn.addEventListener("click", async () => {
           try {
-            if (!isLocalHost) {
-              const submitBtn = loginForm
-                ? loginForm.querySelector("button[type=\"submit\"]")
-                : null;
-              await handleLoginFlow(
-                "user@assistant.local",
-                "user123",
-                getTenantCode() || "DEFAULT",
-                submitBtn,
-                { auto: true }
-              );
-              return;
-            }
             setStatus(t("auth.userLoginPending"), false);
             notify(t("auth.userLoginInfo"), "info");
             await quickUserLogin();

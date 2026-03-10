@@ -10,15 +10,5 @@
     { "source": "/app/user/", "destination": "/app/user.html" },
     { "source": "/app/admin", "destination": "/app/admin.html" },
     { "source": "/app/admin/", "destination": "/app/admin.html" }
-  ],
-  "headers": [
-    {
-      "source": "/app/(.*)",
-      "headers": [{ "key": "Cache-Control", "value": "no-store" }]
-    },
-    {
-      "source": "/(.*)\\.js",
-      "headers": [{ "key": "Cache-Control", "value": "no-store" }]
-    }
   ]
 }

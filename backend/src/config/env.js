@@ -27,8 +27,6 @@ const env = {
   seedAdminPassword: process.env.SEED_ADMIN_PASSWORD || "admin123",
   seedUserEmail: process.env.SEED_USER_EMAIL || "user@assistant.local",
   seedUserPassword: process.env.SEED_USER_PASSWORD || "user123",
-  seedUserAltEmail: process.env.SEED_USER_ALT_EMAIL || "test@assistant.local",
-  seedUserAltPassword: process.env.SEED_USER_ALT_PASSWORD || "user123",
   forceSeedReset: process.env.FORCE_SEED_RESET || "",
   superAdminEmail: process.env.SUPER_ADMIN_EMAIL || "",
   supportIngestToken: process.env.SUPPORT_INGEST_TOKEN || "",
