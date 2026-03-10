@@ -22,6 +22,7 @@ const env = {
   openaiModel: process.env.OPENAI_MODEL || "",
   openaiBaseUrl: process.env.OPENAI_BASE_URL || "https://api.openai.com/v1",
   seedTenantName: process.env.SEED_TENANT_NAME || "Default",
+  seedTenantCode: process.env.SEED_TENANT_CODE || "DEFAULT",
   seedAdminEmail: process.env.SEED_ADMIN_EMAIL || "admin@assistant.local",
   seedAdminPassword: process.env.SEED_ADMIN_PASSWORD || "admin123",
   seedUserEmail: process.env.SEED_USER_EMAIL || "user@assistant.local",

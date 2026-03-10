@@ -6,19 +6,29 @@ const { hashPassword, verifyPassword } = require("../utils/crypto");
 function ensureSeeded() {
   return withDb((db) => {
     const now = new Date().toISOString();
-    let tenant = db.tenants[0] || null;
+    const normalizeCode = (value) =>
+      String(value || "")
+        .trim()
+        .toUpperCase()
+        .replace(/[^A-Z0-9]/g, "");
+    const desiredTenantCode = normalizeCode(env.seedTenantCode || env.seedTenantName || "DEFAULT");
+    let tenant =
+      db.tenants.find((item) => normalizeCode(item.code) === desiredTenantCode) ||
+      null;
     if (!tenant) {
       const tenantId = crypto.randomUUID();
       tenant = {
         id: tenantId,
-        name: env.seedTenantName,
-        code: (env.seedTenantName || "DEFAULT")
-          .toUpperCase()
-          .replace(/[^A-Z0-9]/g, ""),
+        name: env.seedTenantName || "Default",
+        code: desiredTenantCode || "DEFAULT",
         plan: "starter",
         created_at: now
       };
       db.tenants.push(tenant);
+    } else {
+      tenant.code = desiredTenantCode || tenant.code;
+      tenant.name = env.seedTenantName || tenant.name;
+      tenant.updated_at = now;
     }
 
     const adminExists = db.users.find(
