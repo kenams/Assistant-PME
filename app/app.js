@@ -48,7 +48,10 @@ let API_BASE = isLocalHost
   ? resolvedOrigin
   : apiParam || storedApiBase || fallbackApiBase || resolvedOrigin;
 if (isVercelHost) {
-  API_BASE = apiParam || storedApiBase || defaultRemoteApi;
+  API_BASE = apiParam || defaultRemoteApi;
+  if (storedApiBase && storedApiBase !== defaultRemoteApi) {
+    localStorage.removeItem("assistant_api_base");
+  }
 }
 if (apiParam) {
   localStorage.setItem("assistant_api_base", apiParam);
@@ -56,8 +59,8 @@ if (apiParam) {
 if (isLocalHost) {
   localStorage.removeItem("assistant_api_base");
 }
-if (isVercelHost && (!storedApiBase || storedApiBase === resolvedOrigin)) {
-  localStorage.setItem("assistant_api_base", API_BASE);
+if (isVercelHost && !apiParam) {
+  localStorage.setItem("assistant_api_base", defaultRemoteApi);
 }
 if (fallbackApiBase) {
   localStorage.setItem("assistant_api_base", fallbackApiBase);
