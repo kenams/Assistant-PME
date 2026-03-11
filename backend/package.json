@@ -9,7 +9,8 @@
     "kb:import": "node scripts/import_kb.js",
     "frontend:minify": "node scripts/minify_frontend.js",
     "frontend:watch": "nodemon --watch ../app --ext js,html,css --exec \"node scripts/minify_frontend.js\"",
-    "test": "node scripts/run_tests.js"
+    "test": "node scripts/run_tests.js",
+    "demo:pdf": "node scripts/generate_demo_pdf.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
