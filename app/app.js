@@ -3,6 +3,7 @@ const apiParam = queryParams.get("api_base");
 const tenantParam = queryParams.get("tenant");
 const logoParam = queryParams.get("logo");
 const resetParam = queryParams.get("reset");
+const demoParam = queryParams.get("demo") === "1";
 if (resetParam === "1") {
   const keys = Object.keys(localStorage);
   keys.forEach((key) => {
@@ -372,7 +373,7 @@ if (kioskMode) {
         if (loginPasswordInput && queryPassword && !loginPasswordInput.value) {
           loginPasswordInput.value = queryPassword.toString();
         }
-        if (isLocalHost) {
+        if (isLocalHost || demoParam) {
           if (loginEmailInput && !loginEmailInput.value) {
             loginEmailInput.value = "user@assistant.local";
           }
@@ -392,6 +393,19 @@ if (kioskMode) {
             window.history.replaceState({}, "", url.toString());
           } catch (err) {
             // ignore URL cleanup errors
+          }
+        }
+        if (!isLocalHost && !demoParam) {
+          const quickLoginUser = document.getElementById("quickLoginUser");
+          const loginTestAccount = document.getElementById("loginTestAccount");
+          if (quickLoginUser) {
+            quickLoginUser.style.display = "none";
+          }
+          if (quickUserBtn) {
+            quickUserBtn.style.display = "none";
+          }
+          if (loginTestAccount) {
+            loginTestAccount.style.display = "none";
           }
         }
         if (queryEmail && queryPassword) {
