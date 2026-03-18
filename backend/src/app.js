@@ -28,6 +28,7 @@ const ingestRoutes = require("./routes/ingest.routes");
 const oauthRoutes = require("./routes/oauth.routes");
 const tenantsRoutes = require("./routes/tenants.routes");
 const docsRoutes = require("./routes/docs.routes");
+const uploadsRoutes = require("./routes/uploads.routes");
 
 const app = express();
 const logger = createLogger();
@@ -129,7 +130,6 @@ app.get("/app/admin/index.html", (req, res) => {
   res.sendFile(path.join(appDir, "admin.html"));
 });
 app.use("/app", express.static(appDir, staticOptions));
-app.use("/uploads", express.static(uploadDir, staticOptions));
 // Removed legacy static apps (landing/crm/dashboard/superadmin) to keep a single app surface.
 
 app.get("/debug/paths", (req, res) => {
@@ -162,6 +162,7 @@ app.use("/ingest", ingestRoutes);
 app.use("/oauth", oauthRoutes);
 app.use("/tenants", tenantsRoutes);
 app.use("/docs", docsRoutes);
+app.use("/uploads", uploadsRoutes);
 
 app.use((req, res) => {
   return res.status(404).json({ error: "not_found" });

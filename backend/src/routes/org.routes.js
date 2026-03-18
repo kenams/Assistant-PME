@@ -4,7 +4,11 @@ const { authRequired } = require("../middleware/auth");
 const { requireAdmin } = require("../middleware/roles");
 const { getTenantById } = require("../services/users.service");
 const { updateTenant } = require("../services/tenants.service");
-const { getOrgSettings, updateOrgSettings } = require("../services/org.service");
+const {
+  getOrgSettings,
+  updateOrgSettings,
+  SECRET_FIELDS
+} = require("../services/org.service");
 const { validateOr400 } = require("../utils/validate");
 
 const router = express.Router();
@@ -72,10 +76,11 @@ function sanitizeSettings(settings, includeSecrets) {
   delete safe.oauth_outlook_access_token;
   delete safe.oauth_outlook_refresh_token;
   delete safe.oauth_outlook_state;
-  if (!includeSecrets) {
-    delete safe.glpi_app_token;
-    delete safe.glpi_user_token;
-    delete safe.ad_bind_password;
+  for (const field of SECRET_FIELDS) {
+    safe[`${field}_configured`] = Boolean(settings[field]);
+    if (!includeSecrets || includeSecrets) {
+      delete safe[field];
+    }
   }
   return {
     ...safe,

@@ -1,5 +1,17 @@
 const { loadDb, withDb } = require("./store.service");
 
+const SECRET_FIELDS = new Set([
+  "webhook_secret",
+  "mailbox_password",
+  "slack_signing_secret",
+  "teams_signing_secret",
+  "oauth_google_client_secret",
+  "oauth_outlook_client_secret",
+  "glpi_app_token",
+  "glpi_user_token",
+  "ad_bind_password"
+]);
+
 function defaultSettings(tenantId) {
   return {
     tenant_id: tenantId,
@@ -78,6 +90,16 @@ function updateOrgSettings({ tenantId, payload }) {
       tenant_id: tenantId,
       updated_at: new Date().toISOString()
     };
+    for (const field of SECRET_FIELDS) {
+      if (!Object.prototype.hasOwnProperty.call(payload, field)) {
+        next[field] = current[field];
+        continue;
+      }
+      const value = payload[field];
+      if (typeof value === "string" && !value.trim()) {
+        next[field] = current[field];
+      }
+    }
     if (index >= 0) {
       db.org_settings[index] = next;
     } else {
@@ -87,4 +109,4 @@ function updateOrgSettings({ tenantId, payload }) {
   });
 }
 
-module.exports = { getOrgSettings, updateOrgSettings };
+module.exports = { getOrgSettings, updateOrgSettings, SECRET_FIELDS };

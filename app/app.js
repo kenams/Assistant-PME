@@ -2308,6 +2308,8 @@ if (kioskMode) {
           appendMessage("assistant", t("error.backend"));
           setBanner(t("error.serverUnavailable"), "info");
           notify(t("error.backendUnavailable"), "error");
+        } finally {
+          focusChatInput();
         }
       }
 
@@ -2456,6 +2458,8 @@ if (kioskMode) {
       }
 
       const IMAGE_PREFIX = "__IMAGE__:";
+      const privateImageUrlCache = new Map();
+      const privateImagePromiseCache = new Map();
 
       function getImageUrlFromMessage(text) {
         if (!text) return null;
@@ -2469,6 +2473,50 @@ if (kioskMode) {
       function formatMessageForSummary(text) {
         const imageUrl = getImageUrlFromMessage(text);
         return imageUrl ? t("chat.imageSent") : text;
+      }
+
+      async function resolvePrivateImageUrl(url) {
+        if (!url) return "";
+        if (!String(url).startsWith("/uploads/")) {
+          return url;
+        }
+        if (privateImageUrlCache.has(url)) {
+          return privateImageUrlCache.get(url);
+        }
+        if (privateImagePromiseCache.has(url)) {
+          return privateImagePromiseCache.get(url);
+        }
+        const pending = fetchBlobWithAuth(url)
+          .then((blob) => {
+            const objectUrl = URL.createObjectURL(blob);
+            privateImageUrlCache.set(url, objectUrl);
+            privateImagePromiseCache.delete(url);
+            return objectUrl;
+          })
+          .catch((err) => {
+            privateImagePromiseCache.delete(url);
+            throw err;
+          });
+        privateImagePromiseCache.set(url, pending);
+        return pending;
+      }
+
+      async function hydratePrivateImages(root) {
+        if (!root) return;
+        const nodes = root.querySelectorAll("[data-private-image]");
+        await Promise.all(
+          Array.from(nodes).map(async (node) => {
+            const source = node.getAttribute("data-private-image");
+            if (!source) return;
+            try {
+              const resolved = await resolvePrivateImageUrl(source);
+              if (node.getAttribute("data-private-image") !== source) return;
+              node.src = resolved;
+            } catch (err) {
+              node.alt = "Image indisponible";
+            }
+          })
+        );
       }
 
       function updateSummaryLastMessage(text) {
@@ -2491,12 +2539,14 @@ if (kioskMode) {
           return {
             isImage: true,
             html: `<div class="image-attachment">
-              <img src="${safeUrl}" alt="Capture" data-image-zoom="${safeUrl}" />
+              <img src="" alt="Capture" data-private-image="${safeUrl}" data-image-zoom="${safeUrl}" />
               <div class="image-actions">
                 <button class="btn ghost image-zoom-btn" type="button" data-image-zoom="${safeUrl}">
                   Zoom
                 </button>
-                <a class="btn ghost" href="${safeUrl}" download>Telecharger</a>
+                <button class="btn ghost" type="button" data-image-download="${safeUrl}">
+                  Telecharger
+                </button>
               </div>
               <span class="image-caption">Capture jointe</span>
             </div>`
@@ -2508,15 +2558,23 @@ if (kioskMode) {
         };
       }
 
-      function openImageLightbox(url) {
+      async function openImageLightbox(url) {
         if (!imageLightbox || !imageLightboxImg || !url) return;
-        imageLightboxImg.src = url;
-        if (imageLightboxDownload) {
-          imageLightboxDownload.href = url;
-          imageLightboxDownload.setAttribute("download", "capture");
+        try {
+          const resolved = await resolvePrivateImageUrl(url);
+          imageLightboxImg.src = resolved;
+          if (imageLightboxDownload) {
+            imageLightboxDownload.href = resolved;
+            imageLightboxDownload.setAttribute(
+              "download",
+              url.split("/").pop() || "capture"
+            );
+          }
+          imageLightbox.classList.remove("hidden");
+          imageLightbox.setAttribute("aria-hidden", "false");
+        } catch (err) {
+          notify(t("upload.imageFailed"), "error");
         }
-        imageLightbox.classList.remove("hidden");
-        imageLightbox.setAttribute("aria-hidden", "false");
       }
 
       function closeImageLightbox() {
@@ -2564,10 +2622,11 @@ if (kioskMode) {
           .map((url) => {
             const safeUrl = escapeHtml(url);
             return `<button class="gallery-item" type="button" data-image-zoom="${safeUrl}">
-              <img src="${safeUrl}" alt="Capture" />
+              <img src="" data-private-image="${safeUrl}" alt="Capture" />
             </button>`;
           })
           .join("");
+        hydratePrivateImages(ticketDetailImagesGrid);
       }
 
       function renderChatGallery(items) {
@@ -2592,10 +2651,11 @@ if (kioskMode) {
           .map((url) => {
             const safeUrl = escapeHtml(url);
             return `<button class="gallery-item" type="button" data-image-zoom="${safeUrl}">
-              <img src="${safeUrl}" alt="Capture" />
+              <img src="" data-private-image="${safeUrl}" alt="Capture" />
             </button>`;
           })
           .join("");
+        hydratePrivateImages(chatGalleryGrid);
       }
 
       function loadReminderCache() {
@@ -2720,6 +2780,7 @@ if (kioskMode) {
           fragment.appendChild(bubble);
         });
         chatWindow.appendChild(fragment);
+        hydratePrivateImages(chatWindow);
         chatWindow.scrollTop = chatWindow.scrollHeight;
       }
 
@@ -3662,6 +3723,13 @@ if (kioskMode) {
         if (!orgSettingsForm) return;
         const getField = (name) =>
           orgSettingsForm.querySelector(`[name="${name}"]`);
+        const setSecretFieldState = (name, configured, label) => {
+          const el = getField(name);
+          if (!el) return;
+          el.value = "";
+          el.placeholder = configured ? `${label} deja configure` : label;
+          el.dataset.configured = configured ? "1" : "0";
+        };
         const setFieldValue = (name, value) => {
           const el = getField(name);
           if (!el) return;
@@ -3681,24 +3749,44 @@ if (kioskMode) {
           setFieldValue("logo_url", data.logo_url || "");
           setFieldValue("reminder_hours", data.reminder_hours || 72);
           setFieldValue("webhook_url", data.webhook_url || "");
-          setFieldValue("webhook_secret", data.webhook_secret || "");
+          setSecretFieldState(
+            "webhook_secret",
+            Boolean(data.webhook_secret_configured),
+            "Secret webhook"
+          );
           setFieldValue("slack_webhook_url", data.slack_webhook_url || "");
           setFieldValue("teams_webhook_url", data.teams_webhook_url || "");
           setFieldValue("glpi_enabled", Boolean(data.glpi_enabled));
           setFieldValue("glpi_base_url", data.glpi_base_url || "");
-          setFieldValue("glpi_app_token", data.glpi_app_token || "");
-          setFieldValue("glpi_user_token", data.glpi_user_token || "");
+          setSecretFieldState(
+            "glpi_app_token",
+            Boolean(data.glpi_app_token_configured),
+            "GLPI App-Token"
+          );
+          setSecretFieldState(
+            "glpi_user_token",
+            Boolean(data.glpi_user_token_configured),
+            "GLPI User-Token"
+          );
           setFieldValue("ad_enabled", Boolean(data.ad_enabled));
           setFieldValue("ad_url", data.ad_url || "");
           setFieldValue("ad_domain", data.ad_domain || "");
           setFieldValue("ad_base_dn", data.ad_base_dn || "");
           setFieldValue("ad_bind_user", data.ad_bind_user || "");
-          setFieldValue("ad_bind_password", data.ad_bind_password || "");
+          setSecretFieldState(
+            "ad_bind_password",
+            Boolean(data.ad_bind_password_configured),
+            "Mot de passe bind"
+          );
           setFieldValue("notify_on_ticket_created", Boolean(data.notify_on_ticket_created));
           setFieldValue("mailbox_enabled", Boolean(data.mailbox_enabled));
           setFieldValue("mailbox_provider", data.mailbox_provider || "gmail");
           setFieldValue("mailbox_user", data.mailbox_user || "");
-          setFieldValue("mailbox_password", data.mailbox_password || "");
+          setSecretFieldState(
+            "mailbox_password",
+            Boolean(data.mailbox_password_configured),
+            "Mot de passe boite mail"
+          );
           setFieldValue("mailbox_host", data.mailbox_host || "");
           setFieldValue(
             "mailbox_port",
@@ -3710,8 +3798,16 @@ if (kioskMode) {
           );
           setFieldValue("mailbox_folder", data.mailbox_folder || "INBOX");
           setFieldValue("mailbox_subject_prefix", data.mailbox_subject_prefix || "");
-          setFieldValue("slack_signing_secret", data.slack_signing_secret || "");
-          setFieldValue("teams_signing_secret", data.teams_signing_secret || "");
+          setSecretFieldState(
+            "slack_signing_secret",
+            Boolean(data.slack_signing_secret_configured),
+            "Slack signing secret"
+          );
+          setSecretFieldState(
+            "teams_signing_secret",
+            Boolean(data.teams_signing_secret_configured),
+            "Teams signing secret"
+          );
           setFieldValue(
             "sla_hours",
             typeof data.sla_hours === "number" ? data.sla_hours : 24
@@ -3725,9 +3821,10 @@ if (kioskMode) {
             typeof data.cost_per_ticket === "number" ? data.cost_per_ticket : 12
           );
           setFieldValue("oauth_google_client_id", data.oauth_google_client_id || "");
-          setFieldValue(
+          setSecretFieldState(
             "oauth_google_client_secret",
-            data.oauth_google_client_secret || ""
+            Boolean(data.oauth_google_client_secret_configured),
+            "Google client secret"
           );
           setFieldValue(
             "oauth_google_redirect_uri",
@@ -3738,9 +3835,10 @@ if (kioskMode) {
             "oauth_outlook_client_id",
             data.oauth_outlook_client_id || ""
           );
-          setFieldValue(
+          setSecretFieldState(
             "oauth_outlook_client_secret",
-            data.oauth_outlook_client_secret || ""
+            Boolean(data.oauth_outlook_client_secret_configured),
+            "Outlook client secret"
           );
           setFieldValue(
             "oauth_outlook_redirect_uri",
@@ -4419,6 +4517,7 @@ if (kioskMode) {
           bubble.classList.add("image");
         }
         chatWindow.appendChild(bubble);
+        hydratePrivateImages(bubble);
         if (shouldScroll) {
           chatWindow.scrollTop = chatWindow.scrollHeight;
         }
@@ -5137,11 +5236,12 @@ if (kioskMode) {
               ? t("gallery.lastSeen", { date: formatDate(item.last_seen) })
               : t("gallery.capture");
             return `<button class="gallery-item" type="button" data-image-zoom="${safeUrl}" title="${escapeHtml(title)}">
-              <img src="${safeUrl}" alt="${t("gallery.capture")}" />
+              <img src="" data-private-image="${safeUrl}" alt="${t("gallery.capture")}" />
               ${badge}
             </button>`;
           })
           .join("");
+        hydratePrivateImages(adminGalleryGrid);
       }
 
       function filterAdminGalleryItems(items) {
@@ -6393,6 +6493,7 @@ if (kioskMode) {
           const formData = new FormData(chatForm);
           const message = formData.get("message");
           await sendChatMessage(message);
+          focusChatInput();
         });
       }
 
@@ -6478,6 +6579,17 @@ if (kioskMode) {
 
       if (chatWindow) {
         chatWindow.addEventListener("click", (event) => {
+          const downloadTarget = event.target.closest("[data-image-download]");
+          if (downloadTarget) {
+            event.preventDefault();
+            const url = downloadTarget.getAttribute("data-image-download");
+            if (url) {
+              downloadBlobFile(url, url.split("/").pop() || "capture").catch(() => {
+                notify(t("upload.imageFailed"), "error");
+              });
+            }
+            return;
+          }
           const target = event.target.closest("[data-image-zoom]");
           if (!target) return;
           event.preventDefault();
@@ -7311,25 +7423,31 @@ if (kioskMode) {
             if (value === undefined) return;
             payload[name] = value;
           };
+          const setSecretIf = (name) => {
+            const value = readField(name, "");
+            if (typeof value === "string" && value.trim()) {
+              payload[name] = value;
+            }
+          };
           setIf("support_email", readField("support_email", ""));
           setIf("support_phone", readField("support_phone", ""));
           setIf("support_hours", readField("support_hours", ""));
           setIf("logo_url", readField("logo_url", ""));
           setIf("signature", readField("signature", ""));
           setIf("webhook_url", readField("webhook_url", ""));
-          setIf("webhook_secret", readField("webhook_secret", ""));
+          setSecretIf("webhook_secret");
           setIf("slack_webhook_url", readField("slack_webhook_url", ""));
           setIf("teams_webhook_url", readField("teams_webhook_url", ""));
           setIf("glpi_enabled", readField("glpi_enabled", false));
           setIf("glpi_base_url", readField("glpi_base_url", ""));
-          setIf("glpi_app_token", readField("glpi_app_token", ""));
-          setIf("glpi_user_token", readField("glpi_user_token", ""));
+          setSecretIf("glpi_app_token");
+          setSecretIf("glpi_user_token");
           setIf("ad_enabled", readField("ad_enabled", false));
           setIf("ad_url", readField("ad_url", ""));
           setIf("ad_domain", readField("ad_domain", ""));
           setIf("ad_base_dn", readField("ad_base_dn", ""));
           setIf("ad_bind_user", readField("ad_bind_user", ""));
-          setIf("ad_bind_password", readField("ad_bind_password", ""));
+          setSecretIf("ad_bind_password");
           setIf(
             "notify_on_ticket_created",
             readField("notify_on_ticket_created", false)
@@ -7337,27 +7455,21 @@ if (kioskMode) {
           setIf("mailbox_enabled", readField("mailbox_enabled", false));
           setIf("mailbox_provider", readField("mailbox_provider", "gmail"));
           setIf("mailbox_user", readField("mailbox_user", ""));
-          setIf("mailbox_password", readField("mailbox_password", ""));
+          setSecretIf("mailbox_password");
           setIf("mailbox_host", readField("mailbox_host", ""));
           setIf("mailbox_folder", readField("mailbox_folder", "INBOX"));
           setIf("mailbox_subject_prefix", readField("mailbox_subject_prefix", ""));
-          setIf("slack_signing_secret", readField("slack_signing_secret", ""));
-          setIf("teams_signing_secret", readField("teams_signing_secret", ""));
+          setSecretIf("slack_signing_secret");
+          setSecretIf("teams_signing_secret");
           setIf("oauth_google_client_id", readField("oauth_google_client_id", ""));
-          setIf(
-            "oauth_google_client_secret",
-            readField("oauth_google_client_secret", "")
-          );
+          setSecretIf("oauth_google_client_secret");
           setIf(
             "oauth_google_redirect_uri",
             readField("oauth_google_redirect_uri", "")
           );
           setIf("oauth_google_scopes", readField("oauth_google_scopes", ""));
           setIf("oauth_outlook_client_id", readField("oauth_outlook_client_id", ""));
-          setIf(
-            "oauth_outlook_client_secret",
-            readField("oauth_outlook_client_secret", "")
-          );
+          setSecretIf("oauth_outlook_client_secret");
           setIf(
             "oauth_outlook_redirect_uri",
             readField("oauth_outlook_redirect_uri", "")
