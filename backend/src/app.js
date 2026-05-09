@@ -47,9 +47,9 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: ["'self'"],
-        styleSrc: ["'self'", "https://fonts.googleapis.com"],
-        imgSrc: ["'self'", "data:"],
+        scriptSrc: ["'self'", "'unsafe-inline'"],
+        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+        imgSrc: ["'self'", "data:", "https:"],
         connectSrc: [
           "'self'",
           "http://localhost:3001",
@@ -144,7 +144,7 @@ app.get("/debug/paths", (req, res) => {
 });
 
 app.get("/", (req, res) => {
-  res.redirect("/app/");
+  res.sendFile(path.join(appDir, "index.html"));
 });
 
 app.use("/health", healthRoutes);

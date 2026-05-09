@@ -4,22 +4,64 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Assistant Support IT - Connexion</title>
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap"
-    />
-    <link rel="stylesheet" href="/app/styles.css?v=20260310-7" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
+    <link rel="stylesheet" href="/app/styles.css?v=20260509" />
+    <style>
+      body.login-only {
+        display: flex;
+        flex-direction: column;
+        background: radial-gradient(ellipse at 20% 20%, rgba(79,142,247,0.08) 0%, transparent 50%),
+                    radial-gradient(ellipse at 80% 80%, rgba(34,211,176,0.06) 0%, transparent 50%),
+                    var(--bg);
+      }
+      body.login-only .topbar {
+        background: transparent;
+        border-bottom: 1px solid var(--stroke);
+        backdrop-filter: blur(20px);
+      }
+      body.login-only main {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 32px 16px 80px;
+        max-width: 100%;
+      }
+      .login-wrap {
+        width: 100%;
+        max-width: 400px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      .login-logo-row {
+        text-align: center;
+        margin-bottom: 8px;
+      }
+      .login-logo-row img {
+        width: 44px;
+        height: 44px;
+        filter: brightness(10);
+        opacity: 0.9;
+        margin-bottom: 8px;
+      }
+      .login-logo-row h1 {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--text-strong);
+        letter-spacing: -0.03em;
+        margin-bottom: 4px;
+      }
+      .login-logo-row p {
+        color: var(--text-muted);
+        font-size: 0.88rem;
+      }
+    </style>
   </head>
   <body class="user-only minimal-mode ultra-simple unauthenticated login-only with-bottom-footer">
     <header class="topbar">
       <a class="brand brand-link" id="homeBrand" href="/app/">
-        <img
-          class="brand-logo"
-          data-brand-logo
-          data-default-logo="/app/assets/logo.svg"
-          src="/app/assets/logo.svg"
-          alt="Kah-Digital"
-        />
+        <img class="brand-logo" data-brand-logo data-default-logo="/app/assets/logo.svg" src="/app/assets/logo.svg" alt="Kah-Digital" />
         <span id="brandName">Assistant Support IT</span>
       </a>
       <span id="roleBanner" class="role-banner neutral">Connexion</span>
@@ -35,62 +77,40 @@
     <div id="statusBanner" class="status-banner hidden"></div>
 
     <main>
-      <section class="card login-card" id="loginCard">
-        <div class="login-header">
-          <div class="hero-badge" id="heroBadge">Support IT</div>
-          <h2 id="loginTitle">Connexion utilisateur</h2>
-          <p class="note" id="loginSubtitle">
-            Accedez a l'assistant pour obtenir de l'aide ou creer un ticket.
-          </p>
+      <div class="login-wrap">
+        <div class="login-logo-row">
+          <img data-brand-logo data-default-logo="/app/assets/logo.svg" src="/app/assets/logo.svg" alt="Logo" />
+          <h1 id="loginTitle">Connexion</h1>
+          <p id="loginSubtitle">Accedez a votre espace support IT</p>
         </div>
-        <form id="loginForm" class="form">
-          <input
-            id="loginTenantInput"
-            name="tenant_code"
-            placeholder="Code entreprise (ex: DEFAULT)"
-          />
-          <input
-            id="loginEmailInput"
-            name="email"
-            type="email"
-            placeholder="Email"
-            required
-          />
-          <input
-            id="loginPasswordInput"
-            name="password"
-            type="password"
-            placeholder="Mot de passe"
-            required
-          />
-          <button class="btn primary" type="submit" id="loginSubmitBtn">
-            Se connecter
-          </button>
-          <p id="loginStatus" class="status"></p>
-        </form>
-        <p class="note" id="loginHint">
-          Le code entreprise est fourni par votre service IT. (Local: DEFAULT)
-        </p>
-        <p class="note subtle" id="loginTestAccount">
-          Compte test local: <strong>user@assistant.local</strong> / <strong>user123</strong>
-        </p>
-      </section>
+
+        <section class="card login-card" id="loginCard">
+          <div class="login-header">
+            <div class="hero-badge" id="heroBadge">Support IT</div>
+          </div>
+          <form id="loginForm" class="form">
+            <input id="loginTenantInput" name="tenant_code" placeholder="Code entreprise (ex: DEFAULT)" />
+            <input id="loginEmailInput" name="email" type="email" placeholder="Email" required />
+            <input id="loginPasswordInput" name="password" type="password" placeholder="Mot de passe" required />
+            <button class="btn primary" type="submit" id="loginSubmitBtn">Se connecter</button>
+            <p id="loginStatus" class="status"></p>
+          </form>
+          <p class="note mt-2" id="loginHint">Code entreprise fourni par votre service IT.</p>
+          <p class="note subtle mt-2" id="loginTestAccount">
+            Compte test : <strong>user@assistant.local</strong> / <strong>user123</strong>
+          </p>
+        </section>
+      </div>
     </main>
 
     <footer class="page-footer">
-      <a
-        class="footer-note footer-link"
-        id="footerCredit"
-        href="https://kah-digital-site.vercel.app/"
-        target="_blank"
-        rel="noopener"
-      >
+      <a class="footer-note footer-link" id="footerCredit" href="https://kah-digital-site.vercel.app/" target="_blank" rel="noopener">
         Concu par Kah-Digital
       </a>
     </footer>
 
-    <script src="/app/i18n.js?v=20260310-7" defer></script>
-    <script src="/app/app.js?v=20260310-7" defer></script>
-    <script src="/app/logout.js?v=20260310-7" defer></script>
+    <script src="/app/i18n.js?v=20260509" defer></script>
+    <script src="/app/app.js?v=20260509" defer></script>
+    <script src="/app/logout.js?v=20260509" defer></script>
   </body>
 </html>

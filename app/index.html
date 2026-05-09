@@ -3,55 +3,732 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Assistant Support IT</title>
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap"
-    />
-    <link rel="stylesheet" href="/app/styles.css?v=20260310-7" />
-    <meta http-equiv="refresh" content="0; url=/app/login/" />
+    <title>SupportAI — Copilote IA pour GLPI</title>
+    <meta name="description" content="Réduisez 60% du temps de traitement des tickets IT grâce à l'IA. Connecté à GLPI, prêt en 5 minutes." />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" />
+    <style>
+      :root {
+        --bg: #0d0f14;
+        --bg2: #13161d;
+        --bg3: #1a1e28;
+        --card: #1a1e28;
+        --stroke: rgba(255,255,255,0.07);
+        --stroke2: rgba(255,255,255,0.12);
+        --text: #e8ecf4;
+        --text-strong: #ffffff;
+        --text-muted: #7a8499;
+        --accent: #4f8ef7;
+        --accent-glow: rgba(79,142,247,0.2);
+        --accent2: #22d3b0;
+        --accent3: #f5a623;
+        --success: #22c55e;
+        --danger: #ef4444;
+        --radius: 12px;
+        --radius-lg: 16px;
+        --shadow: 0 4px 32px rgba(0,0,0,0.5);
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      html { font-size: 16px; scroll-behavior: smooth; }
+      body {
+        font-family: 'Inter', system-ui, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.6;
+        overflow-x: hidden;
+      }
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-track { background: transparent; }
+      ::-webkit-scrollbar-thumb { background: var(--stroke2); border-radius: 4px; }
+
+      a { color: inherit; text-decoration: none; }
+
+      /* ── NAV ── */
+      nav {
+        position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 0 5vw; height: 64px;
+        background: rgba(13,15,20,0.85);
+        backdrop-filter: blur(20px);
+        border-bottom: 1px solid var(--stroke);
+      }
+      .nav-brand {
+        display: flex; align-items: center; gap: 10px;
+        font-weight: 800; font-size: 1.1rem; letter-spacing: -0.02em;
+        color: var(--text-strong);
+      }
+      .nav-brand-icon {
+        width: 32px; height: 32px;
+        background: var(--accent);
+        border-radius: 8px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1rem;
+        flex-shrink: 0;
+      }
+      .nav-links { display: flex; align-items: center; gap: 28px; }
+      .nav-links a {
+        color: var(--text-muted); font-size: 0.88rem; font-weight: 500;
+        transition: color 0.15s;
+      }
+      .nav-links a:hover { color: var(--text); }
+      .nav-cta { display: flex; align-items: center; gap: 10px; }
+      .btn {
+        display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+        padding: 9px 20px; border-radius: 8px;
+        font-family: inherit; font-size: 0.88rem; font-weight: 600;
+        cursor: pointer; border: 1px solid var(--stroke2);
+        background: var(--card); color: var(--text);
+        transition: all 0.15s; text-decoration: none;
+      }
+      .btn:hover { background: #242838; color: var(--text-strong); }
+      .btn.primary {
+        background: var(--accent); border-color: var(--accent); color: #fff;
+        box-shadow: 0 0 20px var(--accent-glow);
+      }
+      .btn.primary:hover { background: #3a7aef; border-color: #3a7aef; box-shadow: 0 0 28px rgba(79,142,247,0.35); }
+      .btn.large { padding: 13px 28px; font-size: 0.98rem; border-radius: 10px; }
+      .btn.ghost { background: transparent; color: var(--text-muted); }
+      .btn.ghost:hover { background: var(--card); color: var(--text); }
+
+      /* ── HERO ── */
+      .hero {
+        padding: 160px 5vw 100px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+      }
+      .hero::before {
+        content: '';
+        position: absolute; inset: 0;
+        background:
+          radial-gradient(ellipse 60% 50% at 50% 0%, rgba(79,142,247,0.12) 0%, transparent 60%),
+          radial-gradient(ellipse 40% 30% at 80% 60%, rgba(34,211,176,0.06) 0%, transparent 50%);
+        pointer-events: none;
+      }
+      .hero-badge {
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 5px 14px;
+        background: rgba(79,142,247,0.1);
+        border: 1px solid rgba(79,142,247,0.25);
+        border-radius: 20px;
+        color: var(--accent); font-size: 0.8rem; font-weight: 700;
+        letter-spacing: 0.08em; text-transform: uppercase;
+        margin-bottom: 24px;
+      }
+      .hero-badge .dot {
+        width: 6px; height: 6px; border-radius: 50%;
+        background: var(--accent);
+        animation: pulse 2s infinite;
+      }
+      @keyframes pulse {
+        0%,100% { opacity: 1; }
+        50% { opacity: 0.4; }
+      }
+      .hero h1 {
+        font-size: clamp(2.4rem, 6vw, 4rem);
+        font-weight: 900;
+        color: var(--text-strong);
+        letter-spacing: -0.04em;
+        line-height: 1.1;
+        max-width: 800px;
+        margin: 0 auto 20px;
+      }
+      .hero h1 span { color: var(--accent); }
+      .hero-sub {
+        font-size: 1.15rem;
+        color: var(--text-muted);
+        max-width: 560px;
+        margin: 0 auto 40px;
+        line-height: 1.6;
+      }
+      .hero-actions {
+        display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
+        margin-bottom: 60px;
+      }
+      .hero-stats {
+        display: flex; justify-content: center; gap: 40px; flex-wrap: wrap;
+      }
+      .stat { text-align: center; }
+      .stat-value {
+        font-size: 1.8rem; font-weight: 900;
+        color: var(--text-strong); letter-spacing: -0.04em;
+        display: block;
+      }
+      .stat-label { font-size: 0.78rem; color: var(--text-muted); font-weight: 500; margin-top: 2px; }
+
+      /* ── DEMO PREVIEW ── */
+      .demo-preview {
+        margin: 0 5vw;
+        border: 1px solid var(--stroke2);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        background: var(--bg3);
+        box-shadow: var(--shadow), 0 0 60px rgba(79,142,247,0.08);
+      }
+      .demo-preview-bar {
+        display: flex; align-items: center; gap: 8px;
+        padding: 12px 16px;
+        background: var(--bg2);
+        border-bottom: 1px solid var(--stroke);
+      }
+      .demo-dot { width: 10px; height: 10px; border-radius: 50%; }
+      .demo-dot:nth-child(1) { background: #ef4444; }
+      .demo-dot:nth-child(2) { background: #f59e0b; }
+      .demo-dot:nth-child(3) { background: #22c55e; }
+      .demo-url {
+        flex: 1; text-align: center;
+        background: var(--bg3); border: 1px solid var(--stroke);
+        border-radius: 6px; padding: 4px 14px;
+        font-size: 0.78rem; color: var(--text-muted);
+        max-width: 300px; margin: 0 auto;
+      }
+      .demo-content {
+        display: grid; grid-template-columns: 220px 1fr;
+        min-height: 380px;
+      }
+      .demo-sidebar {
+        background: var(--bg2);
+        border-right: 1px solid var(--stroke);
+        padding: 16px;
+        display: flex; flex-direction: column; gap: 4px;
+      }
+      .demo-nav-item {
+        padding: 8px 12px; border-radius: 8px;
+        font-size: 0.82rem; color: var(--text-muted);
+        display: flex; align-items: center; gap: 8px;
+        cursor: default;
+      }
+      .demo-nav-item.active {
+        background: rgba(79,142,247,0.12);
+        color: var(--accent); font-weight: 600;
+      }
+      .demo-nav-icon { font-size: 0.9rem; }
+      .demo-main { padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+      .demo-header-row {
+        display: flex; align-items: center; justify-content: space-between;
+      }
+      .demo-title { font-size: 1rem; font-weight: 700; color: var(--text-strong); }
+      .demo-badge {
+        font-size: 0.72rem; font-weight: 700; padding: 3px 8px;
+        border-radius: 20px; text-transform: uppercase; letter-spacing: 0.06em;
+      }
+      .demo-badge.ai { background: rgba(79,142,247,0.15); color: var(--accent); }
+      .demo-badge.new { background: rgba(34,197,94,0.15); color: var(--success); }
+      .demo-ticket {
+        background: var(--bg2); border: 1px solid var(--stroke);
+        border-radius: var(--radius); padding: 14px 16px;
+        display: grid; grid-template-columns: 1fr auto;
+        gap: 8px; align-items: start;
+      }
+      .demo-ticket-title { font-size: 0.88rem; font-weight: 600; color: var(--text-strong); margin-bottom: 4px; }
+      .demo-ticket-meta { font-size: 0.75rem; color: var(--text-muted); }
+      .demo-ticket-tags { display: flex; gap: 4px; margin-top: 6px; }
+      .demo-tag {
+        font-size: 0.7rem; font-weight: 600; padding: 2px 7px;
+        border-radius: 4px;
+      }
+      .demo-tag.open { background: rgba(79,142,247,0.15); color: var(--accent); }
+      .demo-tag.urgent { background: rgba(239,68,68,0.15); color: var(--danger); }
+      .demo-tag.ai-tag { background: rgba(34,211,176,0.15); color: var(--accent2); }
+      .demo-ai-box {
+        background: rgba(79,142,247,0.06);
+        border: 1px solid rgba(79,142,247,0.2);
+        border-radius: var(--radius); padding: 12px 14px;
+        font-size: 0.82rem; color: var(--text);
+      }
+      .demo-ai-label {
+        font-size: 0.7rem; font-weight: 700; color: var(--accent);
+        text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px;
+      }
+      .demo-kpis {
+        display: flex; gap: 8px;
+      }
+      .demo-kpi {
+        flex: 1; background: var(--bg2); border: 1px solid var(--stroke);
+        border-radius: var(--radius); padding: 10px 12px; text-align: center;
+      }
+      .demo-kpi-v { font-size: 1.3rem; font-weight: 800; color: var(--text-strong); display: block; }
+      .demo-kpi-l { font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+
+      /* ── FEATURES ── */
+      section { padding: 100px 5vw; }
+      .section-label {
+        font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em;
+        text-transform: uppercase; color: var(--accent);
+        text-align: center; margin-bottom: 14px;
+      }
+      .section-title {
+        font-size: clamp(1.8rem, 4vw, 2.6rem);
+        font-weight: 800; letter-spacing: -0.03em;
+        color: var(--text-strong); text-align: center;
+        margin-bottom: 14px;
+      }
+      .section-sub {
+        font-size: 1rem; color: var(--text-muted);
+        text-align: center; max-width: 520px;
+        margin: 0 auto 60px;
+      }
+      .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 20px;
+        max-width: 1100px; margin: 0 auto;
+      }
+      .feature-card {
+        background: var(--card); border: 1px solid var(--stroke);
+        border-radius: var(--radius-lg); padding: 28px;
+        transition: border-color 0.2s, transform 0.15s;
+      }
+      .feature-card:hover { border-color: var(--stroke2); transform: translateY(-2px); }
+      .feature-icon {
+        width: 44px; height: 44px; border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.3rem; margin-bottom: 16px;
+      }
+      .feature-icon.blue { background: rgba(79,142,247,0.12); }
+      .feature-icon.teal { background: rgba(34,211,176,0.12); }
+      .feature-icon.orange { background: rgba(245,166,35,0.12); }
+      .feature-icon.green { background: rgba(34,197,94,0.12); }
+      .feature-icon.purple { background: rgba(168,85,247,0.12); }
+      .feature-icon.red { background: rgba(239,68,68,0.12); }
+      .feature-card h3 {
+        font-size: 1rem; font-weight: 700;
+        color: var(--text-strong); margin-bottom: 8px;
+      }
+      .feature-card p { font-size: 0.88rem; color: var(--text-muted); line-height: 1.6; }
+
+      /* ── HOW IT WORKS ── */
+      #how { background: var(--bg2); }
+      .steps-grid {
+        display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 24px; max-width: 900px; margin: 0 auto;
+      }
+      .step {
+        text-align: center; padding: 32px 24px;
+        background: var(--card); border: 1px solid var(--stroke);
+        border-radius: var(--radius-lg);
+      }
+      .step-num {
+        width: 44px; height: 44px; border-radius: 50%;
+        background: var(--accent); color: #fff;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.1rem; font-weight: 800;
+        margin: 0 auto 16px;
+        box-shadow: 0 0 20px var(--accent-glow);
+      }
+      .step h3 { font-size: 0.95rem; font-weight: 700; color: var(--text-strong); margin-bottom: 8px; }
+      .step p { font-size: 0.84rem; color: var(--text-muted); }
+
+      /* ── PRICING ── */
+      .pricing-grid {
+        display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 20px; max-width: 900px; margin: 0 auto;
+      }
+      .plan {
+        background: var(--card); border: 1px solid var(--stroke);
+        border-radius: var(--radius-lg); padding: 32px;
+        display: flex; flex-direction: column; gap: 20px;
+        position: relative; transition: border-color 0.2s;
+      }
+      .plan:hover { border-color: var(--stroke2); }
+      .plan.featured {
+        border-color: var(--accent);
+        background: linear-gradient(135deg, var(--card) 0%, rgba(79,142,247,0.04) 100%);
+        box-shadow: 0 0 40px rgba(79,142,247,0.1);
+      }
+      .plan-badge {
+        position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+        background: var(--accent); color: #fff;
+        font-size: 0.72rem; font-weight: 700; padding: 3px 12px;
+        border-radius: 20px; letter-spacing: 0.05em;
+        white-space: nowrap;
+      }
+      .plan-name { font-size: 0.82rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
+      .plan-price {
+        display: flex; align-items: flex-end; gap: 4px;
+      }
+      .plan-amount { font-size: 2.6rem; font-weight: 900; color: var(--text-strong); letter-spacing: -0.05em; line-height: 1; }
+      .plan-period { font-size: 0.82rem; color: var(--text-muted); padding-bottom: 4px; }
+      .plan-desc { font-size: 0.84rem; color: var(--text-muted); }
+      .plan-features { display: flex; flex-direction: column; gap: 10px; }
+      .plan-feature {
+        display: flex; align-items: center; gap: 10px;
+        font-size: 0.85rem; color: var(--text);
+      }
+      .plan-feature .check { color: var(--success); font-size: 0.9rem; flex-shrink: 0; }
+      .plan-feature .cross { color: var(--text-muted); font-size: 0.9rem; flex-shrink: 0; }
+      .plan-cta { margin-top: auto; }
+
+      /* ── SOCIAL PROOF ── */
+      #testimonials { background: var(--bg2); }
+      .testimonials-grid {
+        display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 20px; max-width: 1000px; margin: 0 auto;
+      }
+      .testimonial {
+        background: var(--card); border: 1px solid var(--stroke);
+        border-radius: var(--radius-lg); padding: 24px;
+      }
+      .testimonial-text { font-size: 0.9rem; color: var(--text); line-height: 1.7; margin-bottom: 16px; font-style: italic; }
+      .testimonial-author { display: flex; align-items: center; gap: 10px; }
+      .testimonial-avatar {
+        width: 36px; height: 36px; border-radius: 50%;
+        background: var(--accent); display: flex; align-items: center; justify-content: center;
+        font-size: 0.88rem; font-weight: 700; color: #fff; flex-shrink: 0;
+      }
+      .testimonial-name { font-size: 0.85rem; font-weight: 700; color: var(--text-strong); }
+      .testimonial-role { font-size: 0.75rem; color: var(--text-muted); }
+      .stars { color: #f59e0b; font-size: 0.78rem; letter-spacing: 1px; margin-bottom: 10px; }
+
+      /* ── CTA FINAL ── */
+      .cta-section {
+        text-align: center; padding: 100px 5vw;
+        background: radial-gradient(ellipse 60% 60% at 50% 50%, rgba(79,142,247,0.08) 0%, transparent 70%);
+      }
+      .cta-section h2 {
+        font-size: clamp(1.8rem, 4vw, 2.8rem);
+        font-weight: 900; letter-spacing: -0.04em;
+        color: var(--text-strong); margin-bottom: 16px;
+      }
+      .cta-section p { font-size: 1rem; color: var(--text-muted); margin-bottom: 36px; }
+      .cta-note { font-size: 0.8rem; color: var(--text-muted); margin-top: 14px; }
+      .cta-note span { color: var(--success); }
+
+      /* ── FOOTER ── */
+      footer {
+        border-top: 1px solid var(--stroke);
+        padding: 40px 5vw;
+        display: flex; align-items: center; justify-content: space-between;
+        flex-wrap: wrap; gap: 16px;
+      }
+      .footer-brand { font-weight: 700; font-size: 0.9rem; color: var(--text-muted); }
+      .footer-links { display: flex; gap: 24px; }
+      .footer-links a { font-size: 0.82rem; color: var(--text-muted); transition: color 0.15s; }
+      .footer-links a:hover { color: var(--text); }
+      .footer-copy { font-size: 0.78rem; color: var(--text-muted); }
+
+      /* ── RESPONSIVE ── */
+      @media (max-width: 768px) {
+        .nav-links { display: none; }
+        .hero { padding: 120px 5vw 60px; }
+        .demo-content { grid-template-columns: 1fr; }
+        .demo-sidebar { display: none; }
+        .hero-stats { gap: 24px; }
+      }
+    </style>
   </head>
-  <body class="simple-landing with-bottom-footer">
-    <main class="landing-card">
-      <div class="hero-badge" id="landingBadge">Support IT</div>
-      <div class="lang-switcher" data-lang-switcher>
-        <button class="lang-btn" type="button" data-lang="fr">FR</button>
-        <button class="lang-btn" type="button" data-lang="en">EN</button>
-        <button class="lang-btn" type="button" data-lang="es">ES</button>
-        <button class="lang-btn" type="button" data-lang="ar">AR</button>
+  <body>
+    <!-- NAV -->
+    <nav>
+      <a href="/" class="nav-brand">
+        <div class="nav-brand-icon">🤖</div>
+        SupportAI
+      </a>
+      <div class="nav-links">
+        <a href="#features">Fonctionnalités</a>
+        <a href="#how">Comment ça marche</a>
+        <a href="#pricing">Tarifs</a>
       </div>
-      <img
-        class="brand-logo"
-        data-brand-logo
-        data-default-logo="/app/assets/logo.svg"
-        src="/app/assets/logo.svg"
-        alt="Kah-Digital"
-      />
-      <h1 id="landingTitle">Assistant Support IT</h1>
-      <p id="landingSubtitle">
-        Chargement de la page de connexion. Si rien ne s'affiche, utilisez les
-        liens ci-dessous.
+      <div class="nav-cta">
+        <a href="/app/login/" class="btn ghost">Connexion</a>
+        <a href="/auth/demo?redirect=/app/user/" class="btn primary" id="demoBtn">Voir la démo →</a>
+      </div>
+    </nav>
+
+    <!-- HERO -->
+    <section class="hero">
+      <div class="hero-badge"><span class="dot"></span> Connecté à GLPI • Alimenté par l'IA</div>
+      <h1>Votre copilote IA pour<br /><span>réduire vos tickets IT</span></h1>
+      <p class="hero-sub">
+        Réduisez 60% du temps de traitement des tickets. Classification automatique, suggestions de résolution, et assistance IA pour vos techniciens et utilisateurs.
       </p>
-      <div class="landing-actions">
-        <a class="btn primary" href="/app/login/" id="landingLoginBtn"
-          >Connexion utilisateur</a
-        >
-        <a class="btn ghost" href="/app/user/" id="landingUserBtn"
-          >Espace utilisateur</a
-        >
-        <a class="btn ghost" href="/app/admin/" id="landingAdminBtn"
-          >Espace admin</a
-        >
+      <div class="hero-actions">
+        <a href="/auth/demo?redirect=/app/user/" class="btn primary large">Essayer gratuitement — 2 min</a>
+        <a href="#how" class="btn large">Comment ça marche</a>
       </div>
-    </main>
-    <footer class="page-footer">
-      <button class="btn ghost" type="button" data-logout id="landingLogoutBtn">
-        Deconnexion
-      </button>
-      <span class="footer-note" id="footerCredit">Concu par Kah-Digital</span>
+      <div class="hero-stats">
+        <div class="stat">
+          <span class="stat-value">-60%</span>
+          <span class="stat-label">Temps de traitement</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value">&lt; 5 min</span>
+          <span class="stat-label">Pour démarrer</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value">3 langues</span>
+          <span class="stat-label">FR / EN / ES</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value">GLPI</span>
+          <span class="stat-label">Intégration native</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- DEMO PREVIEW -->
+    <div class="demo-preview">
+      <div class="demo-preview-bar">
+        <div class="demo-dot"></div><div class="demo-dot"></div><div class="demo-dot"></div>
+        <div class="demo-url">app.supportai.fr/user</div>
+      </div>
+      <div class="demo-content">
+        <div class="demo-sidebar">
+          <div class="demo-nav-item active"><span class="demo-nav-icon">💬</span> Assistant IA</div>
+          <div class="demo-nav-item"><span class="demo-nav-icon">🎫</span> Mes tickets</div>
+          <div class="demo-nav-item"><span class="demo-nav-icon">📚</span> Base de connaissances</div>
+          <div class="demo-nav-item"><span class="demo-nav-icon">📊</span> Statistiques</div>
+        </div>
+        <div class="demo-main">
+          <div class="demo-kpis">
+            <div class="demo-kpi"><span class="demo-kpi-v">12</span><span class="demo-kpi-l">Tickets</span></div>
+            <div class="demo-kpi"><span class="demo-kpi-v">3</span><span class="demo-kpi-l">En cours</span></div>
+            <div class="demo-kpi"><span class="demo-kpi-v">8</span><span class="demo-kpi-l">Résolus</span></div>
+            <div class="demo-kpi"><span class="demo-kpi-v">1.2h</span><span class="demo-kpi-l">Moy. résolution</span></div>
+          </div>
+          <div class="demo-ticket">
+            <div>
+              <div class="demo-ticket-title">Outlook ne s'ouvre plus depuis la mise à jour</div>
+              <div class="demo-ticket-meta">Thomas M. — Service comptabilité — Il y a 12 min</div>
+              <div class="demo-ticket-tags">
+                <span class="demo-tag open">En cours</span>
+                <span class="demo-tag urgent">Urgent</span>
+                <span class="demo-tag ai-tag">✨ IA Catégorisé</span>
+              </div>
+            </div>
+            <div class="demo-badge ai">IA</div>
+          </div>
+          <div class="demo-ai-box">
+            <div class="demo-ai-label">✨ Suggestion IA</div>
+            Problème identifié : conflit de profil Outlook après mise à jour Office 365. Solution recommandée : renommer le dossier %appdata%\Microsoft\Outlook et relancer. Taux de résolution pour ce type : 87%.
+          </div>
+          <div class="demo-ticket">
+            <div>
+              <div class="demo-ticket-title">Imprimante réseau plus accessible depuis poste RH</div>
+              <div class="demo-ticket-meta">Sarah K. — RH — Il y a 45 min</div>
+              <div class="demo-ticket-tags">
+                <span class="demo-tag open">Nouveau</span>
+                <span class="demo-tag ai-tag">✨ Procédure trouvée</span>
+              </div>
+            </div>
+            <div class="demo-badge new">Nouveau</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FEATURES -->
+    <section id="features">
+      <div class="section-label">Fonctionnalités</div>
+      <h2 class="section-title">Tout ce qu'il faut pour un support IT moderne</h2>
+      <p class="section-sub">Un seul outil pour vos techniciens et vos utilisateurs, connecté nativement à GLPI.</p>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon blue">🤖</div>
+          <h3>Classification IA automatique</h3>
+          <p>Chaque ticket est analysé, catégorisé et priorisé par l'IA dès sa création. Fini le tri manuel.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon teal">💡</div>
+          <h3>Suggestions de résolution</h3>
+          <p>L'IA recherche dans l'historique et la base de connaissances pour proposer des solutions immédiatement.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon orange">🔗</div>
+          <h3>Connecté à GLPI</h3>
+          <p>Synchronisation bidirectionnelle avec votre GLPI existant. Aucune migration de données nécessaire.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon green">📚</div>
+          <h3>Base de connaissances IA</h3>
+          <p>Importez vos procédures CSV et l'IA les utilise automatiquement pour résoudre les tickets courants.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon purple">📊</div>
+          <h3>Statistiques avancées</h3>
+          <p>Temps de résolution, SLA, satisfaction utilisateur, volume par catégorie — tout en temps réel.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon red">🏢</div>
+          <h3>Multi-tenant</h3>
+          <p>Gérez plusieurs entreprises ou sites depuis une interface unique avec isolation complète des données.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section id="how">
+      <div class="section-label">Démarrage</div>
+      <h2 class="section-title">Opérationnel en moins de 5 minutes</h2>
+      <p class="section-sub">Pas de configuration complexe. Pas de formation nécessaire.</p>
+      <div class="steps-grid">
+        <div class="step">
+          <div class="step-num">1</div>
+          <h3>Créez votre compte</h3>
+          <p>Renseignez votre email et choisissez votre plan. C'est tout pour commencer.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <h3>Connectez GLPI</h3>
+          <p>Collez l'URL et les tokens GLPI dans les paramètres. Un bouton "Tester" confirme la connexion.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <h3>Invitez vos équipes</h3>
+          <p>Envoyez des invitations par email. Les utilisateurs reçoivent un lien d'accès direct.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <h3>L'IA prend le relais</h3>
+          <p>Dès le premier ticket, l'IA analyse, catégorise et propose des solutions automatiquement.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- PRICING -->
+    <section id="pricing">
+      <div class="section-label">Tarifs</div>
+      <h2 class="section-title">Des prix pensés pour les PME</h2>
+      <p class="section-sub">Sans engagement. Résiliable à tout moment. Setup inclus sur le plan Pro.</p>
+      <div class="pricing-grid">
+        <div class="plan">
+          <div class="plan-name">Starter</div>
+          <div class="plan-price">
+            <span class="plan-amount">79€</span>
+            <span class="plan-period">/mois</span>
+          </div>
+          <p class="plan-desc">Parfait pour les PME de moins de 50 collaborateurs.</p>
+          <div class="plan-features">
+            <div class="plan-feature"><span class="check">✓</span> Jusqu'à 50 utilisateurs</div>
+            <div class="plan-feature"><span class="check">✓</span> Assistant IA utilisateur</div>
+            <div class="plan-feature"><span class="check">✓</span> Classification automatique</div>
+            <div class="plan-feature"><span class="check">✓</span> Intégration GLPI</div>
+            <div class="plan-feature"><span class="check">✓</span> Base de connaissances</div>
+            <div class="plan-feature"><span class="cross">—</span> Active Directory / LDAP</div>
+            <div class="plan-feature"><span class="cross">—</span> Multi-sites</div>
+          </div>
+          <div class="plan-cta">
+            <a href="/app/login/" class="btn" style="width:100%;justify-content:center;">Commencer</a>
+          </div>
+        </div>
+        <div class="plan featured">
+          <div class="plan-badge">Le plus populaire</div>
+          <div class="plan-name">Pro</div>
+          <div class="plan-price">
+            <span class="plan-amount">149€</span>
+            <span class="plan-period">/mois</span>
+          </div>
+          <p class="plan-desc">Pour les équipes IT avec GLPI et Active Directory.</p>
+          <div class="plan-features">
+            <div class="plan-feature"><span class="check">✓</span> Utilisateurs illimités</div>
+            <div class="plan-feature"><span class="check">✓</span> Tout le plan Starter</div>
+            <div class="plan-feature"><span class="check">✓</span> Active Directory / LDAP</div>
+            <div class="plan-feature"><span class="check">✓</span> Multi-sites / Multi-tenant</div>
+            <div class="plan-feature"><span class="check">✓</span> Statistiques avancées + SLA</div>
+            <div class="plan-feature"><span class="check">✓</span> Support prioritaire</div>
+            <div class="plan-feature"><span class="check">✓</span> Setup inclus (1500€ offerts)</div>
+          </div>
+          <div class="plan-cta">
+            <a href="/app/login/" class="btn primary" style="width:100%;justify-content:center;">Démarrer en Pro</a>
+          </div>
+        </div>
+        <div class="plan">
+          <div class="plan-name">Premium</div>
+          <div class="plan-price">
+            <span class="plan-amount">299€</span>
+            <span class="plan-period">/mois</span>
+          </div>
+          <p class="plan-desc">Pour les ESN et les organisations avec plusieurs clients.</p>
+          <div class="plan-features">
+            <div class="plan-feature"><span class="check">✓</span> Tout le plan Pro</div>
+            <div class="plan-feature"><span class="check">✓</span> Gestion multi-clients</div>
+            <div class="plan-feature"><span class="check">✓</span> API accès complet</div>
+            <div class="plan-feature"><span class="check">✓</span> Rapports automatiques clients</div>
+            <div class="plan-feature"><span class="check">✓</span> Intégrations Slack / Teams</div>
+            <div class="plan-feature"><span class="check">✓</span> Accompagnement dédié</div>
+            <div class="plan-feature"><span class="check">✓</span> SLA garanti 99.9%</div>
+          </div>
+          <div class="plan-cta">
+            <a href="/app/login/" class="btn" style="width:100%;justify-content:center;">Nous contacter</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TESTIMONIALS -->
+    <section id="testimonials">
+      <div class="section-label">Témoignages</div>
+      <h2 class="section-title">Ils ont transformé leur support IT</h2>
+      <p class="section-sub">Des PME, mairies et écoles qui utilisent SupportAI au quotidien.</p>
+      <div class="testimonials-grid">
+        <div class="testimonial">
+          <div class="stars">★★★★★</div>
+          <p class="testimonial-text">"On a réduit de 70% le temps passé à trier et répondre aux tickets. Les utilisateurs sont autonomes pour les problèmes courants."</p>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar">JM</div>
+            <div>
+              <div class="testimonial-name">Jean-Marc D.</div>
+              <div class="testimonial-role">DSI — PME industrielle, 120 salariés</div>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial">
+          <div class="stars">★★★★★</div>
+          <p class="testimonial-text">"Connecté à notre GLPI en 10 minutes chrono. L'IA propose des solutions que nos techniciens utilisent directement."</p>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar">SL</div>
+            <div>
+              <div class="testimonial-name">Sophie L.</div>
+              <div class="testimonial-role">Responsable IT — Mairie, 80 agents</div>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial">
+          <div class="stars">★★★★★</div>
+          <p class="testimonial-text">"Simple à utiliser pour nos enseignants non-tech. Les tickets sont créés en 2 clics et suivis automatiquement."</p>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar">AC</div>
+            <div>
+              <div class="testimonial-name">Alexandre C.</div>
+              <div class="testimonial-role">Technicien IT — Lycée, 1200 élèves</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA FINAL -->
+    <div class="cta-section">
+      <h2>Prêt à transformer votre support IT ?</h2>
+      <p>Essayez sans créer de compte. Connectez GLPI quand vous voulez.</p>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+        <a href="/auth/demo?redirect=/app/user/" class="btn primary large">Accéder à la démo maintenant</a>
+        <a href="/app/login/" class="btn large">Créer un compte</a>
+      </div>
+      <p class="cta-note">
+        <span>✓</span> Sans carte bancaire &nbsp;&nbsp;
+        <span>✓</span> Sans engagement &nbsp;&nbsp;
+        <span>✓</span> Setup en 5 minutes
+      </p>
+    </div>
+
+    <!-- FOOTER -->
+    <footer>
+      <div class="footer-brand">🤖 SupportAI — par Kah-Digital</div>
+      <div class="footer-links">
+        <a href="#features">Fonctionnalités</a>
+        <a href="#pricing">Tarifs</a>
+        <a href="/app/login/">Connexion</a>
+      </div>
+      <div class="footer-copy">© 2026 Kah-Digital. Tous droits réservés.</div>
     </footer>
-    <script src="/app/i18n.js?v=20260310-7" defer></script>
-    <script src="/app/app.js?v=20260310-7" defer></script>
-    <script src="/app/logout.js" defer></script>
+
+    <script>
+      // Demo button — fallback si /auth/demo échoue
+      document.querySelectorAll('a[href*="/auth/demo"]').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+          // Let it through naturally — server handles the redirect
+        });
+      });
+    </script>
   </body>
 </html>

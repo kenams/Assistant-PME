@@ -15,6 +15,7 @@ const { logEvent } = require("../services/audit.service");
 const { validateOr400 } = require("../utils/validate");
 const { loginLimiter } = require("../middleware/rate-limit");
 
+const { createRateLimiter } = require("../middleware/rate-limit");
 const router = express.Router();
 
 function isLocalRequest(req) {
@@ -205,6 +206,45 @@ router.get("/me", authRequired, (req, res) => {
     role: effectiveRole,
     tenant_id: user.tenant_id
   });
+});
+
+// Demo public route — rate limited, no IP check, creates a read-only demo session
+const demoLimiter = createRateLimiter({ max: 10, windowSec: 60 });
+
+router.get("/demo", demoLimiter, (req, res) => {
+  if (!env.jwtSecret) {
+    return res.status(500).json({ error: "missing_jwt_secret" });
+  }
+
+  let user = findUserByEmail("demo@assistant.local");
+  if (!user) {
+    // Auto-create demo user in DEFAULT tenant if it doesn't exist yet
+    const demoTenant = getTenantByCode("DEFAULT");
+    if (demoTenant) {
+      const created = createUser({
+        tenantId: demoTenant.id,
+        email: "demo@assistant.local",
+        password: "demo" + Math.random(),
+        role: "user"
+      });
+      user = created.user || null;
+    }
+  }
+
+  if (!user) {
+    return res.status(503).json({ error: "demo_unavailable" });
+  }
+
+  const token = jwt.sign(
+    { sub: user.id, tenant_id: user.tenant_id, role: "user", demo: true },
+    env.jwtSecret,
+    { expiresIn: "2h" }
+  );
+
+  const rawRedirect = typeof req.query.redirect === "string" ? req.query.redirect : "";
+  const redirectPath = rawRedirect && rawRedirect.startsWith("/") ? rawRedirect : "/app/user/";
+  const joiner = redirectPath.includes("?") ? "&" : "?";
+  return res.redirect(`${redirectPath}${joiner}token=${encodeURIComponent(token)}`);
 });
 
 router.post("/quick-user", (req, res) => {

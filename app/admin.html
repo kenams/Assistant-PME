@@ -3,397 +3,974 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Assistant Support IT - Admin</title>
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap"
-    />
-    <link rel="stylesheet" href="/app/styles.css?v=20260310-7" />
+    <title>SupportAI — Tableau de bord technicien</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
+    <link rel="stylesheet" href="/app/styles.css?v=20260509" />
+    <style>
+      /* ─── Layout 2 colonnes sur desktop ── */
+      body { overflow-x: hidden; }
+
+      .admin-layout {
+        display: grid;
+        grid-template-columns: 240px 1fr;
+        min-height: calc(100vh - 60px);
+      }
+
+      /* ─── Sidebar ── */
+      .admin-sidebar {
+        background: var(--sidebar);
+        border-right: 1px solid var(--stroke);
+        padding: 20px 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        position: sticky;
+        top: 60px;
+        height: calc(100vh - 60px);
+        overflow-y: auto;
+      }
+
+      .sidebar-section-label {
+        font-size: 0.65rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 12px 10px 6px;
+      }
+
+      .sidebar-link {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 9px 12px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: var(--text-muted);
+        cursor: pointer;
+        transition: all 0.15s;
+        border: none;
+        background: none;
+        font-family: inherit;
+        width: 100%;
+        text-align: left;
+        text-decoration: none;
+      }
+
+      .sidebar-link:hover { background: var(--card); color: var(--text); }
+      .sidebar-link.active { background: rgba(79,142,247,0.12); color: var(--accent); font-weight: 600; }
+      .sidebar-link .icon { font-size: 1rem; flex-shrink: 0; }
+
+      .sidebar-badge {
+        margin-left: auto;
+        background: var(--danger);
+        color: #fff;
+        font-size: 0.65rem;
+        font-weight: 800;
+        padding: 1px 6px;
+        border-radius: 10px;
+        min-width: 18px;
+        text-align: center;
+      }
+
+      .sidebar-badge.ok { background: var(--success); }
+      .sidebar-badge.warn { background: var(--warning); }
+
+      /* ─── Content ── */
+      .admin-content {
+        padding: 28px 28px 80px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        min-width: 0;
+      }
+
+      /* ─── Section tabs ── */
+      .admin-panel { display: none; flex-direction: column; gap: 20px; }
+      .admin-panel.active { display: flex; }
+
+      /* ─── KPI Bar ── */
+      .kpi-bar {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 12px;
+      }
+
+      .kpi-card {
+        background: var(--card);
+        border: 1px solid var(--stroke);
+        border-radius: var(--radius);
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        transition: border-color 0.2s;
+      }
+
+      .kpi-card:hover { border-color: var(--stroke2); }
+      .kpi-card.accent { border-left: 3px solid var(--accent); }
+      .kpi-card.success { border-left: 3px solid var(--success); }
+      .kpi-card.warning { border-left: 3px solid var(--warning); }
+      .kpi-card.danger { border-left: 3px solid var(--danger); }
+
+      .kpi-val {
+        font-size: 2rem;
+        font-weight: 900;
+        color: var(--text-strong);
+        letter-spacing: -0.05em;
+        line-height: 1;
+      }
+
+      .kpi-label {
+        font-size: 0.72rem;
+        color: var(--text-muted);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+
+      .kpi-trend {
+        font-size: 0.72rem;
+        font-weight: 600;
+        margin-top: 4px;
+      }
+
+      .kpi-trend.up { color: var(--success); }
+      .kpi-trend.down { color: var(--danger); }
+      .kpi-trend.neutral { color: var(--text-muted); }
+
+      /* ─── Ticket Queue ── */
+      .queue-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 12px;
+      }
+
+      .queue-filters {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+
+      .ticket-row {
+        display: grid;
+        grid-template-columns: auto 1fr auto auto auto;
+        gap: 12px;
+        align-items: center;
+        padding: 14px 16px;
+        background: var(--card);
+        border: 1px solid var(--stroke);
+        border-radius: var(--radius);
+        cursor: pointer;
+        transition: border-color 0.15s, background 0.15s;
+      }
+
+      .ticket-row:hover { border-color: var(--stroke2); background: var(--card-hover); }
+      .ticket-row.expanded { border-color: var(--accent); }
+
+      .ticket-row-priority {
+        width: 4px;
+        height: 44px;
+        border-radius: 2px;
+        flex-shrink: 0;
+      }
+
+      .p-critical { background: var(--danger); }
+      .p-high { background: var(--accent3); }
+      .p-medium { background: var(--accent); }
+      .p-low { background: var(--success); }
+
+      .ticket-row-body { min-width: 0; }
+      .ticket-row-title {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--text-strong);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-bottom: 3px;
+      }
+
+      .ticket-row-meta {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .ticket-row-time { font-size: 0.73rem; color: var(--text-muted); }
+
+      .ticket-expand {
+        background: var(--bg3);
+        border: 1px solid var(--stroke);
+        border-top: none;
+        border-radius: 0 0 var(--radius) var(--radius);
+        padding: 16px;
+        display: none;
+        flex-direction: column;
+        gap: 12px;
+        margin-top: -1px;
+      }
+
+      .ticket-expand.open { display: flex; }
+
+      .ai-insight {
+        background: rgba(79,142,247,0.06);
+        border: 1px solid rgba(79,142,247,0.2);
+        border-radius: var(--radius);
+        padding: 12px 14px;
+        font-size: 0.84rem;
+        line-height: 1.6;
+      }
+
+      .ai-insight-label {
+        font-size: 0.68rem;
+        font-weight: 800;
+        color: var(--accent);
+        text-transform: uppercase;
+        letter-spacing: 0.09em;
+        margin-bottom: 6px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+
+      .ticket-actions-row {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      /* ─── Analytics ── */
+      .chart-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 16px;
+      }
+
+      .chart-card {
+        background: var(--card);
+        border: 1px solid var(--stroke);
+        border-radius: var(--radius-lg);
+        padding: 20px;
+      }
+
+      .chart-title {
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        margin-bottom: 16px;
+      }
+
+      .bar-chart { display: flex; flex-direction: column; gap: 8px; }
+
+      .bar-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 0.8rem;
+      }
+
+      .bar-label { min-width: 100px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .bar-track { flex: 1; height: 6px; background: var(--bg3); border-radius: 3px; overflow: hidden; }
+      .bar-fill { height: 100%; border-radius: 3px; transition: width 0.5s; }
+      .bar-val { min-width: 28px; text-align: right; color: var(--text-muted); font-weight: 600; }
+
+      /* Volume sparkline */
+      .sparkline { display: flex; align-items: flex-end; gap: 3px; height: 48px; }
+      .spark-bar { flex: 1; border-radius: 2px 2px 0 0; min-height: 2px; transition: opacity 0.2s; }
+      .spark-bar:hover { opacity: 0.7; }
+
+      /* ─── Parametres ── */
+      .settings-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 20px;
+      }
+
+      /* ─── Diagnostics ── */
+      .diag-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 14px;
+        border-bottom: 1px solid var(--stroke);
+        font-size: 0.85rem;
+      }
+
+      .diag-row:last-child { border-bottom: none; }
+      .diag-icon { font-size: 1rem; flex-shrink: 0; }
+      .diag-label { flex: 1; color: var(--text); }
+      .diag-value { color: var(--text-muted); font-size: 0.8rem; }
+
+      /* ─── Responsive ── */
+      @media (max-width: 768px) {
+        .admin-layout { grid-template-columns: 1fr; }
+        .admin-sidebar { display: none; }
+        .admin-content { padding: 16px 14px 80px; }
+        .kpi-bar { grid-template-columns: repeat(2, 1fr); }
+        .ticket-row { grid-template-columns: auto 1fr auto; }
+        .ticket-row > :nth-child(4),
+        .ticket-row > :nth-child(5) { display: none; }
+      }
+    </style>
   </head>
   <body class="admin-lite with-bottom-footer">
+
+    <!-- TOPBAR -->
     <header class="topbar">
       <a class="brand brand-link" href="/app/admin/">
-        <img
-          class="brand-logo"
-          data-brand-logo
-          data-default-logo="/app/assets/logo.svg"
-          src="/app/assets/logo.svg"
-          alt="Kah-Digital"
-        />
-        <span id="brandName">Assistant Support IT</span>
+        <img class="brand-logo" data-brand-logo data-default-logo="/app/assets/logo.svg" src="/app/assets/logo.svg" alt="SupportAI" />
+        <span id="brandName">SupportAI</span>
       </a>
-      <span id="roleBanner" class="role-banner neutral">Espace Admin</span>
+      <span id="roleBanner" class="role-banner neutral">Administration</span>
       <div class="actions">
         <span id="netStatus" class="net-status">online</span>
         <span id="sessionBadge" class="session-badge hidden"></span>
         <div class="lang-switcher" data-lang-switcher>
           <button class="lang-btn" type="button" data-lang="fr">FR</button>
           <button class="lang-btn" type="button" data-lang="en">EN</button>
-          <button class="lang-btn" type="button" data-lang="es">ES</button>
         </div>
-        <button id="refreshBtn" class="btn">Rafraichir</button>
-        <button id="logoutBtn" class="btn ghost">Deconnexion</button>
+        <button id="refreshBtn" class="btn ghost">↻ Rafraîchir</button>
+        <button id="logoutBtn" class="btn ghost">Déconnexion</button>
       </div>
     </header>
     <div id="statusBanner" class="status-banner hidden"></div>
 
-    <main>
-      <section class="card" id="loginCard">
-        <h2 id="loginTitle">Connexion</h2>
-        <form id="loginForm" class="form">
-          <input
-            id="loginTenantInput"
-            name="tenant_code"
-            placeholder="Code entreprise (ex: DEFAULT)"
-          />
-          <input id="loginEmailInput" name="email" type="email" placeholder="Email" required />
-          <input
-            id="loginPasswordInput"
-            name="password"
-            type="password"
-            placeholder="Mot de passe"
-            required
-          />
-          <button class="btn primary" type="submit" id="loginSubmitBtn">
-            Se connecter
-          </button>
-          <p id="loginStatus" class="status"></p>
-        </form>
-        <p class="note" id="loginHint">
-          Le code entreprise est fourni par votre administrateur. (Local: DEFAULT)
-        </p>
-        <div class="quick-login" id="quickLoginAdmin">
-          <a
-            id="quickAdminBtn"
-            class="btn ghost"
-            href="/auth/quick-admin?redirect=/app/admin/"
-          >
-            Connexion admin rapide
-          </a>
-          <p class="note">Mode local uniquement.</p>
-        </div>
-      </section>
+    <!-- CONNEXION (affiché si non authentifié) -->
+    <section class="card" id="loginCard" style="max-width:420px;margin:60px auto;border-color:var(--stroke2);box-shadow:var(--shadow)">
+      <div class="card-header"><h3 id="loginTitle">Connexion Admin</h3></div>
+      <form id="loginForm" class="form">
+        <input id="loginTenantInput" name="tenant_code" placeholder="Code entreprise (ex: DEFAULT)" />
+        <input id="loginEmailInput" name="email" type="email" placeholder="Email" required />
+        <input id="loginPasswordInput" name="password" type="password" placeholder="Mot de passe" required />
+        <button class="btn primary" type="submit" id="loginSubmitBtn">Se connecter</button>
+        <p id="loginStatus" class="status"></p>
+      </form>
+      <div class="quick-login" id="quickLoginAdmin">
+        <a id="quickAdminBtn" class="btn ghost" href="/auth/quick-admin?redirect=/app/admin/" style="width:100%;justify-content:center">Connexion rapide (local)</a>
+        <p class="note">Mode développement uniquement.</p>
+      </div>
+    </section>
 
-      <section class="card" id="metricsCard">
-        <div class="card-header">
-          <h3>Dashboard</h3>
-          <button id="metricsRefreshBtn" class="btn ghost">Actualiser</button>
-        </div>
-        <div class="metrics-grid" id="metricsStats"></div>
-        <div class="note">Vue rapide des indicateurs clefs.</div>
-      </section>
+    <!-- LAYOUT PRINCIPAL (affiché une fois connecté) -->
+    <div class="admin-layout" id="adminLayout" style="display:none">
 
-      <section class="card" id="miniDashboardCard">
-        <div class="card-header">
-          <h3 id="miniDashboardTitle">Mini dashboard</h3>
-          <button id="miniDashboardRefreshBtn" class="btn ghost">Actualiser</button>
-        </div>
-        <div class="mini-kpis">
-          <div class="mini-kpi tile-1">
-            <span id="miniKpiResponseLabel">Temps de reponse</span>
-            <strong id="miniKpiResponseValue">-</strong>
-          </div>
-          <div class="mini-kpi tile-3">
-            <span id="miniKpiResolutionLabel">Temps de resolution</span>
-            <strong id="miniKpiResolutionValue">-</strong>
-          </div>
-          <div class="mini-kpi tile-5">
-            <span id="miniKpiRatingLabel">Satisfaction</span>
-            <strong id="miniKpiRatingValue">-</strong>
-          </div>
-          <div class="mini-kpi tile-4">
-            <span id="miniKpiSlaLabel">SLA</span>
-            <strong id="miniKpiSlaValue">-</strong>
-          </div>
-        </div>
-        <div class="mini-charts">
-          <div class="mini-chart">
-            <strong id="miniStatusTitle">Statuts tickets</strong>
-            <div id="miniStatusBars" class="mini-bars"></div>
-          </div>
-          <div class="mini-chart">
-            <strong id="miniPriorityTitle">Priorites</strong>
-            <div id="miniPriorityBars" class="mini-bars"></div>
-          </div>
-          <div class="mini-chart">
-            <strong id="miniVolumeTitle">Volume 14 jours</strong>
-            <div id="miniVolumeBars" class="mini-volume"></div>
-          </div>
-        </div>
-        <p class="note" id="miniDashboardNote">
-          Donnees des 14 derniers jours, mises a jour automatiquement.
-        </p>
-      </section>
+      <!-- ─── SIDEBAR ─── -->
+      <aside class="admin-sidebar">
+        <div class="sidebar-section-label">Opérations</div>
+        <button class="sidebar-link active" data-panel="queue" onclick="showPanel('queue',this)">
+          <span class="icon">🎫</span> File de tickets
+          <span class="sidebar-badge" id="sidebarOpenCount">0</span>
+        </button>
+        <button class="sidebar-link" data-panel="analytics" onclick="showPanel('analytics',this)">
+          <span class="icon">📊</span> Analytiques
+        </button>
 
-      <section class="card" id="recentTicketsCard">
-        <div class="card-header">
-          <h3>Tickets recents</h3>
-          <button id="recentTicketsRefreshBtn" class="btn ghost">Recharger</button>
-        </div>
-        <div class="ticket-cards" id="recentTicketsList"></div>
-      </section>
+        <div class="sidebar-section-label">Configuration</div>
+        <button class="sidebar-link" data-panel="settings" onclick="showPanel('settings',this)">
+          <span class="icon">⚙️</span> Paramètres GLPI
+        </button>
+        <button class="sidebar-link" data-panel="kb" onclick="showPanel('kb',this)">
+          <span class="icon">📚</span> Base de connaissances
+        </button>
+        <button class="sidebar-link" data-panel="users" onclick="showPanel('users',this)">
+          <span class="icon">👥</span> Utilisateurs
+        </button>
 
-      <section class="card" id="adminGalleryCard">
-        <div class="card-header">
-          <h3>Galerie captures</h3>
-          <button id="adminGalleryRefreshBtn" class="btn ghost">Recharger</button>
-        </div>
-        <div class="filter-row">
-          <button class="chip active" data-gallery-range="all">Tout</button>
-          <button class="chip" data-gallery-range="7">7j</button>
-          <button class="chip" data-gallery-range="30">30j</button>
-          <input id="adminGallerySearch" type="search" placeholder="Filtrer (id ou url)" />
-          <button id="adminGallerySearchBtn" class="btn ghost" type="button">
-            Filtrer
-          </button>
-          <span class="note" id="adminGalleryCount"></span>
-        </div>
-        <div class="gallery-grid" id="adminGalleryGrid"></div>
-        <p class="note" id="adminGalleryEmpty">Aucune capture pour l'instant.</p>
-      </section>
+        <div class="sidebar-section-label">Système</div>
+        <button class="sidebar-link" data-panel="diagnostics" onclick="showPanel('diagnostics',this)">
+          <span class="icon">🔧</span> Diagnostics
+          <span class="sidebar-badge warn" id="sidebarDiagBadge" style="display:none">!</span>
+        </button>
 
-      <section class="card" id="kbCsvCard">
-        <div class="card-header">
-          <h3>Importer procedures (CSV)</h3>
-        </div>
-        <div class="actions-inline">
-          <input id="kbCsvImportInput" type="file" accept=".csv,text/csv" />
-          <button id="kbExportCsvBtn" class="btn ghost" type="button">
-            Exporter CSV
-          </button>
-          <button id="kbCsvTemplateBtn" class="btn ghost" type="button">
-            Telecharger un modele
-          </button>
-        </div>
-        <div class="kb-export-filters">
-          <input
-            id="kbExportQuery"
-            type="search"
-            placeholder="Mot-cle (optionnel)"
-          />
-          <select id="kbExportLevel" class="kb-filter">
-            <option value="all">Tous niveaux</option>
-            <option value="n1">N1</option>
-            <option value="n2">N2</option>
-            <option value="n3">N3 + Infra</option>
-            <option value="infra">Infra</option>
-          </select>
-          <button id="kbExportFilteredBtn" class="btn ghost" type="button">
-            Exporter filtre
-          </button>
-        </div>
-        <p class="note">
-          Colonnes attendues : title, content, source_type (optionnel), source_url
-          (optionnel).
-        </p>
-      </section>
+        <div style="flex:1"></div>
+        <button id="logoutBtnSidebar" class="sidebar-link" style="margin-top:auto">
+          <span class="icon">↗️</span> Déconnexion
+        </button>
+      </aside>
 
-      <section class="card" id="orgCard">
-        <div class="card-header">
-          <h3>Entreprise</h3>
-          <button id="orgReloadBtn" class="btn ghost">Recharger</button>
-        </div>
-        <form id="orgForm" class="form two-columns">
-          <input name="name" placeholder="Nom entreprise" required />
-          <input name="plan" placeholder="Plan (starter/pro/premium)" />
-          <button class="btn primary" type="submit">Sauver</button>
-          <p id="orgStatus" class="status"></p>
-        </form>
-      </section>
+      <!-- ─── CONTENU ─── -->
+      <div class="admin-content">
 
-      <section class="card" id="orgSettingsCard">
-        <div class="card-header">
-          <h3>Parametres entreprise</h3>
-          <button id="orgSettingsReloadBtn" class="btn ghost">Recharger</button>
-        </div>
-        <form id="orgSettingsForm" class="form two-columns">
-          <div class="form-section">
-            <strong>Contact support</strong>
-            <input name="support_email" placeholder="Email support" type="email" />
-            <input name="support_phone" placeholder="Telephone support" />
-            <input name="logo_url" placeholder="Logo URL (optionnel)" type="url" />
-            <input
-              name="reminder_hours"
-              type="number"
-              min="1"
-              max="720"
-              placeholder="Rappel ticket (heures)"
-            />
-          </div>
-          <div class="form-section">
-            <strong>Connexion GLPI</strong>
-            <label class="toggle">
-              <input name="glpi_enabled" type="checkbox" />
-              <span>Activer GLPI pour ce tenant</span>
-            </label>
-            <input
-              name="glpi_base_url"
-              placeholder="GLPI Base URL (https://glpi.exemple.tld)"
-              type="url"
-            />
-            <input name="glpi_app_token" placeholder="GLPI App-Token" />
-            <input name="glpi_user_token" placeholder="GLPI User-Token" />
-            <div class="actions-inline">
-              <button id="glpiTestBtn" class="btn ghost" type="button">
-                Tester GLPI
-              </button>
-              <span id="glpiTestStatus" class="status"></span>
+        <!-- ══ FILE DE TICKETS ══ -->
+        <div class="admin-panel active" id="panel-queue">
+
+          <!-- KPI bar -->
+          <div class="kpi-bar" id="kpiBar">
+            <div class="kpi-card accent">
+              <div class="kpi-val" id="kpiOpen">—</div>
+              <div class="kpi-label">Tickets ouverts</div>
+              <div class="kpi-trend neutral" id="kpiOpenTrend"></div>
+            </div>
+            <div class="kpi-card danger">
+              <div class="kpi-val" id="kpiCritical">—</div>
+              <div class="kpi-label">Critiques</div>
+              <div class="kpi-trend" id="kpiCriticalTrend"></div>
+            </div>
+            <div class="kpi-card success">
+              <div class="kpi-val" id="kpiResolved">—</div>
+              <div class="kpi-label">Résolus auj.</div>
+              <div class="kpi-trend neutral" id="kpiResolvedTrend"></div>
+            </div>
+            <div class="kpi-card warning">
+              <div class="kpi-val" id="kpiAvgTime">—</div>
+              <div class="kpi-label">Tps moy. résolution</div>
+              <div class="kpi-trend neutral"></div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-val" id="kpiAiRate">—</div>
+              <div class="kpi-label">Taux résolution IA</div>
+              <div class="kpi-trend up" id="kpiAiRateTrend"></div>
             </div>
           </div>
-          <div class="form-section">
-            <strong>Active Directory / LDAP</strong>
-            <label class="toggle">
-              <input name="ad_enabled" type="checkbox" />
-              <span>Activer Active Directory</span>
-            </label>
-            <input
-              name="ad_url"
-              placeholder="URL LDAP (ldaps://ad.exemple.tld:636)"
-              type="url"
-            />
-            <input name="ad_domain" placeholder="Domaine (ex: EXEMPLE)" />
-            <input name="ad_base_dn" placeholder="Base DN (ex: DC=exemple,DC=local)" />
-            <input name="ad_bind_user" placeholder="Compte bind (ex: service@exemple.local)" />
-            <input
-              name="ad_bind_password"
-              placeholder="Mot de passe bind"
-              type="password"
-            />
-          </div>
-          <button class="btn primary" type="submit">Sauver</button>
-          <p id="orgSettingsStatus" class="status"></p>
-        </form>
-      </section>
 
-      <section class="card" id="diagnosticsCard">
-        <div class="card-header">
-          <h3>Diagnostics</h3>
-          <div class="actions-inline">
-            <button id="diagnosticsReloadBtn" class="btn ghost">Refresh</button>
-            <button id="diagnosticsDeepBtn" class="btn ghost">Test complet</button>
+          <!-- Filtres et queue -->
+          <div class="card" style="padding:20px">
+            <div class="queue-header">
+              <h3 style="font-size:1rem;font-weight:700;color:var(--text-strong)">
+                🎫 File de tickets en attente
+              </h3>
+              <div class="queue-filters">
+                <button class="chip active" data-ticket-filter="open" onclick="filterQueue('open',this)">Ouverts</button>
+                <button class="chip" data-ticket-filter="all" onclick="filterQueue('all',this)">Tous</button>
+                <button class="chip" data-ticket-filter="critical" onclick="filterQueue('critical',this)">Critiques</button>
+                <button class="chip" data-ticket-filter="resolved" onclick="filterQueue('resolved',this)">Résolus</button>
+              </div>
+              <button id="metricsRefreshBtn" class="btn ghost">↻ Actualiser</button>
+            </div>
+            <div id="ticketQueue" style="display:flex;flex-direction:column;gap:8px">
+              <div style="color:var(--text-muted);font-size:0.85rem;padding:20px;text-align:center">Chargement des tickets…</div>
+            </div>
+            <div id="metricsStats" style="display:none"></div>
           </div>
         </div>
-        <div class="table-wrap">
-          <table id="diagnosticsTable">
-            <thead>
-              <tr>
-                <th>Module</th>
-                <th>Statut</th>
-                <th>Details</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </section>
 
-      <section class="card" id="invitesCard">
-        <div class="card-header">
-          <h3>Invitations utilisateurs</h3>
-          <button id="invitesReloadBtn" class="btn ghost">Recharger</button>
-        </div>
-        <form id="inviteForm" class="form two-columns">
-          <input name="email" placeholder="Email utilisateur" type="email" required />
-          <select name="role">
-            <option value="user">Utilisateur</option>
-            <option value="agent">Agent</option>
-            <option value="admin">Admin</option>
-          </select>
-          <input
-            name="expires_hours"
-            type="number"
-            min="1"
-            max="720"
-            placeholder="Expiration (heures)"
-          />
-          <button class="btn primary" type="submit">Creer invitation</button>
-          <p id="inviteStatus" class="status"></p>
-        </form>
-        <div class="table-wrap">
-          <table id="invitesTable">
-            <thead>
-              <tr>
-                <th>Email</th>
-                <th>Role</th>
-                <th>Statut</th>
-                <th>Expire</th>
-                <th>Token</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-        <p class="note">
-          L'utilisateur colle le token sur la page de connexion pour activer son
-          compte.
-        </p>
-      </section>
+        <!-- ══ ANALYTIQUES ══ -->
+        <div class="admin-panel" id="panel-analytics">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+            <h2 style="font-size:1.2rem;font-weight:800;color:var(--text-strong);letter-spacing:-0.02em">Analytiques</h2>
+            <button id="miniDashboardRefreshBtn" class="btn ghost">↻ Actualiser</button>
+          </div>
 
-      <section class="card" id="adminStatusCard">
-        <div class="card-header">
-          <h3>Etat entreprise</h3>
-          <button id="adminStatusRefreshBtn" class="btn ghost">Actualiser</button>
-        </div>
-        <div class="status-pill" id="adminStatusPill">
-          Verification en cours...
-        </div>
-        <div class="status-grid" id="adminStatusGrid"></div>
-      </section>
+          <!-- Mini KPIs -->
+          <div class="mini-kpis" id="miniDashboardCard">
+            <div class="mini-kpi tile-1">
+              <span id="miniKpiResponseLabel">Tps réponse</span>
+              <strong id="miniKpiResponseValue">—</strong>
+            </div>
+            <div class="mini-kpi tile-3">
+              <span id="miniKpiResolutionLabel">Tps résolution</span>
+              <strong id="miniKpiResolutionValue">—</strong>
+            </div>
+            <div class="mini-kpi tile-5">
+              <span id="miniKpiRatingLabel">Satisfaction</span>
+              <strong id="miniKpiRatingValue">—</strong>
+            </div>
+            <div class="mini-kpi tile-4">
+              <span id="miniKpiSlaLabel">SLA</span>
+              <strong id="miniKpiSlaValue">—</strong>
+            </div>
+          </div>
 
-      <section class="card" id="setupChecklistCard">
-        <div class="card-header">
-          <h3 id="checklistTitle">Checklist pre-prod</h3>
-          <div class="actions-inline">
-            <button id="checklistReloadBtn" class="btn ghost">Rafraichir</button>
-            <button id="checklistExportBtn" class="btn ghost">Exporter CSV</button>
+          <!-- Charts -->
+          <div class="chart-grid">
+            <div class="chart-card">
+              <div class="chart-title">Statuts tickets</div>
+              <div id="miniStatusBars" class="mini-bars bar-chart"></div>
+            </div>
+            <div class="chart-card">
+              <div class="chart-title">Priorités</div>
+              <div id="miniPriorityBars" class="mini-bars bar-chart"></div>
+            </div>
+            <div class="chart-card">
+              <div class="chart-title">Volume 14 jours</div>
+              <div id="miniVolumeBars" class="mini-volume sparkline"></div>
+            </div>
+          </div>
+
+          <p class="note" id="miniDashboardNote">Données des 14 derniers jours.</p>
+
+          <!-- Tickets récents -->
+          <div class="card">
+            <div class="card-header">
+              <h3>Tickets récents</h3>
+              <button id="recentTicketsRefreshBtn" class="btn ghost">Recharger</button>
+            </div>
+            <div class="ticket-cards" id="recentTicketsList"></div>
           </div>
         </div>
-        <div id="setupChecklist"></div>
-      </section>
 
-      <section class="card" id="adminGuideCard">
-        <div class="card-header">
-          <h3>Guide admin (3 etapes)</h3>
+        <!-- ══ PARAMÈTRES GLPI ══ -->
+        <div class="admin-panel" id="panel-settings">
+          <h2 style="font-size:1.2rem;font-weight:800;color:var(--text-strong);letter-spacing:-0.02em">Configuration</h2>
+
+          <!-- Entreprise -->
+          <div class="card" id="orgCard">
+            <div class="card-header">
+              <h3>Informations entreprise</h3>
+              <button id="orgReloadBtn" class="btn ghost">Recharger</button>
+            </div>
+            <form id="orgForm" class="form two-columns">
+              <input name="name" placeholder="Nom entreprise" required />
+              <input name="plan" placeholder="Plan (starter/pro/premium)" />
+              <button class="btn primary" type="submit">Sauvegarder</button>
+              <p id="orgStatus" class="status"></p>
+            </form>
+          </div>
+
+          <!-- Paramètres -->
+          <div class="card" id="orgSettingsCard">
+            <div class="card-header">
+              <h3>Connexion & intégrations</h3>
+              <button id="orgSettingsReloadBtn" class="btn ghost">Recharger</button>
+            </div>
+            <form id="orgSettingsForm" class="form two-columns">
+              <div class="form-section">
+                <strong>Contact support</strong>
+                <input name="support_email" placeholder="Email support" type="email" />
+                <input name="support_phone" placeholder="Téléphone support" />
+                <input name="logo_url" placeholder="Logo URL (optionnel)" type="url" />
+                <input name="reminder_hours" type="number" min="1" max="720" placeholder="Rappel ticket (heures)" />
+              </div>
+              <div class="form-section">
+                <strong>Connexion GLPI</strong>
+                <label class="toggle">
+                  <input name="glpi_enabled" type="checkbox" />
+                  <span>Activer GLPI pour ce tenant</span>
+                </label>
+                <input name="glpi_base_url" placeholder="GLPI URL (https://glpi.exemple.tld)" type="url" />
+                <input name="glpi_app_token" placeholder="App-Token GLPI" />
+                <input name="glpi_user_token" placeholder="User-Token GLPI" />
+                <div class="actions-inline">
+                  <button id="glpiTestBtn" class="btn ghost" type="button">🔗 Tester la connexion</button>
+                  <span id="glpiTestStatus" class="status"></span>
+                </div>
+              </div>
+              <div class="form-section">
+                <strong>Active Directory / LDAP</strong>
+                <label class="toggle">
+                  <input name="ad_enabled" type="checkbox" />
+                  <span>Activer Active Directory</span>
+                </label>
+                <input name="ad_url" placeholder="URL LDAP (ldaps://ad.exemple.tld:636)" />
+                <input name="ad_domain" placeholder="Domaine (ex: EXEMPLE)" />
+                <input name="ad_base_dn" placeholder="Base DN (ex: DC=exemple,DC=local)" />
+                <input name="ad_bind_user" placeholder="Compte bind (ex: service@exemple.local)" />
+                <input name="ad_bind_password" placeholder="Mot de passe bind" type="password" />
+              </div>
+              <button class="btn primary" type="submit">Sauvegarder</button>
+              <p id="orgSettingsStatus" class="status"></p>
+            </form>
+          </div>
+
+          <!-- Checklist setup -->
+          <div class="card" id="setupChecklistCard">
+            <div class="card-header">
+              <h3 id="checklistTitle">Checklist mise en production</h3>
+              <div class="actions-inline">
+                <button id="checklistReloadBtn" class="btn ghost">Rafraîchir</button>
+                <button id="checklistExportBtn" class="btn ghost">CSV</button>
+              </div>
+            </div>
+            <div id="setupChecklist"></div>
+          </div>
+
+          <!-- Guide -->
+          <div class="card" id="adminGuideCard">
+            <div class="card-header"><h3>Démarrage en 3 étapes</h3></div>
+            <ol class="guide-list">
+              <li>Renseigner les tokens GLPI (URL, App-Token, User-Token) puis tester la connexion.</li>
+              <li>Configurer Active Directory si votre organisation utilise l'authentification centralisée.</li>
+              <li>Inviter vos utilisateurs par email et leur communiquer leur code entreprise.</li>
+            </ol>
+          </div>
         </div>
-        <ol class="guide-list">
-          <li>Renseigner GLPI (URL, tokens) puis tester la connexion.</li>
-          <li>Configurer Active Directory si besoin.</li>
-          <li>Lancer un test utilisateur pour verifier le flux.</li>
-        </ol>
-      </section>
-    </main>
 
-    <footer class="footer">
-      <button id="logoutBtnBottom" class="btn ghost" type="button">
-        Deconnexion
-      </button>
-      <a
-        class="footer-note footer-link"
-        id="footerCredit"
-        href="https://kah-digital-site.vercel.app/"
-        target="_blank"
-        rel="noopener"
-      >
-        Concu par Kah-Digital
-      </a>
+        <!-- ══ BASE DE CONNAISSANCES ══ -->
+        <div class="admin-panel" id="panel-kb">
+          <h2 style="font-size:1.2rem;font-weight:800;color:var(--text-strong);letter-spacing:-0.02em">Base de connaissances</h2>
+
+          <div class="card" id="kbCsvCard">
+            <div class="card-header"><h3>Importer des procédures (CSV)</h3></div>
+            <div class="actions-inline">
+              <input id="kbCsvImportInput" type="file" accept=".csv,text/csv" />
+              <button id="kbExportCsvBtn" class="btn ghost" type="button">Exporter CSV</button>
+              <button id="kbCsvTemplateBtn" class="btn ghost" type="button">Modèle CSV</button>
+            </div>
+            <div class="kb-export-filters mt-2">
+              <input id="kbExportQuery" type="search" placeholder="Mot-clé (optionnel)" />
+              <select id="kbExportLevel" class="kb-filter">
+                <option value="all">Tous niveaux</option>
+                <option value="n1">N1</option>
+                <option value="n2">N2</option>
+                <option value="n3">N3 + Infra</option>
+                <option value="infra">Infra</option>
+              </select>
+              <button id="kbExportFilteredBtn" class="btn ghost" type="button">Exporter filtré</button>
+            </div>
+            <p class="note mt-2">Colonnes attendues : <strong>title</strong>, <strong>content</strong>, source_type (opt), source_url (opt).</p>
+          </div>
+
+          <!-- Galerie captures -->
+          <div class="card" id="adminGalleryCard">
+            <div class="card-header">
+              <h3>Galerie captures utilisateurs</h3>
+              <button id="adminGalleryRefreshBtn" class="btn ghost">Recharger</button>
+            </div>
+            <div class="filter-row">
+              <button class="chip active" data-gallery-range="all">Tout</button>
+              <button class="chip" data-gallery-range="7">7j</button>
+              <button class="chip" data-gallery-range="30">30j</button>
+              <input id="adminGallerySearch" type="search" placeholder="Filtrer" />
+              <button id="adminGallerySearchBtn" class="btn ghost" type="button">Filtrer</button>
+              <span class="note" id="adminGalleryCount"></span>
+            </div>
+            <div class="gallery-grid" id="adminGalleryGrid"></div>
+            <p class="note" id="adminGalleryEmpty">Aucune capture pour l'instant.</p>
+          </div>
+        </div>
+
+        <!-- ══ UTILISATEURS ══ -->
+        <div class="admin-panel" id="panel-users">
+          <h2 style="font-size:1.2rem;font-weight:800;color:var(--text-strong);letter-spacing:-0.02em">Gestion utilisateurs</h2>
+
+          <div class="card" id="invitesCard">
+            <div class="card-header">
+              <h3>Inviter un utilisateur</h3>
+              <button id="invitesReloadBtn" class="btn ghost">Recharger</button>
+            </div>
+            <form id="inviteForm" class="form two-columns">
+              <input name="email" placeholder="Email utilisateur" type="email" required />
+              <select name="role" class="kb-filter">
+                <option value="user">Utilisateur</option>
+                <option value="agent">Agent IT</option>
+                <option value="admin">Administrateur</option>
+              </select>
+              <input name="expires_hours" type="number" min="1" max="720" placeholder="Expiration (heures)" />
+              <button class="btn primary" type="submit">Envoyer l'invitation</button>
+              <p id="inviteStatus" class="status"></p>
+            </form>
+            <div class="table-wrap mt-4">
+              <table id="invitesTable">
+                <thead><tr>
+                  <th>Email</th><th>Rôle</th><th>Statut</th><th>Expire</th><th>Token</th><th>Actions</th>
+                </tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+            <p class="note mt-2">Partagez le token avec l'utilisateur pour qu'il active son compte.</p>
+          </div>
+
+          <!-- État entreprise -->
+          <div class="card" id="adminStatusCard">
+            <div class="card-header">
+              <h3>État du tenant</h3>
+              <button id="adminStatusRefreshBtn" class="btn ghost">Actualiser</button>
+            </div>
+            <div class="status-pill" id="adminStatusPill">Vérification…</div>
+            <div class="status-grid" id="adminStatusGrid"></div>
+          </div>
+        </div>
+
+        <!-- ══ DIAGNOSTICS ══ -->
+        <div class="admin-panel" id="panel-diagnostics">
+          <h2 style="font-size:1.2rem;font-weight:800;color:var(--text-strong);letter-spacing:-0.02em">Diagnostics système</h2>
+
+          <div class="card">
+            <div class="card-header">
+              <h3>État des modules</h3>
+              <div class="actions-inline">
+                <button id="diagnosticsReloadBtn" class="btn ghost">Rafraîchir</button>
+                <button id="diagnosticsDeepBtn" class="btn ghost">Test complet</button>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table id="diagnosticsTable">
+                <thead><tr><th>Module</th><th>Statut</th><th>Détails</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /.admin-content -->
+    </div><!-- /.admin-layout -->
+
+    <!-- Footer minimal requis app.js -->
+    <footer class="footer" style="display:none">
+      <button id="logoutBtnBottom" class="btn ghost" type="button">Déconnexion</button>
+      <a class="footer-note footer-link" id="footerCredit" href="https://kah-digital-site.vercel.app/" target="_blank" rel="noopener">Kah-Digital</a>
     </footer>
 
+    <!-- Lightbox -->
     <div id="imageLightbox" class="image-lightbox hidden" aria-hidden="true">
       <div class="image-lightbox-overlay" data-lightbox-close></div>
       <div class="image-lightbox-content">
         <img id="imageLightboxImg" alt="Capture" />
         <div class="image-lightbox-actions">
-          <a id="imageLightboxDownload" class="btn ghost" download>Telecharger</a>
-          <button id="imageLightboxClose" class="btn ghost" type="button">
-            Fermer
-          </button>
+          <a id="imageLightboxDownload" class="btn ghost" download>Télécharger</a>
+          <button id="imageLightboxClose" class="btn ghost" type="button">Fermer</button>
         </div>
       </div>
     </div>
 
-    <script src="/app/i18n.js?v=20260310-7" defer></script>
-    <script src="/app/app.js?v=20260310-7" defer></script>
-    <script src="/app/logout.js?v=20260310-7" defer></script>
+    <script src="/app/i18n.js?v=20260509" defer></script>
+    <script src="/app/app.js?v=20260509" defer></script>
+    <script src="/app/logout.js?v=20260509" defer></script>
+    <script>
+    // ─── Navigation sidebar ──────────────────────────────────
+    function showPanel(name, btn) {
+      document.querySelectorAll('.admin-panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+      const panel = document.getElementById('panel-' + name);
+      if (panel) panel.classList.add('active');
+      if (btn) btn.classList.add('active');
+    }
+
+    // ─── Afficher le layout admin une fois connecté ──────────
+    // app.js gère l'auth — on écoute un event custom ou on observe loginCard
+    const loginObs = new MutationObserver(() => {
+      const loginCard = document.getElementById('loginCard');
+      if (loginCard && loginCard.classList.contains('hidden')) {
+        const layout = document.getElementById('adminLayout');
+        if (layout) layout.style.display = 'grid';
+        loadTicketQueue();
+        loadKpis();
+        startAutoRefresh();
+      }
+    });
+    const loginCard = document.getElementById('loginCard');
+    if (loginCard) loginObs.observe(loginCard, { attributes: true, attributeFilter: ['class'] });
+
+    // ─── File de tickets ─────────────────────────────────────
+    let currentFilter = 'open';
+    let allTickets = [];
+
+    function filterQueue(filter, btn) {
+      currentFilter = filter;
+      document.querySelectorAll('[data-ticket-filter]').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      renderQueue();
+    }
+
+    async function loadTicketQueue() {
+      const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
+      if (!token) return;
+      try {
+        const res = await fetch('/tickets', { headers: { 'Authorization': 'Bearer ' + token } });
+        if (!res.ok) return;
+        const data = await res.json();
+        allTickets = (data.items || data || []).sort((a, b) => {
+          const pOrder = { critical: 0, high: 1, medium: 2, low: 3 };
+          return (pOrder[a.priority] ?? 2) - (pOrder[b.priority] ?? 2);
+        });
+        renderQueue();
+        updateKpisFromTickets();
+      } catch(e) {}
+    }
+
+    function renderQueue() {
+      const container = document.getElementById('ticketQueue');
+      if (!container) return;
+      const filtered = allTickets.filter(t => {
+        if (currentFilter === 'all') return true;
+        if (currentFilter === 'critical') return t.priority === 'critical' || t.priority === 'high';
+        return t.status === currentFilter;
+      });
+      if (!filtered.length) {
+        container.innerHTML = '<div style="color:var(--text-muted);font-size:0.85rem;padding:24px;text-align:center">✓ Aucun ticket dans cette catégorie</div>';
+        return;
+      }
+      container.innerHTML = filtered.map(t => renderTicketRow(t)).join('');
+      container.querySelectorAll('.ticket-row').forEach(row => {
+        row.addEventListener('click', () => {
+          const exp = row.nextElementSibling;
+          if (exp && exp.classList.contains('ticket-expand')) {
+            exp.classList.toggle('open');
+            row.classList.toggle('expanded');
+          }
+        });
+      });
+    }
+
+    function renderTicketRow(t) {
+      const age = formatAge(t.created_at);
+      const prioClass = { critical:'p-critical', high:'p-high', medium:'p-medium', low:'p-low' }[t.priority] || 'p-medium';
+      const prioLabel = { critical:'🔴 Critique', high:'🟠 Haute', medium:'🔵 Normale', low:'🟢 Basse' }[t.priority] || t.priority;
+      const catEmoji = { email:'📧', printer:'🖨️', network:'🌐', vpn:'🔒', password:'🔑', hardware:'💻', software:'⚙️', security:'🚨', access:'🔓', general:'🎫' }[t.category] || '🎫';
+      const statusTag = t.status === 'resolved'
+        ? '<span class="tag resolved">Résolu</span>'
+        : t.status === 'open'
+        ? '<span class="tag open">Ouvert</span>'
+        : `<span class="tag pending">${t.status}</span>`;
+      const summary = (t.description || '').split('\n')[0].slice(0, 120);
+      const ai = t.ai_suggestion
+        ? `<div class="ai-insight"><div class="ai-insight-label">✨ Suggestion IA</div>${t.ai_suggestion}</div>`
+        : '';
+      return `
+        <div class="ticket-row">
+          <div class="ticket-row-priority ${prioClass}"></div>
+          <div class="ticket-row-body">
+            <div class="ticket-row-title">${catEmoji} ${escHtml(t.title || 'Sans titre')}</div>
+            <div class="ticket-row-meta">
+              <span class="ticket-row-time">${age}</span>
+              ${statusTag}
+              <span class="tag medium">${escHtml(t.category || 'general')}</span>
+            </div>
+          </div>
+          <span class="tag" style="font-size:0.72rem">${prioLabel}</span>
+          <span class="tag" style="opacity:0.6;font-size:0.72rem">#${(t.id||'').slice(0,8)}</span>
+          <span style="color:var(--text-muted);font-size:1rem">▾</span>
+        </div>
+        <div class="ticket-expand">
+          <p style="font-size:0.84rem;color:var(--text-muted);line-height:1.6">${escHtml(summary)}</p>
+          ${ai}
+          <div class="ticket-actions-row">
+            ${t.status !== 'resolved' ? `<button class="btn primary" onclick="closeTicket('${t.id}',this)">✓ Marquer résolu</button>` : ''}
+            ${t.external_url ? `<a class="btn ghost" href="${t.external_url}" target="_blank">Voir dans GLPI →</a>` : ''}
+            <button class="btn ghost" onclick="generateAiDraft('${t.id}',this)">✨ Réponse IA</button>
+            <button class="btn ghost" onclick="copyTicketSummary('${t.id}')">📋 Copier résumé</button>
+          </div>
+        </div>
+      `;
+    }
+
+    async function generateAiDraft(id, btn) {
+      const t = allTickets.find(x => x.id === id);
+      if (!t) return;
+      const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
+      if (!token) return;
+      btn.disabled = true; btn.textContent = '⏳ Génération…';
+      try {
+        const res = await fetch('/chat', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: t.description || t.title, language: 'fr' })
+        });
+        const data = await res.json();
+        const answer = data.answer || (data.reply) || '';
+        if (answer) {
+          const expandEl = btn.closest('.ticket-expand');
+          let draftBox = expandEl && expandEl.querySelector('.ai-draft-box');
+          if (!draftBox) {
+            draftBox = document.createElement('div');
+            draftBox.className = 'ai-draft-box';
+            draftBox.style.cssText = 'background:var(--bg3);border:1px solid var(--stroke2);border-radius:var(--radius);padding:12px 14px;font-size:0.84rem;line-height:1.6;white-space:pre-wrap;margin-top:4px';
+            const copyBtn = document.createElement('button');
+            copyBtn.className = 'btn ghost';
+            copyBtn.style.marginTop = '8px';
+            copyBtn.textContent = '📋 Copier la réponse';
+            copyBtn.onclick = () => navigator.clipboard.writeText(draftBox.dataset.raw || '').catch(()=>{});
+            draftBox.dataset.raw = answer;
+            draftBox.innerHTML = '<div style="font-size:0.68rem;font-weight:800;color:var(--accent);text-transform:uppercase;letter-spacing:0.09em;margin-bottom:6px">✨ Brouillon IA — Copier-coller dans GLPI</div>' + escHtml(answer);
+            draftBox.appendChild(copyBtn);
+            if (expandEl) expandEl.appendChild(draftBox);
+          } else {
+            draftBox.dataset.raw = answer;
+          }
+        }
+        btn.textContent = '✨ Régénérer';
+        btn.disabled = false;
+      } catch(e) { btn.disabled = false; btn.textContent = '✨ Réponse IA'; }
+    }
+
+    async function closeTicket(id, btn) {
+      const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
+      if (!token) return;
+      btn.disabled = true; btn.textContent = '…';
+      try {
+        await fetch('/tickets/' + id, {
+          method: 'PATCH',
+          headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: 'resolved' })
+        });
+        allTickets = allTickets.map(t => t.id === id ? {...t, status: 'resolved'} : t);
+        renderQueue();
+        updateKpisFromTickets();
+      } catch(e) { btn.disabled = false; btn.textContent = '✓ Résolu'; }
+    }
+
+    function copyTicketSummary(id) {
+      const t = allTickets.find(x => x.id === id);
+      if (!t) return;
+      const text = `Ticket: ${t.title}\nCatégorie: ${t.category} | Priorité: ${t.priority}\nStatut: ${t.status}\n\n${t.description || ''}`;
+      navigator.clipboard.writeText(text).catch(() => {});
+    }
+
+    function updateKpisFromTickets() {
+      const open = allTickets.filter(t => t.status === 'open').length;
+      const critical = allTickets.filter(t => t.priority === 'critical' || t.priority === 'high').length;
+      const resolved = allTickets.filter(t => t.status === 'resolved').length;
+      const el = id => document.getElementById(id);
+      if (el('kpiOpen')) el('kpiOpen').textContent = open;
+      if (el('kpiCritical')) el('kpiCritical').textContent = critical;
+      if (el('kpiResolved')) el('kpiResolved').textContent = resolved;
+      if (el('sidebarOpenCount')) el('sidebarOpenCount').textContent = open;
+      el('kpiCritical').parentElement.className = 'kpi-card ' + (critical > 0 ? 'danger' : 'success');
+    }
+
+    async function loadKpis() {
+      const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
+      if (!token) return;
+      try {
+        const res = await fetch('/admin/metrics', { headers: { 'Authorization': 'Bearer ' + token } });
+        if (!res.ok) return;
+        const d = await res.json();
+        const el = id => document.getElementById(id);
+        if (el('kpiAvgTime')) el('kpiAvgTime').textContent = d.minutes_economisees ? d.minutes_economisees + 'min' : '—';
+        if (el('kpiAiRate')) el('kpiAiRate').textContent = d.resolution_rate ? d.resolution_rate + '%' : '—';
+        if (el('kpiAiRateTrend')) el('kpiAiRateTrend').textContent = d.resolution_rate > 50 ? '↑ Au-dessus de la moyenne' : '';
+      } catch(e) {}
+    }
+
+    // ─── Refresh buttons + auto-poll 60s ────────────────────
+    let autoRefreshTimer = null;
+    function startAutoRefresh() {
+      if (autoRefreshTimer) clearInterval(autoRefreshTimer);
+      autoRefreshTimer = setInterval(() => {
+        loadTicketQueue();
+        const badge = document.getElementById('refreshBtn');
+        if (badge) { badge.textContent = '↻ Actualisé'; setTimeout(() => { badge.textContent = '↻ Rafraîchir'; }, 2000); }
+      }, 60000);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const refs = document.getElementById('refreshBtn');
+      const mrf = document.getElementById('metricsRefreshBtn');
+      if (refs) refs.addEventListener('click', () => { loadTicketQueue(); loadKpis(); });
+      if (mrf) mrf.addEventListener('click', () => { loadTicketQueue(); loadKpis(); });
+
+      // Logout sidebar
+      const lsb = document.getElementById('logoutBtnSidebar');
+      if (lsb) lsb.addEventListener('click', () => {
+        localStorage.removeItem('auth_token');
+        sessionStorage.removeItem('auth_token');
+        location.reload();
+      });
+    });
+
+    // ─── Helpers ─────────────────────────────────────────────
+    function formatAge(iso) {
+      if (!iso) return '';
+      const diff = Date.now() - new Date(iso).getTime();
+      const m = Math.floor(diff / 60000);
+      if (m < 1) return 'À l\'instant';
+      if (m < 60) return `Il y a ${m} min`;
+      const h = Math.floor(m / 60);
+      if (h < 24) return `Il y a ${h}h`;
+      return `Il y a ${Math.floor(h/24)}j`;
+    }
+
+    function escHtml(s) {
+      return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+    </script>
   </body>
 </html>
