@@ -642,6 +642,26 @@ router.get("/glpi/test", authRequired, requireAdmin, async (req, res) => {
   }
 });
 
+// POST /admin/glpi/test — teste des credentials fournis directement (Setup Rapide)
+router.post("/glpi/test", authRequired, requireAdmin, async (req, res) => {
+  const { baseUrl, appToken, userToken } = req.body || {};
+  const glpiConfig = {
+    enabled: true,
+    baseUrl: (baseUrl || "").trim(),
+    appToken: (appToken || "").trim(),
+    userToken: (userToken || "").trim()
+  };
+  if (!glpiConfig.baseUrl || !glpiConfig.userToken) {
+    return res.status(400).json({ ok: false, error: "glpi_url_and_user_token_required" });
+  }
+  try {
+    await testGlpiConnection(glpiConfig);
+    return res.json({ ok: true });
+  } catch (err) {
+    return res.status(500).json({ ok: false, error: String(err.message || "glpi_connection_failed") });
+  }
+});
+
 router.post("/restore", authRequired, requireAdmin, upload.single("file"), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: "missing_file" });

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>SupportAI — Tableau de bord technicien</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
-    <link rel="stylesheet" href="/app/styles.css?v=20260509" />
+    <link rel="stylesheet" href="/app/styles.css?v=20260512" />
     <style>
       /* ─── Layout 2 colonnes sur desktop ── */
       body { overflow-x: hidden; }
@@ -98,46 +98,69 @@
       }
 
       .kpi-card {
-        background: var(--card);
+        background: linear-gradient(145deg, rgba(255,255,255,0.03), rgba(255,255,255,0)), var(--card);
         border: 1px solid var(--stroke);
-        border-radius: var(--radius);
-        padding: 16px;
+        border-radius: 18px;
+        padding: 20px;
         display: flex;
         flex-direction: column;
-        gap: 4px;
-        transition: border-color 0.2s;
+        gap: 6px;
+        transition: all 0.22s cubic-bezier(0.4,0,0.2,1);
+        box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+        position: relative;
+        overflow: hidden;
       }
 
-      .kpi-card:hover { border-color: var(--stroke2); }
+      .kpi-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+      }
+
+      .kpi-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,0.5); border-color: rgba(79,142,247,0.25); }
       .kpi-card.accent { border-left: 3px solid var(--accent); }
       .kpi-card.success { border-left: 3px solid var(--success); }
       .kpi-card.warning { border-left: 3px solid var(--warning); }
-      .kpi-card.danger { border-left: 3px solid var(--danger); }
+      .kpi-card.danger  { border-left: 3px solid var(--danger); }
+
+      .kpi-icon {
+        font-size: 1.4rem;
+        margin-bottom: 4px;
+        display: block;
+      }
 
       .kpi-val {
-        font-size: 2rem;
+        font-size: 2.4rem;
         font-weight: 900;
-        color: var(--text-strong);
-        letter-spacing: -0.05em;
+        letter-spacing: -0.06em;
         line-height: 1;
+        background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
       }
 
       .kpi-label {
-        font-size: 0.72rem;
+        font-size: 0.7rem;
         color: var(--text-muted);
-        font-weight: 600;
+        font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 0.06em;
+        letter-spacing: 0.08em;
       }
 
       .kpi-trend {
         font-size: 0.72rem;
-        font-weight: 600;
-        margin-top: 4px;
+        font-weight: 700;
+        margin-top: 2px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
       }
 
-      .kpi-trend.up { color: var(--success); }
-      .kpi-trend.down { color: var(--danger); }
+      .kpi-trend.up { color: #4ade80; }
+      .kpi-trend.down { color: #f87171; }
       .kpi-trend.neutral { color: var(--text-muted); }
 
       /* ─── Ticket Queue ── */
@@ -344,18 +367,26 @@
     <div id="statusBanner" class="status-banner hidden"></div>
 
     <!-- CONNEXION (affiché si non authentifié) -->
-    <section class="card" id="loginCard" style="max-width:420px;margin:60px auto;border-color:var(--stroke2);box-shadow:var(--shadow)">
-      <div class="card-header"><h3 id="loginTitle">Connexion Admin</h3></div>
-      <form id="loginForm" class="form">
-        <input id="loginTenantInput" name="tenant_code" placeholder="Code entreprise (ex: DEFAULT)" />
-        <input id="loginEmailInput" name="email" type="email" placeholder="Email" required />
-        <input id="loginPasswordInput" name="password" type="password" placeholder="Mot de passe" required />
-        <button class="btn primary" type="submit" id="loginSubmitBtn">Se connecter</button>
-        <p id="loginStatus" class="status"></p>
-      </form>
-      <div class="quick-login" id="quickLoginAdmin">
-        <a id="quickAdminBtn" class="btn ghost" href="/auth/quick-admin?redirect=/app/admin/" style="width:100%;justify-content:center">Connexion rapide (local)</a>
-        <p class="note">Mode développement uniquement.</p>
+    <section id="loginCard" style="position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;background:radial-gradient(ellipse 70% 60% at 20% 20%,rgba(79,142,247,0.09) 0%,transparent 60%),radial-gradient(ellipse 50% 50% at 80% 80%,rgba(123,111,240,0.07) 0%,transparent 60%),var(--bg)">
+      <div style="width:100%;max-width:400px;background:linear-gradient(145deg,rgba(255,255,255,0.03),rgba(255,255,255,0)),var(--card);border:1px solid rgba(255,255,255,0.09);border-radius:24px;padding:36px 32px 28px;box-shadow:0 24px 80px rgba(0,0,0,0.5),0 0 60px rgba(79,142,247,0.07);display:flex;flex-direction:column;gap:16px;animation:scaleIn 0.36s cubic-bezier(0.34,1.56,0.64,1) both">
+        <div style="text-align:center">
+          <div style="width:48px;height:48px;background:linear-gradient(135deg,rgba(79,142,247,0.2),rgba(123,111,240,0.2));border:1px solid rgba(79,142,247,0.3);border-radius:14px;display:inline-flex;align-items:center;justify-content:center;margin-bottom:14px;box-shadow:0 0 30px rgba(79,142,247,0.2);animation:glowPulse 3s ease infinite">
+            <img data-brand-logo data-default-logo="/app/assets/logo.svg" src="/app/assets/logo.svg" alt="Logo" style="width:26px;height:26px;filter:brightness(10);opacity:0.9" />
+          </div>
+          <div class="hero-badge" style="margin-bottom:10px">⚙️ Administration</div>
+          <h2 id="loginTitle" style="font-size:1.55rem;font-weight:900;background:linear-gradient(120deg,#fff 0%,#a5b4fc 55%,#4f8ef7 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-0.04em;margin:0 0 4px">Tableau de bord</h2>
+          <p style="font-size:0.85rem;color:var(--text-muted)">Accès administrateur — vérifiez vos identifiants</p>
+        </div>
+        <form id="loginForm" class="form">
+          <div style="position:relative"><span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);opacity:0.5;pointer-events:none">🏢</span><input id="loginTenantInput" name="tenant_code" placeholder="Code entreprise" style="padding-left:36px" /></div>
+          <div style="position:relative"><span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);opacity:0.5;pointer-events:none">✉️</span><input id="loginEmailInput" name="email" type="email" placeholder="Email administrateur" required style="padding-left:36px" /></div>
+          <div style="position:relative"><span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);opacity:0.5;pointer-events:none">🔑</span><input id="loginPasswordInput" name="password" type="password" placeholder="Mot de passe" required style="padding-left:36px" /></div>
+          <button class="btn primary" type="submit" id="loginSubmitBtn" style="width:100%;padding:12px;font-size:0.9rem;margin-top:4px">Se connecter →</button>
+          <p id="loginStatus" class="status"></p>
+        </form>
+        <div class="quick-login" id="quickLoginAdmin" style="text-align:center">
+          <a id="quickAdminBtn" class="btn ghost" href="/auth/quick-admin?redirect=/app/admin/" style="width:100%;justify-content:center;opacity:0.5;font-size:0.8rem">Connexion rapide (local)</a>
+        </div>
       </div>
     </section>
 
@@ -374,8 +405,11 @@
         </button>
 
         <div class="sidebar-section-label">Configuration</div>
+        <button class="sidebar-link" data-panel="quicksetup" onclick="showPanel('quicksetup',this)">
+          <span class="icon">⚡</span> Setup Rapide
+        </button>
         <button class="sidebar-link" data-panel="settings" onclick="showPanel('settings',this)">
-          <span class="icon">⚙️</span> Paramètres GLPI
+          <span class="icon">⚙️</span> Paramètres avancés
         </button>
         <button class="sidebar-link" data-panel="kb" onclick="showPanel('kb',this)">
           <span class="icon">📚</span> Base de connaissances
@@ -402,41 +436,48 @@
         <!-- ══ FILE DE TICKETS ══ -->
         <div class="admin-panel active" id="panel-queue">
 
+          <div class="panel-title-row">
+            <h2 class="panel-title">File de tickets</h2>
+            <button id="metricsRefreshBtnTop" class="btn ghost" onclick="document.getElementById('metricsRefreshBtn')?.click()">↻ Actualiser</button>
+          </div>
+
           <!-- KPI bar -->
           <div class="kpi-bar" id="kpiBar">
             <div class="kpi-card accent">
+              <span class="kpi-icon">🎫</span>
               <div class="kpi-val" id="kpiOpen">—</div>
               <div class="kpi-label">Tickets ouverts</div>
-              <div class="kpi-trend neutral" id="kpiOpenTrend"></div>
+              <div class="kpi-trend neutral" id="kpiOpenTrend">En attente de traitement</div>
             </div>
             <div class="kpi-card danger">
+              <span class="kpi-icon">🔴</span>
               <div class="kpi-val" id="kpiCritical">—</div>
-              <div class="kpi-label">Critiques</div>
-              <div class="kpi-trend" id="kpiCriticalTrend"></div>
+              <div class="kpi-label">Priorité haute</div>
+              <div class="kpi-trend" id="kpiCriticalTrend">Intervention urgente</div>
             </div>
             <div class="kpi-card success">
+              <span class="kpi-icon">✅</span>
               <div class="kpi-val" id="kpiResolved">—</div>
-              <div class="kpi-label">Résolus auj.</div>
-              <div class="kpi-trend neutral" id="kpiResolvedTrend"></div>
+              <div class="kpi-label">Résolus aujourd'hui</div>
+              <div class="kpi-trend up" id="kpiResolvedTrend">Problèmes clôturés</div>
             </div>
             <div class="kpi-card warning">
+              <span class="kpi-icon">⏱️</span>
               <div class="kpi-val" id="kpiAvgTime">—</div>
-              <div class="kpi-label">Tps moy. résolution</div>
-              <div class="kpi-trend neutral"></div>
+              <div class="kpi-label">Temps économisé</div>
+              <div class="kpi-trend neutral">Minutes gagnées par l'IA</div>
             </div>
             <div class="kpi-card">
+              <span class="kpi-icon">🤖</span>
               <div class="kpi-val" id="kpiAiRate">—</div>
-              <div class="kpi-label">Taux résolution IA</div>
-              <div class="kpi-trend up" id="kpiAiRateTrend"></div>
+              <div class="kpi-label">Résolution IA</div>
+              <div class="kpi-trend up" id="kpiAiRateTrend">Sans intervention humaine</div>
             </div>
           </div>
 
           <!-- Filtres et queue -->
           <div class="card" style="padding:20px">
             <div class="queue-header">
-              <h3 style="font-size:1rem;font-weight:700;color:var(--text-strong)">
-                🎫 File de tickets en attente
-              </h3>
               <div class="queue-filters">
                 <button class="chip active" data-ticket-filter="open" onclick="filterQueue('open',this)">Ouverts</button>
                 <button class="chip" data-ticket-filter="all" onclick="filterQueue('all',this)">Tous</button>
@@ -454,27 +495,31 @@
 
         <!-- ══ ANALYTIQUES ══ -->
         <div class="admin-panel" id="panel-analytics">
-          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
-            <h2 style="font-size:1.2rem;font-weight:800;color:var(--text-strong);letter-spacing:-0.02em">Analytiques</h2>
+          <div class="panel-title-row">
+            <h2 class="panel-title">Analytiques</h2>
             <button id="miniDashboardRefreshBtn" class="btn ghost">↻ Actualiser</button>
           </div>
 
           <!-- Mini KPIs -->
           <div class="mini-kpis" id="miniDashboardCard">
             <div class="mini-kpi tile-1">
-              <span id="miniKpiResponseLabel">Tps réponse</span>
+              <span class="kpi-icon" style="font-size:1.1rem">⚡</span>
+              <span id="miniKpiResponseLabel">Tps de réponse</span>
               <strong id="miniKpiResponseValue">—</strong>
             </div>
             <div class="mini-kpi tile-3">
-              <span id="miniKpiResolutionLabel">Tps résolution</span>
+              <span class="kpi-icon" style="font-size:1.1rem">🔧</span>
+              <span id="miniKpiResolutionLabel">Tps de résolution</span>
               <strong id="miniKpiResolutionValue">—</strong>
             </div>
             <div class="mini-kpi tile-5">
+              <span class="kpi-icon" style="font-size:1.1rem">⭐</span>
               <span id="miniKpiRatingLabel">Satisfaction</span>
               <strong id="miniKpiRatingValue">—</strong>
             </div>
             <div class="mini-kpi tile-4">
-              <span id="miniKpiSlaLabel">SLA</span>
+              <span class="kpi-icon" style="font-size:1.1rem">🎯</span>
+              <span id="miniKpiSlaLabel">SLA risque / breach</span>
               <strong id="miniKpiSlaValue">—</strong>
             </div>
           </div>
@@ -482,34 +527,89 @@
           <!-- Charts -->
           <div class="chart-grid">
             <div class="chart-card">
-              <div class="chart-title">Statuts tickets</div>
-              <div id="miniStatusBars" class="mini-bars bar-chart"></div>
+              <div class="chart-title">📊 Statuts des tickets</div>
+              <div id="miniStatusBars" class="mini-bars" style="display:flex;flex-direction:column;gap:8px"></div>
             </div>
             <div class="chart-card">
-              <div class="chart-title">Priorités</div>
-              <div id="miniPriorityBars" class="mini-bars bar-chart"></div>
+              <div class="chart-title">🎯 Répartition par priorité</div>
+              <div id="miniPriorityBars" class="mini-bars" style="display:flex;flex-direction:column;gap:8px"></div>
             </div>
             <div class="chart-card">
-              <div class="chart-title">Volume 14 jours</div>
-              <div id="miniVolumeBars" class="mini-volume sparkline"></div>
+              <div class="chart-title">📈 Volume — 14 derniers jours</div>
+              <div id="miniVolumeBars" class="mini-volume" style="display:flex;align-items:flex-end;gap:4px;height:90px;padding-top:8px"></div>
             </div>
           </div>
 
-          <p class="note" id="miniDashboardNote">Données des 14 derniers jours.</p>
+          <!-- Métriques détaillées -->
+          <div class="card" id="metricsStatsCard">
+            <div class="card-header">
+              <h3>Métriques détaillées</h3>
+              <button id="metricsRefreshBtn" class="btn ghost" style="display:none">↻</button>
+            </div>
+            <div id="metricsStats"></div>
+          </div>
 
           <!-- Tickets récents -->
           <div class="card">
             <div class="card-header">
               <h3>Tickets récents</h3>
-              <button id="recentTicketsRefreshBtn" class="btn ghost">Recharger</button>
+              <button id="recentTicketsRefreshBtn" class="btn ghost">↻ Recharger</button>
             </div>
             <div class="ticket-cards" id="recentTicketsList"></div>
           </div>
         </div>
 
+        <!-- ══ SETUP RAPIDE ══ -->
+        <div class="admin-panel" id="panel-quicksetup">
+          <h2 class="panel-title">⚡ Setup Rapide</h2>
+          <p style="color:var(--text-muted);margin-top:-12px;margin-bottom:8px;">Configurez l'outil en 60 secondes pour un nouveau client.</p>
+
+          <!-- Étape 1 : Entreprise -->
+          <div class="card">
+            <div class="card-header"><h3>❶ Entreprise</h3></div>
+            <div class="form">
+              <input id="qs-company" placeholder="Nom de l'entreprise *" style="font-size:1.05em" />
+            </div>
+          </div>
+
+          <!-- Étape 2 : GLPI -->
+          <div class="card">
+            <div class="card-header"><h3>❷ Connexion GLPI</h3></div>
+            <div class="form">
+              <input id="qs-glpi-url" placeholder="URL GLPI — ex: https://glpi.entreprise.fr" type="url" />
+              <input id="qs-glpi-app-token" placeholder="App-Token GLPI" autocomplete="off" />
+              <input id="qs-glpi-user-token" placeholder="User-Token GLPI" autocomplete="off" />
+              <div class="actions-inline" style="margin-top:4px">
+                <button id="qsTestGlpiBtn" class="btn ghost" type="button">🔗 Tester la connexion</button>
+                <span id="qsGlpiStatus" class="status"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bouton configurer -->
+          <div class="card" style="background:linear-gradient(135deg,rgba(79,142,247,0.08),rgba(123,111,240,0.06));border-color:rgba(79,142,247,0.25)">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:14px;padding:8px 0">
+              <button id="qsSaveBtn" class="btn primary" style="font-size:1.05em;padding:12px 32px;min-width:220px">
+                ✅ Configurer et démarrer
+              </button>
+              <span id="qsSaveStatus" class="status" style="text-align:center"></span>
+            </div>
+          </div>
+
+          <!-- Récap après save -->
+          <div class="card" id="qsSuccessCard" style="display:none;border-color:#22c55e40;background:rgba(34,197,94,0.06)">
+            <div class="card-header"><h3 style="color:#22c55e">✅ Configuration appliquée</h3></div>
+            <div id="qsSuccessBody" style="font-size:0.9em;color:var(--text-muted);line-height:1.8"></div>
+            <div class="actions-inline" style="margin-top:12px">
+              <button class="btn ghost" onclick="showPanel('queue', document.querySelector('[data-panel=queue]'))">→ Voir les tickets</button>
+              <button class="btn ghost" id="qsNewClientBtn">+ Nouveau client</button>
+            </div>
+          </div>
+        </div>
+
         <!-- ══ PARAMÈTRES GLPI ══ -->
         <div class="admin-panel" id="panel-settings">
-          <h2 style="font-size:1.2rem;font-weight:800;color:var(--text-strong);letter-spacing:-0.02em">Configuration</h2>
+          <h2 class="panel-title">Configuration</h2>
 
           <!-- Entreprise -->
           <div class="card" id="orgCard">
@@ -595,7 +695,7 @@
 
         <!-- ══ BASE DE CONNAISSANCES ══ -->
         <div class="admin-panel" id="panel-kb">
-          <h2 style="font-size:1.2rem;font-weight:800;color:var(--text-strong);letter-spacing:-0.02em">Base de connaissances</h2>
+          <h2 class="panel-title">Base de connaissances</h2>
 
           <div class="card" id="kbCsvCard">
             <div class="card-header"><h3>Importer des procédures (CSV)</h3></div>
@@ -639,7 +739,7 @@
 
         <!-- ══ UTILISATEURS ══ -->
         <div class="admin-panel" id="panel-users">
-          <h2 style="font-size:1.2rem;font-weight:800;color:var(--text-strong);letter-spacing:-0.02em">Gestion utilisateurs</h2>
+          <h2 class="panel-title">Utilisateurs</h2>
 
           <div class="card" id="invitesCard">
             <div class="card-header">
@@ -681,7 +781,7 @@
 
         <!-- ══ DIAGNOSTICS ══ -->
         <div class="admin-panel" id="panel-diagnostics">
-          <h2 style="font-size:1.2rem;font-weight:800;color:var(--text-strong);letter-spacing:-0.02em">Diagnostics système</h2>
+          <h2 class="panel-title">Diagnostics système</h2>
 
           <div class="card">
             <div class="card-header">
@@ -929,6 +1029,111 @@
         if (el('kpiAiRateTrend')) el('kpiAiRateTrend').textContent = d.resolution_rate > 50 ? '↑ Au-dessus de la moyenne' : '';
       } catch(e) {}
     }
+
+    // ══ SETUP RAPIDE ══════════════════════════════════════════
+
+    function qsSetStatus(el, msg, ok) {
+      el.textContent = msg;
+      el.style.color = ok === true ? '#22c55e' : ok === false ? '#ef4444' : 'var(--text-muted)';
+    }
+
+    // Test GLPI depuis le panel quicksetup
+    document.addEventListener('DOMContentLoaded', () => {
+
+      const testBtn  = document.getElementById('qsTestGlpiBtn');
+      const saveBtn  = document.getElementById('qsSaveBtn');
+      const newClientBtn = document.getElementById('qsNewClientBtn');
+
+      if (testBtn) testBtn.addEventListener('click', async () => {
+        const url   = document.getElementById('qs-glpi-url').value.trim();
+        const app   = document.getElementById('qs-glpi-app-token').value.trim();
+        const user  = document.getElementById('qs-glpi-user-token').value.trim();
+        const st    = document.getElementById('qsGlpiStatus');
+        if (!url || !user) { qsSetStatus(st, '⚠ URL et User-Token requis', false); return; }
+        testBtn.disabled = true;
+        qsSetStatus(st, 'Test en cours…', null);
+        try {
+          const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
+          const res = await fetch('/admin/glpi/test', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ baseUrl: url, appToken: app, userToken: user, enabled: true })
+          });
+          const data = await res.json();
+          if (res.ok && data.ok) {
+            qsSetStatus(st, '✅ Connexion GLPI OK !', true);
+          } else {
+            qsSetStatus(st, `❌ Échec : ${data.error || data.message || res.status}`, false);
+          }
+        } catch(e) {
+          qsSetStatus(st, `❌ Erreur réseau : ${e.message}`, false);
+        } finally {
+          testBtn.disabled = false;
+        }
+      });
+
+      if (saveBtn) saveBtn.addEventListener('click', async () => {
+        const company  = document.getElementById('qs-company').value.trim();
+        const glpiUrl  = document.getElementById('qs-glpi-url').value.trim();
+        const appToken = document.getElementById('qs-glpi-app-token').value.trim();
+        const userToken= document.getElementById('qs-glpi-user-token').value.trim();
+        const st       = document.getElementById('qsSaveStatus');
+
+        if (!company) { qsSetStatus(st, '⚠ Entrez le nom de l\'entreprise.', false); return; }
+
+        saveBtn.disabled = true;
+        qsSetStatus(st, 'Configuration en cours…', null);
+
+        const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
+        const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
+
+        try {
+          // 1) Mise à jour du nom d'entreprise
+          await fetch('/org', { method: 'PUT', headers, body: JSON.stringify({ name: company }) });
+
+          // 2) Mise à jour des settings GLPI
+          const settingsPayload = {};
+          if (glpiUrl)   { settingsPayload.glpi_base_url  = glpiUrl;  settingsPayload.glpi_enabled = true; }
+          if (appToken)  { settingsPayload.glpi_app_token  = appToken; }
+          if (userToken) { settingsPayload.glpi_user_token = userToken; }
+
+          if (Object.keys(settingsPayload).length > 0) {
+            const r2 = await fetch('/org/settings', { method: 'PUT', headers, body: JSON.stringify(settingsPayload) });
+            if (!r2.ok) throw new Error(`Settings: ${r2.status}`);
+          }
+
+          // Succès
+          qsSetStatus(st, '', null);
+          const card = document.getElementById('qsSuccessCard');
+          const body = document.getElementById('qsSuccessBody');
+          if (card) card.style.display = '';
+          if (body) body.innerHTML = `
+            <div>🏢 <strong>Entreprise :</strong> ${escHtml(company)}</div>
+            ${glpiUrl ? `<div>🔗 <strong>GLPI :</strong> ${escHtml(glpiUrl)}</div>` : ''}
+            ${glpiUrl ? `<div>✅ <strong>GLPI activé</strong> — les tickets seront créés automatiquement.</div>` : '<div>⚠️ GLPI non configuré — les tickets resteront internes.</div>'}
+            <div style="margin-top:8px;font-size:0.85em;color:#22c55e">Configuration sauvegardée ✓</div>
+          `;
+          card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+        } catch(e) {
+          qsSetStatus(st, `❌ Erreur : ${e.message}`, false);
+        } finally {
+          saveBtn.disabled = false;
+        }
+      });
+
+      // Reset formulaire pour nouveau client
+      if (newClientBtn) newClientBtn.addEventListener('click', () => {
+        ['qs-company','qs-glpi-url','qs-glpi-app-token','qs-glpi-user-token'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.value = '';
+        });
+        document.getElementById('qsGlpiStatus').textContent = '';
+        document.getElementById('qsSaveStatus').textContent = '';
+        document.getElementById('qsSuccessCard').style.display = 'none';
+      });
+
+    });
 
     // ─── Refresh buttons + auto-poll 60s ────────────────────
     let autoRefreshTimer = null;
