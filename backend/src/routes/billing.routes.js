@@ -14,6 +14,8 @@ const {
   getInvoiceById
 } = require("../services/billing.service");
 const { quoteEmailTemplate, invoiceEmailTemplate, formatMoney } = require("../utils/templates");
+const { createCheckoutSession, createPortalSession, handleWebhook, isConfigured, PLANS } = require("../services/stripe.service");
+const { loadDb, saveDb } = require("../services/store.service");
 
 const router = express.Router();
 
@@ -287,6 +289,117 @@ router.get("/invoices/:id/print", authRequired, (req, res) => {
 
   res.setHeader("Content-Type", "text/html; charset=utf-8");
   return res.send(html);
+});
+
+// ── Stripe SaaS subscription ──────────────────────────────────────────────────
+
+router.get("/plans", (req, res) => {
+  return res.json({
+    configured: isConfigured(),
+    plans: Object.entries(PLANS).map(([key, p]) => ({
+      id: key,
+      name: p.name,
+      amount_eur: (p.amount / 100).toFixed(2),
+    })),
+  });
+});
+
+router.post("/subscribe", authRequired, async (req, res) => {
+  if (!isConfigured()) {
+    return res.status(503).json({ error: "stripe_not_configured" });
+  }
+  const { plan, success_url, cancel_url } = req.body || {};
+  try {
+    const session = await createCheckoutSession({
+      tenantId: req.user.tenant_id,
+      plan: plan || "starter",
+      customerEmail: undefined,
+      successUrl: success_url,
+      cancelUrl: cancel_url,
+    });
+    return res.json(session);
+  } catch (err) {
+    return res.status(500).json({ error: "stripe_error", message: err.message });
+  }
+});
+
+router.post("/portal", authRequired, async (req, res) => {
+  if (!isConfigured()) {
+    return res.status(503).json({ error: "stripe_not_configured" });
+  }
+  const { customer_id, return_url } = req.body || {};
+  if (!customer_id) {
+    return res.status(400).json({ error: "customer_id_required" });
+  }
+  try {
+    const session = await createPortalSession({ customerId: customer_id, returnUrl: return_url });
+    return res.json(session);
+  } catch (err) {
+    return res.status(500).json({ error: "stripe_error", message: err.message });
+  }
+});
+
+// ── Statut abonnement du tenant ───────────────────────────────────────────────
+router.get("/status", authRequired, (req, res) => {
+  const db = loadDb();
+  const tenant = db.tenants.find(t => t.id === req.user.tenant_id);
+  if (!tenant) return res.status(404).json({ error: "tenant_not_found" });
+  return res.json({
+    plan: tenant.subscription_plan || "free",
+    status: tenant.subscription_status || "inactive",
+    stripe_customer_id: tenant.stripe_customer_id || null,
+    subscription_id: tenant.stripe_subscription_id || null,
+    current_period_end: tenant.subscription_period_end || null,
+  });
+});
+
+router.post("/webhook/stripe", express.raw({ type: "application/json" }), async (req, res) => {
+  const sig = req.headers["stripe-signature"];
+  try {
+    const event = await handleWebhook({ rawBody: req.body, signature: sig });
+    if (!event) return res.status(400).json({ error: "stripe_not_configured" });
+
+    const db = loadDb();
+
+    if (event.type === "checkout.session.completed") {
+      const session = event.data.object;
+      const tenantId = session.metadata?.tenant_id;
+      const plan = session.metadata?.plan || "starter";
+      if (tenantId) {
+        const tenant = db.tenants.find(t => t.id === tenantId);
+        if (tenant) {
+          tenant.stripe_customer_id = session.customer;
+          tenant.stripe_subscription_id = session.subscription;
+          tenant.subscription_plan = plan;
+          tenant.subscription_status = "active";
+          tenant.subscription_updated_at = new Date().toISOString();
+          saveDb(db);
+        }
+      }
+    } else if (event.type === "customer.subscription.updated") {
+      const sub = event.data.object;
+      const tenant = db.tenants.find(t => t.stripe_customer_id === sub.customer);
+      if (tenant) {
+        tenant.subscription_status = sub.status;
+        tenant.subscription_period_end = new Date(sub.current_period_end * 1000).toISOString();
+        tenant.subscription_updated_at = new Date().toISOString();
+        saveDb(db);
+      }
+    } else if (event.type === "customer.subscription.deleted") {
+      const sub = event.data.object;
+      const tenant = db.tenants.find(t => t.stripe_customer_id === sub.customer);
+      if (tenant) {
+        tenant.subscription_status = "cancelled";
+        tenant.subscription_plan = "free";
+        tenant.subscription_updated_at = new Date().toISOString();
+        saveDb(db);
+      }
+    }
+
+    return res.json({ received: true });
+  } catch (err) {
+    return res.status(400).json({ error: err.message });
+  }
 });
 
 module.exports = router;

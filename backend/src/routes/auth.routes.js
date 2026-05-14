@@ -76,7 +76,7 @@ router.post("/login", loginLimiter(), (req, res) => {
       role: effectiveRole
     },
     env.jwtSecret,
-    { expiresIn: "1h" }
+    { expiresIn: "8h" }
   );
 
   logEvent({
@@ -125,7 +125,7 @@ router.post("/quick-admin", (req, res) => {
       role: effectiveRole
     },
     env.jwtSecret,
-    { expiresIn: "1h" }
+    { expiresIn: "8h" }
   );
 
   logEvent({
@@ -174,7 +174,7 @@ router.get("/quick-admin", (req, res) => {
       role: effectiveRole
     },
     env.jwtSecret,
-    { expiresIn: "1h" }
+    { expiresIn: "8h" }
   );
 
   const rawRedirect = typeof req.query.redirect === "string" ? req.query.redirect : "";
@@ -293,7 +293,7 @@ router.post("/quick-user", (req, res) => {
       role: "user"
     },
     env.jwtSecret,
-    { expiresIn: "1h" }
+    { expiresIn: "8h" }
   );
 
   logEvent({
@@ -312,6 +312,26 @@ router.post("/quick-user", (req, res) => {
       tenant_id: user.tenant_id
     }
   });
+});
+
+router.post("/refresh", authRequired, (req, res) => {
+  if (!env.jwtSecret) {
+    return res.status(500).json({ error: "missing_jwt_secret" });
+  }
+  const user = findUserById(req.user.sub);
+  if (!user) {
+    return res.status(404).json({ error: "user_not_found" });
+  }
+  const effectiveRole =
+    env.superAdminEmail && user.email === env.superAdminEmail
+      ? "superadmin"
+      : user.role;
+  const token = jwt.sign(
+    { sub: user.id, tenant_id: user.tenant_id, role: effectiveRole },
+    env.jwtSecret,
+    { expiresIn: "8h" }
+  );
+  return res.json({ token });
 });
 
 module.exports = router;

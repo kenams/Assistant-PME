@@ -5,430 +5,639 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Support IT</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
-    <link rel="stylesheet" href="/app/styles.css?v=20260509" />
+    <link rel="stylesheet" href="/app/styles.css?v=20260515" />
     <style>
-      /* ── Layout chat plein écran ── */
+      /* ===============================================
+         SUPPORT IA -- WARM DARK GOLD -- REFONTE V2
+         Layout moderne, spacieux, premium
+      =============================================== */
+
+      /* -- Variables -- */
+      :root {
+        --bg:          #0c0a09;
+        --bg2:         #111009;
+        --bg3:         #181512;
+        --card:        #181512;
+        --stroke:      rgba(212,168,83,0.09);
+        --stroke2:     rgba(212,168,83,0.18);
+        --text:        #f0ece5;
+        --text-strong: #faf6ef;
+        --text-muted:  #7d7265;
+        --accent:      #4f8ef7;
+        --gold:        #c9974a;
+        --gold-dim:    rgba(201,151,74,0.15);
+        --gold-glow:   rgba(201,151,74,0.28);
+        --radius:      12px;
+        --shadow:      0 6px 32px rgba(0,0,0,0.55);
+        --transition:  0.18s cubic-bezier(0.4,0,0.2,1);
+        --bg-card:     #181512;
+        --stroke-accent: rgba(201,151,74,0.3);
+        --radius-xl:   20px;
+        --gradient-card: linear-gradient(180deg, rgba(255,255,255,0.018) 0%, transparent 100%);
+        --glass-border: rgba(201,151,74,0.18);
+      }
+
+      /* -- Reset -- */
+      * { box-sizing: border-box; }
+      ::-webkit-scrollbar { width: 5px; height: 5px; }
+      ::-webkit-scrollbar-track { background: transparent; }
+      ::-webkit-scrollbar-thumb { background: rgba(201,151,74,0.2); border-radius: 10px; }
+
+      /* -- Body -- */
       body {
         display: flex;
         flex-direction: column;
         height: 100vh;
         overflow: hidden;
-      }
-      body .topbar { flex-shrink: 0; }
-      body main {
-        flex: 1;
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
-        padding: 0;
-        max-width: 100%;
-        gap: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: 'Inter', sans-serif;
       }
 
-      /* ── Section chat principale ── */
+      /* ===================================
+         TOPBAR — 60px, glassmorphism
+      =================================== */
+      .topbar {
+        flex-shrink: 0;
+        height: 60px;
+        padding: 0 24px;
+        position: relative;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        background: rgba(12,10,9,0.85);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+      }
+      .topbar .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+      .topbar .brand-logo { width: 28px; height: 28px; }
+      .topbar #brandName {
+        font-size: 1rem; font-weight: 800; letter-spacing: -0.02em;
+        background: linear-gradient(120deg, #faf6ef 0%, #e8c06d 55%, #c9974a 100%);
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      }
+      .topbar .role-banner { display: none; }
+      .topbar .lang-switcher { display: flex; gap: 4px; }
+      .net-status { display: none; }
+      #showSupportBtn { display: none; }
+      #sessionBadge { display: none; }
+      body:not(.unauthenticated) #topbarAiBadge { display: flex; }
+      #showTicketsBtn {
+        position: relative;
+        border-color: rgba(79,142,247,0.35) !important;
+        color: #6ba4ff !important;
+        padding: 6px 14px !important;
+        font-size: 0.82rem !important;
+        font-weight: 600 !important;
+        border-radius: 20px !important;
+        transition: all var(--transition);
+      }
+      #showTicketsBtn:hover {
+        background: rgba(79,142,247,0.12) !important;
+        border-color: rgba(79,142,247,0.55) !important;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 16px rgba(79,142,247,0.2);
+      }
+
+      /* -- Main -- */
+      body > main {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        padding: 0;
+        max-width: 100%;
+      }
+
+      /* -- Elements caches (compatibilite app.js) -- */
+      #assistantTabBtn, #kbTabBtn,
+      .tab-switch, #newChatBtn, #printSummaryBtn,
+      .card-header, .user-hint, .beginner-step,
+      #userSummaryCard, #presentationKpis,
+      #statusCard, #contextCard, .kb-actions,
+      #quickTicketCard, .chat-search, .chat-attachments,
+      #chatGallery, #kbTabPanel, .kb-search, .kb-results,
+      #kbSearchResultsUser, .grid > .card:not(#kbCard),
+      #historyPanel, #supportHoursCard, #simpleDashboard { display: none; }
+
+      /* -- kbCard -- */
       #kbCard {
         flex: 1;
         display: flex;
         flex-direction: column;
+        min-height: 0;
+        background: var(--bg);
+        overflow: hidden;
         border: none;
         border-radius: 0;
-        background: var(--bg);
         padding: 0;
-        overflow: hidden;
       }
 
-      /* ── Topbar minimaliste ── */
-      .topbar {
-        padding: 0 20px;
-        height: 56px;
-      }
-      .topbar .role-banner { display: none; }
-      .topbar .lang-switcher { display: none; }
-      .net-status { display: none; }
-      #showSupportBtn { display: none; }
-      #sessionBadge { display: none !important; }
-
-      /* ── Zone messages ── */
-      #chatWindow {
+      /* ===================================
+         LAYOUT DEUX COLONNES
+         Left 400px: quick issues | Right: chat
+      =================================== */
+      #assistantTabPanel {
         flex: 1;
-        overflow-y: auto;
-        padding: 24px 20px 16px;
         display: flex;
-        flex-direction: column;
-        gap: 14px;
+        flex-direction: row;
+        overflow: hidden;
         min-height: 0;
-        max-height: none;
-        border: none;
-        margin: 0;
       }
 
-      /* ── Message bulles ── */
-      .chat-msg {
+      /* -- Colonne gauche — 400px -- */
+      #quickIssuesWrapper {
+        width: 400px;
+        min-width: 260px;
+        flex-shrink: 0;
         display: flex;
         flex-direction: column;
-        max-width: 75%;
-        gap: 4px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        border-right: 1px solid var(--stroke2);
+        background: var(--bg2);
+        scrollbar-width: thin;
+        scrollbar-color: rgba(201,151,74,0.2) transparent;
       }
-      .chat-msg.user { align-self: flex-end; align-items: flex-end; }
-      .chat-msg.bot  { align-self: flex-start; align-items: flex-start; }
+
+      /* -- Colonne droite -- */
+      .chat-panel {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        min-height: 0;
+        min-width: 0;
+        background: var(--bg);
+      }
+
+      /* ===================================
+         QUICK ISSUES — HEADER GRADIENT
+      =================================== */
+      .qi-header {
+        display: flex; align-items: center;
+        justify-content: space-between;
+        padding: 18px 20px 14px;
+        border-bottom: 1px solid var(--stroke);
+        gap: 12px; flex-shrink: 0;
+        background: linear-gradient(180deg, rgba(201,151,74,0.05) 0%, transparent 100%);
+      }
+      .qi-header-left { display: flex; flex-direction: column; gap: 3px; }
+      .qi-header-title {
+        font-size: 1rem; font-weight: 800; color: var(--text-strong);
+        letter-spacing: -0.025em;
+        background: linear-gradient(120deg, #faf6ef 0%, #e8c06d 60%);
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      }
+      .qi-header-sub { font-size: 0.7rem; color: var(--text-muted); line-height: 1.4; }
+      .qi-ai-badge {
+        display: flex; align-items: center; gap: 6px;
+        background: rgba(74,222,128,0.08);
+        border: 1px solid rgba(74,222,128,0.22);
+        border-radius: 20px; padding: 5px 12px;
+        font-size: 0.7rem; font-weight: 700; color: #4ade80;
+        letter-spacing: 0.04em; flex-shrink: 0;
+      }
+      .qi-ai-dot { width: 6px; height: 6px; background: #4ade80; border-radius: 50%; animation: qiPulse 2s ease infinite; }
+      @keyframes qiPulse {
+        0%,100% { opacity:1; box-shadow:0 0 0 0 rgba(74,222,128,0.5); }
+        50%      { opacity:0.8; box-shadow:0 0 0 5px rgba(74,222,128,0); }
+      }
+
+      .qi-search-wrap { padding: 12px 16px 8px; position: relative; flex-shrink: 0; }
+      .qi-search-icon {
+        position: absolute; left: 28px; top: 50%;
+        transform: translateY(-50%); font-size: 0.8rem; opacity: 0.4; pointer-events: none;
+      }
+      .qi-search-input {
+        width: 100%; background: rgba(255,255,255,0.03);
+        border: 1px solid var(--stroke2); border-radius: 12px;
+        padding: 9px 14px 9px 34px; color: var(--text);
+        font-family: inherit; font-size: 0.83rem; outline: none;
+        transition: all var(--transition);
+      }
+      .qi-search-input:focus {
+        border-color: rgba(201,151,74,0.5);
+        background: rgba(201,151,74,0.03);
+        box-shadow: 0 0 0 3px rgba(201,151,74,0.1);
+      }
+      .qi-search-input::placeholder { color: var(--text-muted); opacity: 0.55; }
+
+      /* -- Chips box -- */
+      #myChipsBox { padding: 10px 14px 12px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+
+      /* -- Rows = cards -- */
+      .qi-row {
+        display: flex; flex-wrap: wrap; gap: 6px;
+        padding: 14px 14px 12px;
+        background: rgba(255,255,255,0.018);
+        border: 1px solid var(--stroke);
+        border-left: 3px solid transparent;
+        border-radius: 12px;
+        transition: background var(--transition), box-shadow var(--transition);
+      }
+      .qi-row:hover {
+        background: rgba(255,255,255,0.032);
+        box-shadow: 0 2px 16px rgba(0,0,0,0.25);
+      }
+
+      /* -- Cat label — bigger, with icon space -- */
+      .qi-cat {
+        font-size: 0.7rem; font-weight: 800;
+        text-transform: uppercase; letter-spacing: 0.07em;
+        flex-basis: 100%; padding-bottom: 8px;
+        display: flex; align-items: center; gap: 6px;
+      }
+      .qi-count {
+        display: inline-flex; align-items: center; justify-content: center;
+        min-width: 18px; height: 16px;
+        background: rgba(255,255,255,0.07); border-radius: 8px; padding: 0 5px;
+        font-size: 0.6rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0;
+        margin-left: auto;
+      }
+
+      /* -- Color coding per category -- */
+      .qi-row:nth-child(1)  { border-left-color: rgba(79,142,247,0.6); }  .qi-row:nth-child(1)  .qi-cat { color: #4f8ef7; }
+      .qi-row:nth-child(2)  { border-left-color: rgba(34,197,94,0.6); }   .qi-row:nth-child(2)  .qi-cat { color: #22c55e; }
+      .qi-row:nth-child(3)  { border-left-color: rgba(167,139,250,0.6); } .qi-row:nth-child(3)  .qi-cat { color: #a78bfa; }
+      .qi-row:nth-child(4)  { border-left-color: rgba(249,115,22,0.6); }  .qi-row:nth-child(4)  .qi-cat { color: #f97316; }
+      .qi-row:nth-child(5)  { border-left-color: rgba(236,72,153,0.6); }  .qi-row:nth-child(5)  .qi-cat { color: #ec4899; }
+      .qi-row:nth-child(6)  { border-left-color: rgba(20,184,166,0.6); }  .qi-row:nth-child(6)  .qi-cat { color: #14b8a6; }
+      .qi-row:nth-child(7)  { border-left-color: rgba(239,68,68,0.6); }   .qi-row:nth-child(7)  .qi-cat { color: #ef4444; }
+      .qi-row:nth-child(8)  { border-left-color: rgba(6,182,212,0.6); }   .qi-row:nth-child(8)  .qi-cat { color: #06b6d4; }
+      .qi-row:nth-child(9)  { border-left-color: rgba(234,179,8,0.6); }   .qi-row:nth-child(9)  .qi-cat { color: #eab308; }
+      .qi-row:nth-child(10) { border-left-color: rgba(99,102,241,0.6); }  .qi-row:nth-child(10) .qi-cat { color: #818cf8; }
+
+      .qi-footer-bar {
+        display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+        padding: 8px 18px 12px; border-top: 1px solid var(--stroke);
+        font-size: 0.68rem; color: var(--text-muted); flex-shrink: 0;
+      }
+      .qi-footer-bar strong { color: var(--gold); font-weight: 700; }
+      .qi-footer-dot { opacity: 0.3; }
+
+      /* -- Chips — plus grands, hover lift -- */
+      .qchip {
+        display: inline-flex; align-items: center; gap: 5px;
+        padding: 7px 14px; border-radius: 20px;
+        font-size: 0.82rem; font-weight: 600;
+        border: 1px solid var(--stroke2); background: rgba(255,255,255,0.03);
+        color: var(--text-muted); cursor: pointer;
+        transition: all var(--transition); white-space: nowrap; font-family: inherit;
+      }
+      .qchip:hover {
+        background: rgba(201,151,74,0.12); border-color: rgba(201,151,74,0.4);
+        color: #e8c06d; transform: translateY(-2px); box-shadow: 0 4px 14px rgba(201,151,74,0.2);
+      }
+      .qchip:active { transform: scale(0.96) translateY(0); }
+
+      /* ===================================
+         CHAT — zone droite
+      =================================== */
+      #chatWindow {
+        flex: 1; overflow-y: auto; padding: 28px 28px 16px;
+        display: flex; flex-direction: column; gap: 14px;
+        min-height: 0; scroll-behavior: smooth;
+      }
+
+      /* -- Messages -- */
+      .chat-msg {
+        display: flex; flex-direction: column; max-width: 80%; gap: 5px;
+        animation: fadeInUp 0.25s ease both;
+      }
+      .chat-msg.user { align-self: flex-end; align-items: flex-end; animation-name: slideInRight; }
+      .chat-msg.bot  {
+        align-self: flex-start; align-items: flex-start;
+        animation-name: slideInLeft;
+        display: grid; grid-template-columns: 32px 1fr; gap: 0 10px;
+      }
+      .chat-msg.bot .bubble { grid-column: 2; }
+      .chat-msg.bot .ts     { grid-column: 2; }
+
+      /* Avatar IA */
+      .chat-msg.bot::before {
+        content: 'AI';
+        grid-column: 1; grid-row: 1;
+        width: 32px; height: 32px; border-radius: 10px;
+        background: linear-gradient(135deg, rgba(79,142,247,0.25), rgba(123,111,240,0.25));
+        border: 1px solid rgba(79,142,247,0.3);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0.65rem; font-weight: 800; color: #6ba4ff;
+        letter-spacing: 0.02em;
+        margin-top: 2px; align-self: flex-start;
+      }
+
       .chat-msg.user .bubble {
-        background: var(--accent);
+        background: linear-gradient(135deg, #a67232, #d4a855);
         color: #fff;
-        border-radius: 16px 16px 2px 16px;
-        padding: 10px 15px;
-        font-size: 0.9rem;
-        line-height: 1.5;
+        border-radius: 20px 20px 4px 20px; padding: 12px 18px;
+        font-size: 0.92rem; line-height: 1.55;
+        box-shadow: 0 4px 20px rgba(180,120,40,0.3);
       }
       .chat-msg.bot .bubble {
-        background: var(--card);
-        border: 1px solid var(--stroke2);
+        background: linear-gradient(180deg, rgba(79,142,247,0.04) 0%, transparent 50%), var(--bg3);
+        border: 1px solid rgba(79,142,247,0.12);
         color: var(--text);
-        border-radius: 16px 16px 16px 2px;
-        padding: 12px 15px;
-        font-size: 0.9rem;
-        line-height: 1.6;
+        border-radius: 4px 20px 20px 20px; padding: 14px 18px;
+        font-size: 0.92rem; line-height: 1.65;
       }
-      .chat-msg .ts {
-        font-size: 0.68rem;
-        color: var(--text-muted);
-        padding: 0 4px;
-      }
+      .chat-msg .ts { font-size: 0.68rem; color: var(--text-muted); padding: 0 4px; }
 
-      /* ── Barre d'actions rapides (problèmes fréquents) ── */
+      /* -- Quick bar -- */
       .quick-bar {
-        padding: 10px 20px 6px;
-        display: flex;
-        gap: 8px;
-        overflow-x: auto;
-        flex-shrink: 0;
-        border-top: 1px solid var(--stroke);
-        background: var(--bg);
-        scrollbar-width: none;
+        padding: 9px 20px 7px; display: flex; gap: 6px; overflow-x: auto; flex-shrink: 0;
+        border-top: 1px solid rgba(201,151,74,0.08);
+        background: rgba(12,10,9,0.7); backdrop-filter: blur(12px); scrollbar-width: none;
       }
       .quick-bar::-webkit-scrollbar { display: none; }
-      .qchip {
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-        padding: 5px 12px;
-        border-radius: 20px;
-        font-size: 0.78rem;
-        font-weight: 600;
-        border: 1px solid var(--stroke2);
-        background: var(--card);
-        color: var(--text-muted);
-        cursor: pointer;
-        transition: all 0.15s;
-        white-space: nowrap;
-        font-family: inherit;
-      }
-      .qchip:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
 
-      /* ── Zone de saisie ── */
+      /* -- Input zone — imposante -- */
       .chat-input-zone {
-        display: flex;
-        gap: 8px;
-        padding: 12px 20px 16px;
-        background: var(--bg);
-        border-top: 1px solid var(--stroke);
-        flex-shrink: 0;
-        align-items: flex-end;
+        display: flex; gap: 10px; padding: 14px 20px 16px;
+        background: rgba(12,10,9,0.92); backdrop-filter: blur(20px);
+        border-top: 1px solid rgba(201,151,74,0.1); flex-shrink: 0; align-items: flex-end;
       }
       #chatMessageInput {
-        flex: 1;
-        background: var(--card);
-        border: 1px solid var(--stroke2);
-        border-radius: 12px;
-        padding: 10px 16px;
-        color: var(--text);
-        font-family: inherit;
-        font-size: 0.92rem;
-        resize: none;
-        outline: none;
-        min-height: 44px;
-        max-height: 120px;
-        line-height: 1.5;
-        transition: border-color 0.15s, box-shadow 0.15s;
+        flex: 1; background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(201,151,74,0.18); border-radius: 20px;
+        padding: 13px 20px; color: var(--text); font-family: inherit; font-size: 0.94rem;
+        resize: none; outline: none; min-height: 52px; max-height: 140px; line-height: 1.5;
+        transition: all var(--transition);
       }
       #chatMessageInput:focus {
-        border-color: var(--accent);
-        box-shadow: 0 0 0 3px var(--accent-glow);
+        border-color: var(--gold);
+        box-shadow: 0 0 0 3px var(--gold-dim), 0 0 24px var(--gold-glow);
+        background: rgba(201,151,74,0.035);
       }
-      .send-btn {
-        width: 44px; height: 44px;
-        border-radius: 12px;
-        background: var(--accent);
-        border: none;
-        color: #fff;
-        font-size: 1.1rem;
-        cursor: pointer;
-        display: flex; align-items: center; justify-content: center;
-        transition: background 0.15s;
-        flex-shrink: 0;
-      }
-      .send-btn:hover { background: var(--accent-strong); }
+      #chatMessageInput::placeholder { color: var(--text-muted); opacity: 0.6; }
 
-      /* ── Feedback (résolu / ticket) ── */
+      /* -- Send button — 52px gradient bleu -- */
+      .send-btn {
+        width: 52px; height: 52px; border-radius: 18px;
+        background: linear-gradient(135deg, #3a7de8, #5b6ff5);
+        border: none; color: #fff; font-size: 1.25rem; cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        transition: all var(--transition); flex-shrink: 0;
+        box-shadow: 0 4px 20px rgba(79,142,247,0.4);
+      }
+      .send-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(79,142,247,0.6); }
+      .send-btn:active { transform: scale(0.94) translateY(0); }
+
+      /* -- Feedback box -- */
       #feedbackBox {
-        border: none;
-        border-radius: 0;
-        background: var(--bg3);
-        border-top: 1px solid var(--stroke);
-        padding: 12px 20px;
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        flex-wrap: wrap;
-        flex-shrink: 0;
+        background: rgba(201,151,74,0.02); border-top: 1px solid rgba(201,151,74,0.1);
+        padding: 12px 24px; display: flex; align-items: center;
+        gap: 10px; flex-wrap: wrap; flex-shrink: 0; animation: fadeInUp 0.2s ease;
       }
-      #feedbackBox .feedback-title {
-        font-size: 0.85rem;
-        font-weight: 600;
-        color: var(--text);
-        margin: 0;
-        flex: 1;
-        min-width: 160px;
-      }
+      #feedbackBox .feedback-title { font-size: 0.85rem; font-weight: 600; color: var(--text); margin: 0; flex: 1; min-width: 160px; }
       #feedbackBox .feedback-actions { display: flex; gap: 8px; }
       #feedbackBox .feedback-details { display: none; }
-
-      /* ── Ticket badge ── */
-      #ticketBadge {
-        margin: 0 20px 10px;
-        flex-shrink: 0;
-      }
-
-      /* ── Ticket preview simplifié ── */
-      #ticketPreview {
-        padding: 14px 20px;
-        margin: 0;
-        background: var(--bg3);
-        border-top: 1px solid var(--stroke2);
-        border-radius: 0;
-        flex-shrink: 0;
-      }
+      #ticketBadge { margin: 0 24px 10px; flex-shrink: 0; }
+      #chatTickets { padding: 0 24px 10px; display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
+      #chatTickets:empty { display: none; }
+      .chat-ticket { background: var(--bg3); border: 1px solid var(--stroke); border-radius: var(--radius); padding: 10px 14px; font-size: 0.82rem; color: var(--text-muted); }
+      .chat-ticket strong { display: block; color: var(--text-strong); margin-bottom: 3px; }
+      .chat-ticket .link { display: inline-flex; margin-top: 6px; }
+      #ticketPreview { padding: 14px 24px; background: var(--bg3); border-top: 1px solid var(--stroke2); flex-shrink: 0; }
       .preview-grid { grid-template-columns: repeat(2, 1fr); }
+      #chatSources { padding: 0 24px; flex-shrink: 0; }
 
-      /* ── Sources ── */
-      #chatSources {
-        padding: 0 20px;
-        flex-shrink: 0;
+      /* ===================================
+         CHAT HERO — visible avant le 1er msg
+      =================================== */
+      #chatHero {
+        animation: fadeInUp 0.4s ease both;
       }
 
-      /* ── Éléments cachés (inutiles pour l'utilisateur final) ── */
-      #assistantTabBtn, #kbTabBtn,
-      .tab-switch,
-      #newChatBtn,
-      #printSummaryBtn,
-      .card-header,
-      .user-hint,
-      .beginner-step,
-      #userSummaryCard,
-      #presentationKpis,
-      #statusCard,
-      #contextCard,
-      .kb-actions,
-      #quickTicketCard,
-      .chat-search,
-      .chat-attachments,
-      #chatGallery,
-      #kbTabPanel,
-      .kb-search,
-      .kb-results,
-      #kbSearchResultsUser,
-      .grid > .card:not(#kbCard),
-      #historyPanel,
-      #supportHoursCard,
-      #simpleDashboard,
-      #quickGuide { display: none !important; }
+      /* ===================================
+         OVERLAYS — login, tickets, thanks
+      =================================== */
+      #loginCard {
+        position: fixed; inset: 0; z-index: 200;
+        background:
+          radial-gradient(ellipse 70% 60% at 20% 20%, rgba(201,151,74,0.06) 0%, transparent 60%),
+          radial-gradient(ellipse 50% 50% at 80% 80%, rgba(212,168,83,0.04) 0%, transparent 60%),
+          var(--bg);
+        overflow-y: auto; padding: max(20px, calc(50vh - 280px)) 20px 40px;
+        border: none; border-radius: 0;
+      }
+      #loginCard.hidden { display: none; }
+      #loginCard .login-inner {
+        width: 100%; max-width: 400px; margin: 0 auto;
+        background: var(--card); border: 1px solid rgba(201,151,74,0.18); border-radius: 20px;
+        padding: 36px 32px 28px;
+        box-shadow: 0 24px 80px rgba(0,0,0,0.5), 0 0 60px rgba(201,151,74,0.07);
+        display: flex; flex-direction: column; gap: 16px;
+        animation: scaleIn 0.36s cubic-bezier(0.34,1.56,0.64,1) both;
+      }
+      #loginCard .login-top { text-align: center; }
+      #loginCard .login-logo-icon {
+        width: 48px; height: 48px;
+        background: linear-gradient(135deg, rgba(201,151,74,0.2), rgba(212,168,83,0.2));
+        border: 1px solid rgba(201,151,74,0.3); border-radius: 14px;
+        display: flex; align-items: center; justify-content: center;
+        margin: 0 auto 14px; animation: glowPulse 3s ease infinite;
+      }
+      #loginCard h2 {
+        font-size: 1.55rem; font-weight: 900;
+        background: linear-gradient(120deg, #faf6ef 0%, #e8c06d 50%, #c9974a 100%);
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        letter-spacing: -0.04em; margin: 6px 0 4px;
+      }
+      #loginCard .note { font-size: 0.82rem; color: var(--text-muted); }
+      #loginCard .input-wrap { position: relative; }
+      #loginCard .input-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 0.85rem; opacity: 0.5; pointer-events: none; }
+      #loginCard .input-wrap input { padding-left: 36px; }
 
-      /* ── Sections plein écran (tickets / merci) ── */
-      #myTicketsPanel,
-      #ticketThanks {
-        position: fixed;
-        inset: 56px 0 0 0;
-        z-index: 50;
-        background: var(--bg);
-        overflow-y: auto;
-        padding: 24px 20px;
-        border-radius: 0;
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
+      #kioskStart {
+        flex: 1; display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        padding: 32px 20px; gap: 24px; background: var(--bg);
+        border: none; border-radius: 0;
       }
-      #myTicketsPanel.hidden,
-      #ticketThanks.hidden { display: none !important; }
+      #kioskStart.hidden { display: none; }
+      #kioskStart .welcome-inner { text-align: center; max-width: 480px; display: flex; flex-direction: column; align-items: center; gap: 18px; }
+      #kioskStart h1 {
+        font-size: 2rem; font-weight: 900;
+        background: linear-gradient(120deg, #faf6ef 0%, #e8c06d 45%, #c9974a 100%);
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        letter-spacing: -0.045em; line-height: 1.15;
+      }
+      #kioskStart p { color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; }
+      #kioskStart .hero-pills { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+      #kioskStart .hero-pill { padding: 6px 16px; background: rgba(255,255,255,0.04); border: 1px solid var(--stroke2); border-radius: 20px; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); cursor: default; transition: all var(--transition); }
+      #kioskStart .hero-pill:hover { background: rgba(201,151,74,0.1); border-color: rgba(201,151,74,0.3); color: var(--gold); }
 
-      /* Tickets list */
-      .panel-header {
-        display: flex; align-items: center;
-        justify-content: space-between; gap: 12px;
-        flex-wrap: wrap;
+      .welcome-stats { display: flex; gap: 20px; align-items: center; padding: 12px 20px; background: rgba(255,255,255,0.03); border: 1px solid var(--stroke2); border-radius: 14px; margin-top: 4px; }
+      .welcome-stat { text-align: center; }
+      .welcome-stat strong { display: block; font-size: 1.3rem; font-weight: 900; background: linear-gradient(135deg, #c9974a, #e8c06d); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1.1; }
+      .welcome-stat span { font-size: 0.68rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+      .welcome-divider { width: 1px; height: 32px; background: var(--stroke2); }
+
+      #myTicketsPanel, #ticketThanks {
+        position: fixed; inset: 60px 0 0 0; z-index: 50;
+        background: var(--bg); overflow-y: auto;
+        padding: 24px 20px; display: flex; flex-direction: column; gap: 16px;
       }
-      .panel-header h3 {
-        font-size: 1.1rem; font-weight: 800;
-        color: var(--text-strong);
-      }
+      #myTicketsPanel.hidden, #ticketThanks.hidden { display: none; }
+      .panel-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+      .panel-header h3 { font-size: 1.2rem; font-weight: 900; letter-spacing: -0.03em; background: linear-gradient(120deg, #faf6ef 0%, #e8c06d 55%, #c9974a 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
       #myTicketsList { display: flex; flex-direction: column; gap: 10px; }
-      .my-ticket-item {
-        background: var(--card);
-        border: 1px solid var(--stroke);
-        border-radius: var(--radius);
-        padding: 14px 16px;
-        cursor: pointer;
-        transition: border-color 0.15s;
-      }
-      .my-ticket-item:hover { border-color: var(--stroke2); }
+      .my-ticket-item { background: var(--card); border: 1px solid var(--stroke); border-radius: var(--radius); padding: 14px 16px; cursor: pointer; transition: var(--transition); animation: fadeInUp 0.2s ease both; }
+      .my-ticket-item:hover { border-color: rgba(201,151,74,0.3); transform: translateX(4px); box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
       .my-ticket-item h4 { font-size: 0.9rem; font-weight: 600; color: var(--text-strong); margin-bottom: 4px; }
       .my-ticket-item .ticket-meta { font-size: 0.78rem; color: var(--text-muted); }
+      #ticketDetailPanel { background: var(--bg3); border: 1px solid var(--stroke); border-radius: var(--radius); padding: 16px; margin-top: 8px; }
+      #ticketThanks { align-items: center; justify-content: flex-start; padding-top: 40px; text-align: center; gap: 12px; }
+      .thanks-icon { font-size: 3rem; line-height: 1; }
+      .thanks-glpi-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(201,151,74,0.1); color: var(--gold); border: 1px solid rgba(201,151,74,0.25); border-radius: 20px; padding: 4px 14px; font-size: 0.82rem; font-weight: 700; letter-spacing: 0.02em; }
+      .thanks-glpi-badge.hidden { display: none; }
+      #ticketThanks h3 { font-size: 1.4rem; font-weight: 800; color: var(--text-strong); margin: 0; }
+      #ticketThanks > p { color: var(--text-muted); font-size: 0.9rem; margin: 0; max-width: 360px; }
+      #ticketThanks .ticket-summary { max-width: 480px; width: 100%; text-align: left; background: var(--bg3); border: 1px solid var(--stroke); border-radius: var(--radius); overflow: hidden; }
+      .ticket-summary-row { display: flex; gap: 12px; align-items: baseline; padding: 10px 16px; border-bottom: 1px solid var(--stroke); font-size: 0.85rem; }
+      .ticket-summary-row:last-child { border-bottom: none; }
+      .ticket-summary-row strong { min-width: 90px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); flex-shrink: 0; }
+      .ticket-summary-row span { color: var(--text-strong); word-break: break-word; }
+      .thanks-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; max-width: 480px; width: 100%; margin-top: 4px; }
+      .thanks-actions .btn { flex: 1; min-width: 140px; text-align: center; }
 
-      /* Ticket detail */
-      #ticketDetailPanel {
-        background: var(--bg3);
-        border: 1px solid var(--stroke);
-        border-radius: var(--radius);
-        padding: 16px;
-        margin-top: 8px;
-      }
-
-      /* Thanks page */
-      #ticketThanks {
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-      }
-      #ticketThanks .ticket-summary {
-        max-width: 440px;
-        width: 100%;
-        text-align: left;
-      }
-
-      /* Écran de connexion centré — fonctionne même si app.js force display:block */
-      #loginCard {
-        position: fixed;
-        inset: 0;
-        z-index: 200;
-        background: radial-gradient(ellipse at 30% 30%, rgba(79,142,247,0.08), transparent 60%), var(--bg);
-        border: none;
-        border-radius: 0;
-        padding: max(20px, calc(50vh - 240px)) 20px 40px;
-        overflow-y: auto;
-      }
-      #loginCard .login-inner {
-        width: 100%;
-        max-width: 380px;
-        margin: 0 auto;
-        background: var(--card);
-        border: 1px solid var(--stroke2);
-        border-radius: var(--radius-lg);
-        padding: 32px;
-        box-shadow: var(--shadow), 0 0 40px var(--accent-glow);
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-      }
-      #loginCard .login-top {
-        text-align: center;
-      }
-      #loginCard .login-top .hero-badge { margin-bottom: 12px; }
-      #loginCard h2 {
-        font-size: 1.5rem; font-weight: 800;
-        color: var(--text-strong); letter-spacing: -0.03em;
-      }
-      #loginCard .note { margin-top: 4px; font-size: 0.82rem; color: var(--text-muted); }
-      #loginCard.hidden { display: none !important; }
-
-      /* ── Welcome screen (kioskStart) ── */
-      #kioskStart {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 32px 20px;
-        gap: 24px;
-        border: none;
-        border-radius: 0;
-        background: var(--bg);
-      }
-      #kioskStart .welcome-inner {
-        text-align: center;
-        max-width: 440px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 16px;
-      }
-      #kioskStart h1 {
-        font-size: 1.8rem; font-weight: 800;
-        color: var(--text-strong); letter-spacing: -0.04em;
-      }
-      #kioskStart p { color: var(--text-muted); font-size: 0.95rem; }
-      #kioskStart .hero-pills {
-        display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;
-      }
-      #kioskStart .hero-pill {
-        padding: 5px 14px;
-        background: var(--card);
-        border: 1px solid var(--stroke2);
-        border-radius: 20px;
-        font-size: 0.78rem;
-        font-weight: 600;
-        color: var(--text-muted);
-      }
-      #kioskStart.hidden { display: none !important; }
-
-      /* ── Quick issues (intégré dans chat) ── */
-      .quick-issues-inline {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        padding: 16px 20px;
-        flex-shrink: 0;
-        border-bottom: 1px solid var(--stroke);
-      }
-      .quick-issues-inline .qi-label {
-        font-size: 0.72rem;
-        font-weight: 700;
-        color: var(--text-muted);
-        text-transform: uppercase;
-        letter-spacing: 0.07em;
-      }
-      .quick-issues-inline .qi-chips {
-        display: flex; gap: 8px; flex-wrap: wrap;
+      /* ===================================
+         DESKTOP FRAME — max-width: 1280px
+      =================================== */
+      @media (min-width: 820px) {
+        body {
+          padding: 20px; align-items: center;
+          background:
+            radial-gradient(ellipse 55% 45% at 20% 15%, rgba(201,151,74,0.05) 0%, transparent 55%),
+            radial-gradient(ellipse 45% 45% at 80% 85%, rgba(212,168,83,0.04) 0%, transparent 55%),
+            var(--bg);
+        }
+        body > header.topbar {
+          width: 100%; max-width: 1280px;
+          border-radius: 18px 18px 0 0;
+          border: 1px solid rgba(201,151,74,0.16);
+          border-bottom: 1px solid rgba(201,151,74,0.08);
+          background: rgba(14,12,11,0.96); backdrop-filter: blur(24px);
+          position: relative; z-index: 2; overflow: visible;
+        }
+        body > header.topbar::before {
+          content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+          background: linear-gradient(90deg, transparent 0%, rgba(201,151,74,0.45) 15%, rgba(212,168,83,0.9) 50%, rgba(201,151,74,0.45) 85%, transparent 100%);
+          border-radius: 18px 18px 0 0; pointer-events: none;
+        }
+        body > main {
+          width: 100%; max-width: 1280px; flex: 1; min-height: 0;
+          border-radius: 0 0 18px 18px;
+          border: 1px solid rgba(201,151,74,0.16); border-top: none; overflow: hidden;
+          box-shadow: 0 30px 80px rgba(0,0,0,0.55), 0 0 60px rgba(201,151,74,0.06), 0 0 0 1px rgba(255,255,255,0.02) inset;
+          position: relative; z-index: 1;
+        }
+        body > main::after {
+          content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 2px;
+          background: linear-gradient(90deg, transparent 0%, rgba(201,151,74,0.22) 30%, rgba(212,168,83,0.38) 50%, rgba(201,151,74,0.22) 70%, transparent 100%);
+          pointer-events: none; z-index: 10;
+        }
+        body > #statusBanner { width: 100%; max-width: 1280px; }
+        #myTicketsPanel, #ticketThanks { inset: 60px 0 0 0; }
       }
 
-      /* ── Quick issues catégorisées ── */
-      .qi-row {
-        display: flex;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 5px;
-        padding: 4px 0;
-        border-bottom: 1px solid var(--stroke);
+      /* ===================================
+         MOBILE — tabs switch animés
+      =================================== */
+      @media (max-width: 700px) {
+        /* Tabs mobile */
+        #assistantTabPanel {
+          flex-direction: column;
+          position: relative;
+        }
+        /* Tabs switcher */
+        #mobileTabs {
+          display: flex !important;
+          flex-shrink: 0;
+          border-bottom: 1px solid var(--stroke2);
+          background: var(--bg2);
+        }
+        .mobile-tab {
+          flex: 1; padding: 11px 8px;
+          font-size: 0.82rem; font-weight: 700; text-align: center;
+          color: var(--text-muted); cursor: pointer;
+          border-bottom: 2px solid transparent;
+          transition: all var(--transition);
+          background: none; border-top: none; border-left: none; border-right: none;
+          font-family: inherit;
+        }
+        .mobile-tab.active {
+          color: var(--gold); border-bottom-color: var(--gold);
+        }
+        /* Colonnes en mobile */
+        #quickIssuesWrapper {
+          width: 100%; min-width: 0;
+          flex-shrink: 0;
+          border-right: none;
+          transition: max-height 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease;
+          max-height: 9999px; opacity: 1;
+        }
+        #quickIssuesWrapper.mobile-hidden {
+          max-height: 0; opacity: 0; overflow: hidden; pointer-events: none;
+        }
+        .chat-panel {
+          flex: 1;
+          transition: opacity 0.25s ease;
+        }
+        .chat-panel.mobile-hidden {
+          display: none;
+        }
       }
-      .qi-row:last-child { border-bottom: none; }
-      .qi-cat {
-        font-size: 0.62rem;
-        font-weight: 800;
-        color: var(--accent);
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        flex-basis: 100%;
-        padding: 2px 0 1px;
+      @media (max-width: 700px) {
+        #mobileTabs { display: flex; }
       }
-      /* Scrollbar fine */
-      #quickIssuesContainer::-webkit-scrollbar { width: 4px; }
-      #quickIssuesContainer::-webkit-scrollbar-track { background: transparent; }
-      #quickIssuesContainer::-webkit-scrollbar-thumb { background: var(--stroke2); border-radius: 2px; }
-
-      /* ── Responsive mobile ── */
+      @media (min-width: 701px) {
+        #mobileTabs { display: none !important; }
+      }
       @media (max-width: 480px) {
         .chat-msg { max-width: 90%; }
         #chatMessageInput { font-size: 0.88rem; }
-        .topbar { height: 52px; }
-        #myTicketsPanel, #ticketThanks { inset: 52px 0 0 0; }
+        .topbar { height: 56px; }
+        #myTicketsPanel, #ticketThanks { inset: 56px 0 0 0; }
+      }
+
+      /* ===================================
+         ANIMATIONS
+      =================================== */
+      @keyframes fadeInUp {
+        from { opacity:0; transform:translateY(10px); }
+        to   { opacity:1; transform:translateY(0); }
+      }
+      @keyframes slideInRight {
+        from { opacity:0; transform:translateX(16px); }
+        to   { opacity:1; transform:translateX(0); }
+      }
+      @keyframes slideInLeft {
+        from { opacity:0; transform:translateX(-16px); }
+        to   { opacity:1; transform:translateX(0); }
+      }
+      @keyframes scaleIn {
+        from { opacity:0; transform:scale(0.92); }
+        to   { opacity:1; transform:scale(1); }
+      }
+      @keyframes glowPulse {
+        0%,100% { box-shadow:0 0 30px rgba(201,151,74,0.15); }
+        50%      { box-shadow:0 0 45px rgba(201,151,74,0.3); }
+      }
+      @keyframes welcomeGlow {
+        0%   { transform:translateX(-50%) scale(1);   opacity:0.6; }
+        100% { transform:translateX(-50%) scale(1.3); opacity:1; }
+      }
+      @keyframes shimmer {
+        0%   { background-position: -400px 0; }
+        100% { background-position: 400px 0; }
+      }
+      .shimmer {
+        background: linear-gradient(90deg, var(--bg3) 25%, rgba(255,255,255,0.04) 50%, var(--bg3) 75%);
+        background-size: 800px 100%;
+        animation: shimmer 1.6s infinite;
       }
     </style>
   </head>
@@ -447,11 +656,11 @@
         <div class="lang-switcher" data-lang-switcher>
           <button class="lang-btn" type="button" data-lang="fr">FR</button>
           <button class="lang-btn" type="button" data-lang="en">EN</button>
-          <button class="lang-btn" type="button" data-lang="es">ES</button>
         </div>
+        <div id="topbarAiBadge" style="display:none;align-items:center;gap:5px;background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.2);border-radius:20px;padding:3px 10px;font-size:0.68rem;font-weight:700;color:#4ade80;letter-spacing:0.04em"><span style="width:6px;height:6px;background:#4ade80;border-radius:50%;animation:qiPulse 2s ease infinite"></span>IA</div>
         <button id="showSupportBtn" class="btn ghost" type="button">Support</button>
-        <button id="showTicketsBtn" class="btn ghost" type="button">🎫 Mes tickets</button>
-        <button id="logoutBtn" class="btn ghost">Déconnexion</button>
+        <button id="showTicketsBtn" class="btn ghost" type="button" style="border-color:rgba(79,142,247,0.3);color:var(--accent)">🎫 Mes tickets</button>
+        <button id="logoutBtn" class="btn ghost" style="opacity:0.5;font-size:0.82rem">Quitter</button>
       </div>
     </header>
     <div id="statusBanner" class="status-banner hidden"></div>
@@ -461,21 +670,34 @@
       <section id="loginCard">
         <div class="login-inner">
           <div class="login-top">
-            <div class="hero-badge" id="heroBadge">Support IT</div>
-            <h2 id="loginTitle">Connexion</h2>
-            <p class="note" id="loginSubtitle">Accédez à l'assistant pour signaler un problème.</p>
+            <div class="login-logo-icon" style="margin:0 auto 14px">
+              <img data-brand-logo data-default-logo="/app/assets/logo.svg" src="/app/assets/logo.svg" alt="Logo" style="width:28px;height:28px;filter:brightness(10);opacity:0.9" />
+            </div>
+            <div class="hero-badge" id="heroBadge"><span data-fr="🤖 Support IA" data-en="🤖 AI Support">🤖 Support IA</span></div>
+            <h2 id="loginTitle"><span data-fr="Connexion" data-en="Sign in">Connexion</span></h2>
+            <p class="note" id="loginSubtitle"><span data-fr="Accédez à l'assistant pour signaler un problème." data-en="Access the assistant to report an IT issue.">Accédez à l'assistant pour signaler un problème.</span></p>
           </div>
           <form id="loginForm" class="form">
-            <input name="tenant_code" placeholder="Code entreprise (ex: DEFAULT)" />
-            <input name="email" type="email" placeholder="Email professionnel" required />
-            <input name="password" type="password" placeholder="Mot de passe" required />
-            <button class="btn primary" type="submit">Se connecter</button>
+            <div class="input-wrap">
+              <span class="input-icon">🏢</span>
+              <input name="tenant_code" placeholder="Code entreprise (ex: DEFAULT)" />
+            </div>
+            <div class="input-wrap">
+              <span class="input-icon">✉️</span>
+              <input name="email" type="email" placeholder="Email professionnel" required />
+            </div>
+            <div class="input-wrap">
+              <span class="input-icon">🔑</span>
+              <input name="password" type="password" placeholder="Mot de passe" required />
+            </div>
+            <button class="btn primary" type="submit" style="width:100%;padding:12px;font-size:0.9rem;margin-top:4px">Se connecter →</button>
             <p id="loginStatus" class="status"></p>
           </form>
-          <p class="note" id="loginHint">Code entreprise fourni par votre service IT.</p>
-          <div class="quick-login" id="quickLoginUser">
-            <button id="quickUserBtn" class="btn ghost" type="button" style="width:100%">Connexion rapide (local)</button>
-            <p class="note" id="quickLoginNote">user@assistant.local / user123</p>
+          <p class="note" id="loginHint" style="text-align:center;opacity:0.6">Code entreprise fourni par votre service IT.</p>
+          <div class="quick-login" id="quickLoginUser" style="display:flex;flex-direction:column;gap:6px">
+            <button id="demoUserBtn" class="btn primary" type="button" style="width:100%;font-size:0.88rem;background:linear-gradient(135deg,rgba(201,151,74,0.25),rgba(212,168,83,0.2));border:1px solid rgba(201,151,74,0.4);color:var(--gold)">⚡ Connexion démo utilisateur</button>
+            <button id="quickUserBtn" class="btn ghost" type="button" style="width:100%;opacity:0.5;font-size:0.8rem">Connexion rapide (local)</button>
+            <p class="note" id="quickLoginNote" style="text-align:center;opacity:0.4;font-size:0.75rem">user@assistant.local / user123</p>
           </div>
           <div class="invite-activate" style="display:none">
             <h4 id="inviteTitle">Activer une invitation</h4>
@@ -494,13 +716,20 @@
         <div class="welcome-inner">
           <div class="hero-badge" id="heroBadge2">🤖 IA activée</div>
           <h1 id="heroTitle">Bonjour 👋</h1>
-          <p id="heroSubtitle">Décrivez votre problème informatique, l'IA vous guide ou crée un ticket automatiquement.</p>
+          <p id="heroSubtitle">Décrivez votre problème informatique — l'IA vous guide ou crée un ticket automatiquement.</p>
           <div class="hero-pills">
-            <div class="hero-pill" id="heroPillGuide">Résolution guidée</div>
-            <div class="hero-pill" id="heroPillTicket">Ticket automatique</div>
-            <div class="hero-pill" id="heroPillFollow">Suivi en temps réel</div>
+            <div class="hero-pill" id="heroPillGuide">⚡ Résolution guidée</div>
+            <div class="hero-pill" id="heroPillTicket">🎫 Ticket automatique</div>
+            <div class="hero-pill" id="heroPillFollow">📡 Suivi en temps réel</div>
           </div>
-          <button id="startBtn" class="btn primary large" style="width:100%;max-width:280px">Signaler un problème →</button>
+          <button id="startBtn" class="btn primary large" style="width:100%;max-width:300px;padding:14px 24px;font-size:0.95rem;letter-spacing:0.01em">Signaler un problème →</button>
+          <div class="welcome-stats">
+            <div class="welcome-stat"><strong>28</strong><span data-fr="Problèmes" data-en="Issues">Problèmes</span></div>
+            <div class="welcome-divider"></div>
+            <div class="welcome-stat"><strong>&lt;2m</strong><span data-fr="Réponse" data-en="Response">Réponse</span></div>
+            <div class="welcome-divider"></div>
+            <div class="welcome-stat"><strong>24/7</strong><span data-fr="IA active" data-en="AI active">IA active</span></div>
+          </div>
           <p class="note" id="heroNote"></p>
         </div>
       </section>
@@ -522,7 +751,13 @@
         </div>
 
         <!-- Panel assistant (visible) -->
-        <div id="assistantTabPanel" class="tab-panel active" style="flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0">
+        <div id="assistantTabPanel" class="tab-panel active" style="flex:1;display:flex;flex-direction:row;overflow:hidden;min-height:0">
+
+          <!-- Tabs mobile (visibles seulement < 700px) -->
+          <div id="mobileTabs" style="display:none">
+            <button class="mobile-tab active" id="mobileTabLeft" type="button">🔧 Problèmes</button>
+            <button class="mobile-tab" id="mobileTabRight" type="button">💬 Chat</button>
+          </div>
 
           <!-- Éléments requis par app.js mais cachés -->
           <div class="user-hint" style="display:none">
@@ -579,73 +814,118 @@
             <p class="note" id="contextSummary"></p>
           </div>
 
-          <!-- Problèmes rapides — intégrés proprement -->
-          <div class="quick-issues" id="quickIssuesWrapper" style="padding:8px 20px 6px;border-bottom:1px solid var(--stroke);flex-shrink:0">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-              <span style="font-size:0.7rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.07em" id="quickIssuesTitle">Problèmes fréquents — cliquez pour démarrer</span>
+          <!-- Problèmes rapides — GOD MODE -->
+          <div class="quick-issues" id="quickIssuesWrapper">
+            <div class="qi-header">
+              <div class="qi-header-left">
+                <div class="qi-header-title" id="quickIssuesTitle">🔧 Problèmes fréquents</div>
+                <div class="qi-header-sub"><span data-fr="Cliquez pour démarrer une résolution guidée immédiate" data-en="Click to start a guided resolution">Cliquez pour démarrer une résolution guidée immédiate</span></div>
+              </div>
+              <div class="qi-ai-badge"><span class="qi-ai-dot"></span><span data-fr="IA active" data-en="AI active">IA active</span></div>
             </div>
-            <div class="quick-search" style="display:none">
-              <input id="quickIssueSearchInput" type="search" placeholder="Rechercher" />
-              <button id="quickIssueSearchBtn" class="btn ghost" type="button">Chercher</button>
+            <div class="qi-search-wrap">
+              <span class="qi-search-icon">🔍</span>
+              <input class="qi-search-input" id="quickIssueSearchInput" type="search" placeholder="Rechercher un problème…" autocomplete="off" />
+              <button id="quickIssueSearchBtn" class="btn ghost" type="button" style="display:none">Chercher</button>
             </div>
-            <div id="quickIssuesContainer" style="display:flex;flex-direction:column;gap:0;max-height:190px;overflow-y:auto;scrollbar-width:thin">
+            <div id="myChipsBox">
 
               <div class="qi-row">
-                <span class="qi-cat">📧 Email &amp; Communication</span>
-                <button class="qchip" data-send="Mon Outlook ne s'ouvre plus ou plante depuis ce matin.">📧 Outlook</button>
-                <button class="qchip" data-send="Microsoft Teams ne s'ouvre pas, plante ou ne se connecte pas.">👥 Teams</button>
-                <button class="qchip" data-send="Je n'arrive plus à envoyer ou recevoir des emails.">✉️ Email</button>
-                <button class="qchip" data-send="Mon micro ou ma caméra ne fonctionne pas pendant une réunion Teams/Zoom.">🎤 Micro / Caméra</button>
+                <span class="qi-cat"><span>📧 Email &amp; Communication</span><span class="qi-count">6</span></span>
+                <button class="qchip" data-send="Mon Outlook ne s'ouvre plus ou plante depuis ce matin."><span>📧 Outlook</span></button>
+                <button class="qchip" data-send="Microsoft Teams ne s'ouvre pas, plante ou ne se connecte pas."><span>👥 Teams</span></button>
+                <button class="qchip" data-send="Je n'arrive plus à envoyer ou recevoir des emails."><span>✉️ Email bloqué</span></button>
+                <button class="qchip" data-send="Mon micro ou ma caméra ne fonctionne pas pendant une réunion Teams/Zoom."><span>🎤 Micro / Caméra</span></button>
+                <button class="qchip" data-send="Zoom ou Webex ne se lance pas ou se déconnecte en réunion."><span>🎥 Zoom / Webex</span></button>
+                <button class="qchip" data-send="Je n'arrive pas à partager mon écran pendant une réunion en ligne."><span>🖥️ Partage d'écran</span></button>
               </div>
 
               <div class="qi-row">
-                <span class="qi-cat">🌐 Réseau &amp; Connexion</span>
-                <button class="qchip" data-send="Je n'ai plus d'accès internet sur mon poste.">🌐 Internet</button>
-                <button class="qchip" data-send="Le WiFi ne se connecte pas ou se coupe régulièrement.">📶 WiFi</button>
-                <button class="qchip" data-send="Mon VPN ne se connecte pas ou se déconnecte toutes les 30 minutes.">🔒 VPN</button>
-                <button class="qchip" data-send="Panne réseau générale, je ne peux plus accéder aux serveurs ou partages.">🔴 Panne réseau</button>
+                <span class="qi-cat"><span>🌐 Réseau &amp; Connexion</span><span class="qi-count">5</span></span>
+                <button class="qchip" data-send="Je n'ai plus d'accès internet sur mon poste."><span>🌐 Internet coupé</span></button>
+                <button class="qchip" data-send="Le WiFi ne se connecte pas ou se coupe régulièrement."><span>📶 WiFi</span></button>
+                <button class="qchip" data-send="Mon VPN ne se connecte pas ou se déconnecte toutes les 30 minutes."><span>🔒 VPN</span></button>
+                <button class="qchip" data-send="Panne réseau générale, je ne peux plus accéder aux serveurs ou partages réseau."><span>🔴 Panne réseau</span></button>
+                <button class="qchip" data-send="Le proxy ou le pare-feu bloque l'accès à certains sites ou applications."><span>🚧 Proxy / Pare-feu</span></button>
               </div>
 
               <div class="qi-row">
-                <span class="qi-cat">🔑 Compte &amp; Accès</span>
-                <button class="qchip" data-send="J'ai oublié mon mot de passe ou mon compte est verrouillé.">🔑 Mot de passe</button>
-                <button class="qchip" data-send="Je n'ai pas les droits d'accès à une application ou un dossier réseau.">🔓 Accès refusé</button>
-                <button class="qchip" data-send="Je ne peux pas me connecter à Office 365 / Microsoft 365.">🔵 Office 365</button>
-                <button class="qchip" data-send="Mon authentification double facteur (MFA/2FA) ne fonctionne pas.">🔐 MFA / 2FA</button>
+                <span class="qi-cat"><span>👤 Compte &amp; Accès</span><span class="qi-count">5</span></span>
+                <button class="qchip" data-send="J'ai oublié mon mot de passe ou mon compte est verrouillé."><span>🔑 Mot de passe</span></button>
+                <button class="qchip" data-send="Je n'ai pas les droits d'accès à une application ou un dossier réseau."><span>🔓 Accès refusé</span></button>
+                <button class="qchip" data-send="Je ne peux pas me connecter à Office 365 / Microsoft 365."><span>🔵 Office 365</span></button>
+                <button class="qchip" data-send="Mon authentification double facteur (MFA/2FA) ne fonctionne pas."><span>🔐 MFA / 2FA</span></button>
+                <button class="qchip" data-send="Mon certificat de sécurité est expiré ou mon navigateur affiche une erreur de certificat."><span>📜 Certificat SSL</span></button>
               </div>
 
               <div class="qi-row">
-                <span class="qi-cat">💻 Poste de travail</span>
-                <button class="qchip" data-send="Mon PC est très lent, figé ou ne répond plus du tout.">💻 PC lent</button>
-                <button class="qchip" data-send="Écran bleu (BSOD) avec un code d'erreur sur mon PC.">💀 Écran bleu</button>
-                <button class="qchip" data-send="Mon écran est noir ou l'affichage est défaillant / déformé.">🖥️ Écran noir</button>
-                <button class="qchip" data-send="Une mise à jour Windows bloque, plante ou est en boucle.">⬆️ Windows Update</button>
-                <button class="qchip" data-send="Mon son ou mes haut-parleurs ne fonctionnent plus.">🔊 Son</button>
-                <button class="qchip" data-send="Mon périphérique USB (clé USB, souris, clavier externe) n'est pas reconnu.">🔌 USB</button>
+                <span class="qi-cat"><span>💻 Poste de travail</span><span class="qi-count">8</span></span>
+                <button class="qchip" data-send="Mon PC est très lent, figé ou ne répond plus du tout."><span>💻 PC lent / figé</span></button>
+                <button class="qchip" data-send="Écran bleu (BSOD) avec un code d'erreur sur mon PC."><span>💀 Écran bleu</span></button>
+                <button class="qchip" data-send="Mon écran est noir ou l'affichage est défaillant ou déformé."><span>🖥️ Écran noir</span></button>
+                <button class="qchip" data-send="Une mise à jour Windows bloque, plante ou tourne en boucle."><span>⬆️ Windows Update</span></button>
+                <button class="qchip" data-send="Mon son ou mes haut-parleurs ne fonctionnent plus."><span>🔊 Son</span></button>
+                <button class="qchip" data-send="Mon périphérique USB (clé USB, souris, clavier) n'est pas reconnu."><span>🔌 USB</span></button>
+                <button class="qchip" data-send="La batterie de mon PC portable ne se charge plus ou se décharge très vite."><span>🔋 Batterie</span></button>
+                <button class="qchip" data-send="Mon PC surchauffe ou les ventilateurs tournent à plein régime en permanence."><span>🌡️ Surchauffe</span></button>
               </div>
 
               <div class="qi-row">
-                <span class="qi-cat">🖨️ Imprimante &amp; Périphériques</span>
-                <button class="qchip" data-send="L'imprimante ne répond plus ou rien ne sort quand j'imprime.">🖨️ Imprimante</button>
-                <button class="qchip" data-send="Je n'arrive pas à scanner un document depuis le scanner réseau.">📄 Scanner</button>
-                <button class="qchip" data-send="Mon second écran ne s'affiche pas ou n'est pas reconnu.">🖥️ Double écran</button>
+                <span class="qi-cat"><span>🖨️ Imprimante &amp; Périphériques</span><span class="qi-count">4</span></span>
+                <button class="qchip" data-send="L'imprimante ne répond plus ou rien ne sort quand j'imprime."><span>🖨️ Imprimante</span></button>
+                <button class="qchip" data-send="Je n'arrive pas à scanner un document depuis le scanner réseau."><span>📄 Scanner</span></button>
+                <button class="qchip" data-send="Mon second écran ne s'affiche pas ou n'est pas reconnu."><span>🖥️ Double écran</span></button>
+                <button class="qchip" data-send="Mon casque ou écouteurs ne sont pas reconnus dans Teams ou sur le PC."><span>🎧 Casque</span></button>
               </div>
 
               <div class="qi-row">
-                <span class="qi-cat">📁 Fichiers &amp; Applications</span>
-                <button class="qchip" data-send="OneDrive ne synchronise plus mes fichiers.">☁️ OneDrive</button>
-                <button class="qchip" data-send="Je n'arrive pas à accéder aux fichiers SharePoint.">📂 SharePoint</button>
-                <button class="qchip" data-send="Excel ou Word plante, affiche une erreur ou refuse de s'ouvrir.">📊 Excel / Word</button>
-                <button class="qchip" data-send="Je ne peux pas ouvrir ou enregistrer un fichier sur le lecteur réseau.">💾 Lecteur réseau</button>
-                <button class="qchip" data-send="Mon navigateur (Chrome, Edge) est lent, plante ou n'ouvre pas un site.">🌍 Navigateur</button>
+                <span class="qi-cat"><span>📁 Fichiers &amp; Applications</span><span class="qi-count">7</span></span>
+                <button class="qchip" data-send="OneDrive ne synchronise plus mes fichiers."><span>☁️ OneDrive</span></button>
+                <button class="qchip" data-send="Je n'arrive pas à accéder aux fichiers SharePoint."><span>📂 SharePoint</span></button>
+                <button class="qchip" data-send="Excel ou Word plante, affiche une erreur ou refuse de s'ouvrir."><span>📊 Excel / Word</span></button>
+                <button class="qchip" data-send="Je ne peux pas ouvrir ou enregistrer un fichier sur le lecteur réseau."><span>💾 Lecteur réseau</span></button>
+                <button class="qchip" data-send="Mon navigateur (Chrome, Edge) est lent, plante ou n'ouvre pas un site."><span>🌍 Navigateur</span></button>
+                <button class="qchip" data-send="Je ne peux pas ouvrir un fichier PDF ou Adobe Reader ne fonctionne pas."><span>📄 PDF / Adobe</span></button>
+                <button class="qchip" data-send="Mon disque est plein ou presque plein, je manque d'espace de stockage."><span>💽 Espace disque</span></button>
               </div>
 
               <div class="qi-row">
-                <span class="qi-cat">🚨 Sécurité</span>
-                <button class="qchip" data-send="Je pense avoir un virus ou un logiciel malveillant sur mon poste.">🦠 Virus / Malware</button>
-                <button class="qchip" data-send="J'ai reçu un email de phishing suspect avec un lien ou une pièce jointe.">🎣 Phishing</button>
+                <span class="qi-cat"><span>🛡️ Sécurité</span><span class="qi-count">4</span></span>
+                <button class="qchip" data-send="Je pense avoir un virus ou un logiciel malveillant sur mon poste."><span>🦠 Virus / Malware</span></button>
+                <button class="qchip" data-send="J'ai reçu un email de phishing suspect avec un lien ou une pièce jointe dangereuse."><span>🎣 Phishing</span></button>
+                <button class="qchip" data-send="Mes fichiers semblent chiffrés ou inaccessibles, je pense à une attaque ransomware."><span>🚨 Ransomware</span></button>
+                <button class="qchip" data-send="J'ai constaté une connexion ou un accès suspect à mon compte ou poste de travail."><span>👁️ Accès suspect</span></button>
               </div>
 
+              <div class="qi-row">
+                <span class="qi-cat"><span>📞 Téléphonie &amp; VoIP</span><span class="qi-count">4</span></span>
+                <button class="qchip" data-send="Mon téléphone IP ne sonne plus ou les appels ne passent pas."><span>📞 Téléphone IP</span></button>
+                <button class="qchip" data-send="Je n'entends pas mon interlocuteur ou il ne m'entend pas lors d'un appel."><span>🔇 Audio appel</span></button>
+                <button class="qchip" data-send="Ma messagerie vocale est pleine ou inaccessible."><span>📬 Messagerie vocale</span></button>
+                <button class="qchip" data-send="Le softphone (application téléphonique sur PC) ne se connecte pas ou plante."><span>💬 Softphone</span></button>
+              </div>
+
+              <div class="qi-row">
+                <span class="qi-cat"><span>🖥️ Accès distant</span><span class="qi-count">3</span></span>
+                <button class="qchip" data-send="Je n'arrive pas à me connecter en bureau à distance (RDP) à mon poste ou au serveur."><span>🖥️ Bureau à distance</span></button>
+                <button class="qchip" data-send="TeamViewer ou AnyDesk ne se lance pas ou refuse la connexion."><span>🔗 TeamViewer</span></button>
+                <button class="qchip" data-send="Je travaille en télétravail et je n'arrive pas à accéder aux ressources de l'entreprise."><span>🏠 Télétravail</span></button>
+              </div>
+
+              <div class="qi-row">
+                <span class="qi-cat"><span>💼 Logiciel métier</span><span class="qi-count">3</span></span>
+                <button class="qchip" data-send="Mon logiciel ERP (SAP, Sage, Cegid…) plante, est lent ou affiche une erreur."><span>⚙️ ERP / Sage / SAP</span></button>
+                <button class="qchip" data-send="Mon logiciel CRM (Salesforce, HubSpot…) ne se charge pas ou plante."><span>📈 CRM</span></button>
+                <button class="qchip" data-send="Un logiciel métier spécifique à mon service ne fonctionne plus correctement."><span>🛠️ Autre logiciel</span></button>
+              </div>
+
+            </div>
+            <div class="qi-footer-bar">
+              <span>⚡ <strong>49</strong> <span data-fr="problèmes répertoriés" data-en="issues listed">problèmes répertoriés</span></span>
+              <span class="qi-footer-dot">•</span>
+              <span>🕐 <span data-fr="Réponse guidée en" data-en="Guided response in">Réponse guidée en</span> <strong>&lt; 2 min</strong></span>
+              <span class="qi-footer-dot">•</span>
+              <span>🎫 <span data-fr="Ticket auto si besoin" data-en="Auto ticket if needed">Ticket auto si besoin</span></span>
             </div>
             <div class="quick-detail hidden" id="quickIssueDetail">
               <div class="quick-detail-header">
@@ -666,15 +946,20 @@
             </div>
           </div>
 
+          <!-- ╔══════════════════════════════════════╗ -->
+          <!-- ║   PANEL CHAT (colonne droite)         ║ -->
+          <!-- ╚══════════════════════════════════════╝ -->
+          <div class="chat-panel" id="chatPanel">
+
           <!-- Guide rapide (caché) -->
-          <div class="quick-guide hidden" id="quickGuide" style="display:none">
+          <div class="quick-guide hidden" id="quickGuide">
             <div class="quick-title" id="quickGuideTitle">Guide</div>
             <div class="guide-steps" id="quickGuideSteps"></div>
             <p class="note" id="quickGuideNote"></p>
           </div>
 
           <!-- Prochaine étape (caché) -->
-          <div class="next-step-card hidden" id="nextStepCard" style="display:none">
+          <div class="next-step-card hidden" id="nextStepCard">
             <div class="quick-title" id="nextStepTitle">Prochaine étape</div>
             <p class="note" id="nextStepText"></p>
             <div class="next-step-actions" id="nextStepActions">
@@ -697,7 +982,19 @@
 
           <!-- Sélecteur de langue (caché) -->
           <div class="kb-actions" style="display:none">
-            <select id="langSelect"><option value="fr">FR</option><option value="en">EN</option><option value="es">ES</option></select>
+            <select id="langSelect"><option value="fr">FR</option><option value="en">EN</option></select>
+          </div>
+
+          <!-- HERO — visible avant le 1er message -->
+          <div id="chatHero" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:40px 24px;text-align:center">
+            <div style="width:64px;height:64px;background:linear-gradient(135deg,rgba(79,142,247,0.2),rgba(123,111,240,0.2));border:1px solid rgba(79,142,247,0.25);border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:1.8rem">🤖</div>
+            <h2 style="font-size:1.6rem;font-weight:900;background:linear-gradient(120deg,#fff 0%,#a5b4fc 60%,#4f8ef7 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-0.04em;margin:0">Comment puis-je vous aider ?</h2>
+            <p style="color:#7a8499;font-size:0.92rem;max-width:360px;line-height:1.65;margin:0">Sélectionnez un problème à gauche ou décrivez votre situation — l'IA vous guide ou crée un ticket automatiquement.</p>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center">
+              <span style="padding:7px 16px;background:rgba(79,142,247,0.1);border:1px solid rgba(79,142,247,0.25);border-radius:20px;font-size:0.8rem;font-weight:600;color:#4f8ef7">⚡ Résolution guidée</span>
+              <span style="padding:7px 16px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.25);border-radius:20px;font-size:0.8rem;font-weight:600;color:#22c55e">🎫 Ticket automatique</span>
+              <span style="padding:7px 16px;background:rgba(168,85,247,0.1);border:1px solid rgba(168,85,247,0.25);border-radius:20px;font-size:0.8rem;font-weight:600;color:#a855f7">📡 Suivi temps réel</span>
+            </div>
           </div>
 
           <!-- MESSAGES DU CHAT -->
@@ -722,10 +1019,10 @@
 
           <!-- FEEDBACK — résolu / ticket -->
           <div class="feedback hidden" id="feedbackBox">
-            <div class="feedback-title" id="feedbackTitle">Le problème est-il résolu ?</div>
+            <div class="feedback-title" id="feedbackTitle">✅ Le problème est-il résolu ?</div>
             <div class="feedback-actions">
-              <button id="resolveYesBtn" class="btn ghost">✓ Résolu</button>
-              <button id="createTicketBtn" class="btn primary" type="button">Créer un ticket GLPI</button>
+              <button id="resolveYesBtn" class="btn success">✓ Oui, c'est résolu</button>
+              <button id="createTicketBtn" class="btn primary" type="button">🎫 Créer un ticket</button>
             </div>
             <div id="feedbackHint" class="note"></div>
             <div class="feedback-details" style="display:none">
@@ -736,10 +1033,11 @@
 
           <!-- Ticket badge -->
           <div id="ticketBadge" class="ticket-badge hidden"></div>
+          <div id="chatTickets"></div>
 
           <!-- Ticket preview -->
           <div class="ticket-preview hidden" id="ticketPreview">
-            <div class="quick-title" id="ticketPreviewHeading">Récap avant création</div>
+            <div class="quick-title" id="ticketPreviewHeading">🎫 Récapitulatif du ticket</div>
             <div class="preview-grid">
               <div><strong id="ticketPreviewLabelTitle">Titre</strong><span id="ticketPreviewTitle">-</span></div>
               <div><strong id="ticketPreviewLabelCategory">Catégorie</strong><span id="ticketPreviewCategory">-</span></div>
@@ -747,15 +1045,15 @@
               <div><strong id="ticketPreviewLabelSummary">Résumé</strong><span id="ticketPreviewSummary">-</span></div>
             </div>
             <div class="preview-actions">
-              <button id="ticketPreviewConfirm" class="btn primary" type="button">Créer le ticket dans GLPI</button>
-              <button id="ticketPreviewCancel" class="btn ghost" type="button">Annuler</button>
+              <button id="ticketPreviewConfirm" class="btn primary" type="button">✓ Confirmer et créer dans GLPI</button>
+              <button id="ticketPreviewCancel" class="btn ghost" type="button">✕ Annuler</button>
             </div>
           </div>
 
           <!-- FORMULAIRE DE SAISIE -->
           <div class="chat-input-zone">
             <form id="chatForm" style="display:contents">
-              <input id="chatMessageInput" name="message" placeholder="Décrivez votre problème…" required />
+              <input id="chatMessageInput" name="message" placeholder="Décrivez votre problème…" data-placeholder-fr="Décrivez votre problème…" data-placeholder-en="Describe your issue…" required />
               <button class="send-btn" type="submit" title="Envoyer">↑</button>
             </form>
           </div>
@@ -766,6 +1064,8 @@
             <button id="chatImageBtn" class="btn ghost" type="button">Capture</button>
             <span class="note" id="chatAttachmentHint">Glissez ou collez une image.</span>
           </div>
+
+          </div><!-- /chat-panel -->
 
         </div>
 
@@ -786,15 +1086,21 @@
 
       <!-- ═══ CONFIRMATION TICKET ═══ -->
       <section class="card ticket-thanks hidden" id="ticketThanks">
-        <div style="font-size:2.5rem;margin-bottom:8px">✅</div>
-        <h3 id="ticketThanksHeader">Ticket créé dans GLPI</h3>
+        <div class="thanks-icon">✅</div>
+        <h3 id="ticketThanksHeader">Ticket enregistré</h3>
+        <span class="thanks-glpi-badge hidden" id="ticketThanksGlpiBadge">🔗 GLPI <span id="ticketThanksGlpiNum"></span></span>
         <p id="ticketThanksMsg">Un technicien va prendre en charge votre demande.</p>
         <div class="ticket-summary">
-          <div class="ticket-summary-row"><strong id="ticketThanksLabelTitle">Titre</strong><span id="ticketThanksTitle">-</span></div>
-          <div class="ticket-summary-row"><strong id="ticketThanksLabelDetails">Détails</strong><span id="ticketThanksDetails">-</span></div>
-          <div class="ticket-summary-row"><strong id="ticketThanksLabelEta">Estimation</strong><span id="ticketThanksEta">-</span></div>
+          <div class="ticket-summary-row"><strong id="ticketThanksLabelTitle">Titre</strong><span id="ticketThanksTitle">—</span></div>
+          <div class="ticket-summary-row"><strong id="ticketThanksLabelDetails">Catégorie</strong><span id="ticketThanksDetails">—</span></div>
+          <div class="ticket-summary-row"><strong id="ticketThanksLabelEta">Délai estimé</strong><span id="ticketThanksEta">—</span></div>
         </div>
-        <button id="thanksNewBtn" class="btn primary" type="button" style="width:100%;max-width:280px">Signaler un autre problème</button>
+        <div class="thanks-actions">
+          <a id="thanksGlpiBtn" class="btn primary hidden" href="#" target="_blank" rel="noopener">Voir dans GLPI →</a>
+          <button id="thanksViewTicketsBtn" class="btn ghost" type="button">📋 Mes tickets</button>
+          <button id="thanksBackBtn" class="btn ghost" type="button">← Retour au chat</button>
+          <button id="thanksNewBtn" class="btn ghost" type="button">+ Nouveau problème</button>
+        </div>
       </section>
 
       <!-- ═══ MES TICKETS ═══ -->
@@ -945,39 +1251,191 @@
       <a class="footer-note footer-link" id="footerCredit" href="https://kah-digital-site.vercel.app/" target="_blank" rel="noopener">Kah-Digital</a>
     </footer>
 
-    <script src="/app/i18n.js?v=20260509" defer></script>
-    <script src="/app/app.js?v=20260509" defer></script>
+    <script src="/app/i18n.js?v=20260512" defer></script>
+    <script src="/app/app.js?v=20260512-userfix" defer></script>
     <script src="/app/logout.js?v=20260509" defer></script>
     <script>
-    // Direct-send : 1 clic = message envoyé immédiatement
-    document.addEventListener('DOMContentLoaded', function() {
-      document.getElementById('quickIssuesContainer').addEventListener('click', function(e) {
-        var btn = e.target.closest('[data-send]');
-        if (!btn) return;
-        var msg = btn.getAttribute('data-send');
-        if (!msg) return;
+    // ─── Chat Hero : se cache quand le 1er message arrive ──────────────────────
+    (function() {
+      document.addEventListener('DOMContentLoaded', function() {
+        var _heroEl  = document.getElementById('chatHero');
+        var _chatWin = document.getElementById('chatWindow');
+        if (!_heroEl || !_chatWin) return;
+        // Init state
+        if (_chatWin.children.length === 0) {
+          _chatWin.style.display = 'none';
+        } else {
+          _heroEl.style.display = 'none';
+          _chatWin.style.display = 'flex';
+        }
+        // Observer
+        var _obs = new MutationObserver(function() {
+          if (_chatWin.children.length > 0) {
+            _heroEl.style.display = 'none';
+            _chatWin.style.display = 'flex';
+            _obs.disconnect();
+          }
+        });
+        _obs.observe(_chatWin, { childList: true });
+      });
+    })();
 
-        // Vérifier que l'utilisateur est connecté (loginCard masqué)
-        var lc = document.getElementById('loginCard');
-        if (lc && lc.style.display !== 'none') return;
+    // ─── Tabs mobile (< 700px) ──────────────────────────────────────────────────
+    (function() {
+      document.addEventListener('DOMContentLoaded', function() {
+        var tabLeft  = document.getElementById('mobileTabLeft');
+        var tabRight = document.getElementById('mobileTabRight');
+        var colLeft  = document.getElementById('quickIssuesWrapper');
+        var colRight = document.querySelector('.chat-panel');
+        if (!tabLeft || !tabRight || !colLeft || !colRight) return;
 
-        var input = document.getElementById('chatMessageInput');
-        if (!input) return;
+        function showLeft() {
+          tabLeft.classList.add('active');
+          tabRight.classList.remove('active');
+          colLeft.classList.remove('mobile-hidden');
+          colRight.classList.add('mobile-hidden');
+        }
+        function showRight() {
+          tabRight.classList.add('active');
+          tabLeft.classList.remove('active');
+          colLeft.classList.add('mobile-hidden');
+          colRight.classList.remove('mobile-hidden');
+        }
+        tabLeft.addEventListener('click', showLeft);
+        tabRight.addEventListener('click', showRight);
 
-        // Feedback visuel
-        var prev = btn.style.background;
-        btn.style.background = 'var(--accent)';
-        btn.style.color = '#fff';
-        setTimeout(function() { btn.style.background = prev; btn.style.color = ''; }, 600);
+        // Quand un chip est cliqué → passer au chat
+        colLeft.addEventListener('click', function(e) {
+          if (e.target.closest('[data-send]') && window.innerWidth <= 700) {
+            showRight();
+          }
+        });
+      });
+    })();
+    </script>
+    <script>
+    // ─── Login standalone user.html (ne dépend pas de app.js) ──────────────────
+    (function() {
+      function getUserToken() {
+        return localStorage.getItem('assistant_token') || sessionStorage.getItem('assistant_token') || '';
+      }
+      function doUserLogout() {
+        localStorage.removeItem('assistant_token');
+        sessionStorage.removeItem('assistant_token');
+        location.reload();
+      }
 
-        // Envoyer directement via le formulaire
-        input.value = msg;
-        var form = document.getElementById('chatForm');
-        if (form) {
-          form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+      // Démo rapide user
+      document.addEventListener('DOMContentLoaded', function() {
+        var demoBtn = document.getElementById('demoUserBtn');
+        if (demoBtn) {
+          demoBtn.addEventListener('click', async function() {
+            demoBtn.disabled = true;
+            demoBtn.textContent = '⏳ Connexion…';
+            try {
+              var res = await fetch('/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: 'user@assistant.local', password: 'user123' })
+              });
+              var data = await res.json();
+              if (!res.ok) throw new Error(data.error || 'login_failed');
+              localStorage.setItem('assistant_token', data.token);
+              location.reload();
+            } catch(e) {
+              demoBtn.disabled = false;
+              demoBtn.textContent = '⚡ Connexion démo utilisateur';
+              var st = document.getElementById('loginStatus');
+              if (st) { st.textContent = 'Erreur connexion démo'; st.className = 'status error'; }
+            }
+          });
+        }
+
+        // Connexion rapide (local)
+        var quickBtn = document.getElementById('quickUserBtn');
+        if (quickBtn) {
+          quickBtn.addEventListener('click', function() {
+            var emailInput = document.querySelector('#loginForm input[name="email"]');
+            var passInput = document.querySelector('#loginForm input[name="password"]');
+            if (emailInput) emailInput.value = 'user@assistant.local';
+            if (passInput) passInput.value = 'user123';
+          });
+        }
+
+        // Logout
+        var logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) {
+          logoutBtn.addEventListener('click', doUserLogout);
         }
       });
-    });
+    })();
+    (function() {
+      function getCurrentLang() {
+        try {
+          return localStorage.getItem('assistant_lang') ||
+                 document.documentElement.lang ||
+                 navigator.language.split('-')[0] || 'fr';
+        } catch(e) { return 'fr'; }
+      }
+
+      function applyChipLabels() {
+        var lang = getCurrentLang();
+        document.querySelectorAll('[data-fr][data-en]').forEach(function(el) {
+          el.textContent = lang === 'en'
+            ? (el.getAttribute('data-en') || el.getAttribute('data-fr'))
+            : el.getAttribute('data-fr');
+        });
+        // Update placeholders
+        document.querySelectorAll('[data-placeholder-fr][data-placeholder-en]').forEach(function(el) {
+          el.placeholder = lang === 'en'
+            ? el.getAttribute('data-placeholder-en')
+            : el.getAttribute('data-placeholder-fr');
+        });
+      }
+
+      document.addEventListener('DOMContentLoaded', function() {
+        applyChipLabels();
+
+        // Listen to language changes from app.js
+        document.addEventListener('langchange', applyChipLabels);
+        var orig = localStorage.setItem.bind(localStorage);
+        try {
+          localStorage.setItem = function(k, v) {
+            orig(k, v);
+            if (k === 'assistant_lang') applyChipLabels();
+          };
+        } catch(e) {}
+
+        document.getElementById('myChipsBox').addEventListener('click', function(e) {
+          var btn = e.target.closest('[data-send]');
+          if (!btn) return;
+
+          var lang = getCurrentLang();
+          var msg = (lang === 'en' && btn.getAttribute('data-send-en'))
+            ? btn.getAttribute('data-send-en')
+            : btn.getAttribute('data-send');
+          if (!msg) return;
+
+          // Vérifier que l'utilisateur est connecté
+          var lc = document.getElementById('loginCard');
+          if (lc && lc.style.display !== 'none') return;
+
+          var input = document.getElementById('chatMessageInput');
+          if (!input) return;
+
+          var prev = btn.style.background;
+          btn.style.background = 'var(--accent)';
+          btn.style.color = '#fff';
+          setTimeout(function() { btn.style.background = prev; btn.style.color = ''; }, 600);
+
+          input.value = msg;
+          var form = document.getElementById('chatForm');
+          if (form) {
+            form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+          }
+        });
+      });
+    })();
     </script>
   </body>
 </html>

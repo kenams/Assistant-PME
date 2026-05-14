@@ -47,17 +47,21 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "'unsafe-inline'"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "https://js.stripe.com"],
         styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
         imgSrc: ["'self'", "data:", "https:"],
         connectSrc: [
           "'self'",
           "http://localhost:3001",
-          "http://127.0.0.1:3001"
+          "http://127.0.0.1:3001",
+          "https://api.stripe.com",
+          "https://api.openai.com"
         ],
-        fontSrc: ["'self'", "data:", "https://fonts.gstatic.com"]
+        fontSrc: ["'self'", "data:", "https://fonts.gstatic.com"],
+        frameSrc: ["https://js.stripe.com", "https://hooks.stripe.com"],
       }
-    }
+    },
+    crossOriginEmbedderPolicy: false,
   })
 );
 const corsOrigins = env.corsOrigins
@@ -93,42 +97,25 @@ const staticOptions = {
   }
 };
 
-app.get("/app", (req, res) => {
-  res.sendFile(path.join(appDir, "login.html"));
-});
-app.get("/app/", (req, res) => {
-  res.sendFile(path.join(appDir, "login.html"));
-});
-app.get("/app/index.html", (req, res) => {
-  res.sendFile(path.join(appDir, "index.html"));
-});
-app.get("/app/login", (req, res) => {
-  res.sendFile(path.join(appDir, "login.html"));
-});
-app.get("/app/login/", (req, res) => {
-  res.sendFile(path.join(appDir, "login.html"));
-});
-app.get("/app/login/index.html", (req, res) => {
-  res.sendFile(path.join(appDir, "login.html"));
-});
-app.get("/app/user", (req, res) => {
-  res.sendFile(path.join(appDir, "user.html"));
-});
-app.get("/app/user/", (req, res) => {
-  res.sendFile(path.join(appDir, "user.html"));
-});
-app.get("/app/user/index.html", (req, res) => {
-  res.sendFile(path.join(appDir, "user.html"));
-});
-app.get("/app/admin", (req, res) => {
-  res.sendFile(path.join(appDir, "admin.html"));
-});
-app.get("/app/admin/", (req, res) => {
-  res.sendFile(path.join(appDir, "admin.html"));
-});
-app.get("/app/admin/index.html", (req, res) => {
-  res.sendFile(path.join(appDir, "admin.html"));
-});
+function sendNoCache(res, file) {
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
+  res.sendFile(file);
+}
+
+app.get("/app", (req, res) => sendNoCache(res, path.join(appDir, "login.html")));
+app.get("/app/", (req, res) => sendNoCache(res, path.join(appDir, "login.html")));
+app.get("/app/index.html", (req, res) => sendNoCache(res, path.join(appDir, "index.html")));
+app.get("/app/login", (req, res) => sendNoCache(res, path.join(appDir, "login.html")));
+app.get("/app/login/", (req, res) => sendNoCache(res, path.join(appDir, "login.html")));
+app.get("/app/login/index.html", (req, res) => sendNoCache(res, path.join(appDir, "login.html")));
+app.get("/app/user", (req, res) => sendNoCache(res, path.join(appDir, "user.html")));
+app.get("/app/user/", (req, res) => sendNoCache(res, path.join(appDir, "user.html")));
+app.get("/app/user/index.html", (req, res) => sendNoCache(res, path.join(appDir, "user.html")));
+app.get("/app/admin", (req, res) => sendNoCache(res, path.join(appDir, "admin.html")));
+app.get("/app/admin/", (req, res) => sendNoCache(res, path.join(appDir, "admin.html")));
+app.get("/app/admin/index.html", (req, res) => sendNoCache(res, path.join(appDir, "admin.html")));
 app.use("/app", express.static(appDir, staticOptions));
 // Removed legacy static apps (landing/crm/dashboard/superadmin) to keep a single app surface.
 
