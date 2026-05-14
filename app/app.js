@@ -339,6 +339,11 @@ if (kioskMode) {
       const ticketThanks = document.getElementById("ticketThanks");
       const ticketThanksMsg = document.getElementById("ticketThanksMsg");
       const thanksNewBtn = document.getElementById("thanksNewBtn");
+      const thanksBackBtn = document.getElementById("thanksBackBtn");
+      const thanksViewTicketsBtn = document.getElementById("thanksViewTicketsBtn");
+      const thanksGlpiBtn = document.getElementById("thanksGlpiBtn");
+      const ticketThanksGlpiBadge = document.getElementById("ticketThanksGlpiBadge");
+      const ticketThanksGlpiNum = document.getElementById("ticketThanksGlpiNum");
       const ticketThanksTitle = document.getElementById("ticketThanksTitle");
       const ticketThanksDetails = document.getElementById("ticketThanksDetails");
       const ticketThanksEta = document.getElementById("ticketThanksEta");
@@ -1181,11 +1186,36 @@ if (kioskMode) {
         return localStorage.getItem("assistant_token") || "";
       }
 
+      let _tokenRefreshTimer = null;
+      function scheduleTokenRefresh() {
+        if (_tokenRefreshTimer) clearTimeout(_tokenRefreshTimer);
+        // Refresh 30min before 8h expiry = after 7h30
+        _tokenRefreshTimer = setTimeout(async () => {
+          const tk = getToken();
+          if (!tk) return;
+          try {
+            const res = await fetch(`${API_BASE}/auth/refresh`, {
+              method: "POST",
+              headers: { Authorization: `Bearer ${tk}` }
+            });
+            if (res.ok) {
+              const data = await res.json();
+              if (data && data.token) {
+                localStorage.setItem("assistant_token", data.token);
+                scheduleTokenRefresh();
+              }
+            }
+          } catch (e) {}
+        }, 27 * 60 * 1000); // 27 minutes in dev, switch to 7.5h in prod
+      }
+
       function setToken(token) {
         if (token) {
           localStorage.setItem("assistant_token", token);
+          scheduleTokenRefresh();
         } else {
           localStorage.removeItem("assistant_token");
+          if (_tokenRefreshTimer) { clearTimeout(_tokenRefreshTimer); _tokenRefreshTimer = null; }
         }
       }
 
@@ -1474,6 +1504,7 @@ if (kioskMode) {
           chatGalleryGrid.innerHTML = "";
         }
         if (feedbackBox) {
+          feedbackBox.classList.add("hidden");
           feedbackBox.style.display = "none";
         }
         if (quickGuide) {
@@ -1576,28 +1607,60 @@ if (kioskMode) {
         focusChatInput();
       }
 
+      const CATEGORY_LABELS = {
+        email: "Email / Messagerie", printer: "Imprimante", network: "Réseau",
+        vpn: "VPN", password: "Mot de passe", hardware: "Matériel",
+        software: "Logiciel", security: "Sécurité", access: "Accès", general: "Général", other: "Autre"
+      };
+      const PRIORITY_LABELS = {
+        low: "Basse", medium: "Normale", high: "Haute", critical: "Critique"
+      };
+
       function showTicketThanks(state) {
         if (!ticketThanks) return;
         if (ticketThanksMsg) {
           ticketThanksMsg.textContent =
             state === "exists"
-              ? "Votre ticket est deja enregistre."
-              : "Votre ticket a ete cree. Un technicien va vous recontacter.";
+              ? "Votre ticket est déjà enregistré. Un technicien va vous recontacter."
+              : "Votre demande a été transmise. Un technicien va vous recontacter.";
         }
+        const draft = pendingTicketDraft;
         if (ticketThanksTitle) {
-          ticketThanksTitle.textContent = pendingTicketDraft?.title || "-";
+          ticketThanksTitle.textContent = (draft && draft.title) ? draft.title : "—";
         }
         if (ticketThanksDetails) {
-          const details = pendingTicketDraft
-            ? `${pendingTicketDraft.category || "-"} | ${pendingTicketDraft.priority || "-"}`
-            : "-";
-          ticketThanksDetails.textContent = details;
+          if (draft && (draft.category || draft.priority)) {
+            const cat = CATEGORY_LABELS[draft.category] || draft.category || "—";
+            const prio = PRIORITY_LABELS[draft.priority] || draft.priority || "—";
+            ticketThanksDetails.textContent = `${cat}  ·  Priorité ${prio}`;
+          } else {
+            ticketThanksDetails.textContent = "—";
+          }
         }
         if (ticketThanksEta) {
           ticketThanksEta.textContent = buildSlaEtaText();
         }
+        // Badge GLPI + bouton lien
+        const extId = draft && draft.external_id;
+        const extUrl = draft && draft.external_url;
+        if (ticketThanksGlpiBadge) {
+          if (extId) {
+            if (ticketThanksGlpiNum) ticketThanksGlpiNum.textContent = `#${extId}`;
+            ticketThanksGlpiBadge.classList.remove("hidden");
+          } else {
+            ticketThanksGlpiBadge.classList.add("hidden");
+          }
+        }
+        if (thanksGlpiBtn) {
+          if (extUrl) {
+            thanksGlpiBtn.href = extUrl;
+            thanksGlpiBtn.classList.remove("hidden");
+          } else {
+            thanksGlpiBtn.classList.add("hidden");
+          }
+        }
         ticketThanks.classList.remove("hidden");
-        ticketThanks.scrollIntoView({ behavior: "smooth", block: "center" });
+        window.scrollTo({ top: 0, behavior: "smooth" });
         if (beginnerModeEnabled) {
           setBeginnerStep(t("beginner.step4.ticket"));
         }
@@ -2190,6 +2253,7 @@ if (kioskMode) {
           loadConversations();
           loadConversationTickets(conversationId);
           if (feedbackBox) {
+            feedbackBox.classList.remove("hidden");
             feedbackBox.style.display = "flex";
           }
           if (userOnlyMode && chatWindow) {
@@ -2205,7 +2269,9 @@ if (kioskMode) {
               title: data.ticket.title,
               summary: data.ticket.description,
               category: data.ticket.category,
-              priority: data.ticket.priority
+              priority: data.ticket.priority,
+              external_id: data.ticket.external_id || null,
+              external_url: data.ticket.external_url || null
             };
             showTicketThanks("created");
             latestTicketStatus = data.ticket.status || "open";
@@ -2355,6 +2421,7 @@ if (kioskMode) {
             renderChatGallery(cached);
           }
           if (feedbackBox) {
+            feedbackBox.classList.remove("hidden");
             feedbackBox.style.display = "flex";
           }
           loadConversations();
@@ -5392,7 +5459,10 @@ if (kioskMode) {
           setNetStatus(false);
         } finally {
           await loadConversationTickets(conversationId);
-          feedbackBox.style.display = "flex";
+          if (feedbackBox) {
+            feedbackBox.classList.remove("hidden");
+            feedbackBox.style.display = "flex";
+          }
           setConversationStatus("open");
           chatHistoryLoading = false;
         }
@@ -5935,8 +6005,22 @@ if (kioskMode) {
 
       if (thanksNewBtn) {
         thanksNewBtn.addEventListener("click", () => {
+          if (ticketThanks) ticketThanks.classList.add("hidden");
           resetConversation();
           ensureWelcomeMessage();
+        });
+      }
+
+      if (thanksBackBtn) {
+        thanksBackBtn.addEventListener("click", () => {
+          if (ticketThanks) ticketThanks.classList.add("hidden");
+        });
+      }
+
+      if (thanksViewTicketsBtn) {
+        thanksViewTicketsBtn.addEventListener("click", () => {
+          if (ticketThanks) ticketThanks.classList.add("hidden");
+          if (showTicketsBtn) showTicketsBtn.click();
         });
       }
 
@@ -6793,7 +6877,9 @@ if (kioskMode) {
                 title: feedback.ticket.title,
                 summary: feedback.ticket.description,
                 category: feedback.ticket.category,
-                priority: feedback.ticket.priority
+                priority: feedback.ticket.priority,
+                external_id: feedback.ticket.external_id || null,
+                external_url: feedback.ticket.external_url || null
               };
               showTicketThanks("created");
               latestTicketStatus = feedback.ticket.status || "open";
@@ -6850,7 +6936,9 @@ if (kioskMode) {
                 title: ticket.ticket.title,
                 summary: ticket.ticket.description,
                 category: ticket.ticket.category,
-                priority: ticket.ticket.priority
+                priority: ticket.ticket.priority,
+                external_id: ticket.ticket.external_id || null,
+                external_url: ticket.ticket.external_url || null
               };
             }
             showTicketThanks(ticket.created ? "created" : "exists");

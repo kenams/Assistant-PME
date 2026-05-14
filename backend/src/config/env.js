@@ -49,7 +49,10 @@ const env = {
   glpiBaseUrl: process.env.GLPI_BASE_URL || "",
   glpiAppToken: process.env.GLPI_APP_TOKEN || "",
   glpiUserToken: process.env.GLPI_USER_TOKEN || "",
-  glpiEnabled: (process.env.GLPI_ENABLED || "").toLowerCase() === "true"
+  glpiEnabled: (process.env.GLPI_ENABLED || "").toLowerCase() === "true",
+  stripeSecretKey: process.env.STRIPE_SECRET_KEY || "",
+  stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET || "",
+  appUrl: process.env.APP_URL || "http://localhost:3001",
 };
 
 module.exports = { env };

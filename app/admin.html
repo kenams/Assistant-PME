@@ -875,6 +875,10 @@
           <span class="icon">👥</span> Utilisateurs
         </button>
 
+        <button class="sidebar-link" data-panel="leads" onclick="showPanel('leads',this)">
+          <span class="icon">📈</span> CRM / Leads
+        </button>
+
         <div class="sidebar-section-label">Système</div>
         <button class="sidebar-link" data-panel="diagnostics" onclick="showPanel('diagnostics',this)">
           <span class="icon">🔧</span> Diagnostics
@@ -1303,6 +1307,38 @@
           <div class="card" id="diagSecurityCard">
             <div class="card-header"><h3>🛡️ Sécurité</h3></div>
             <div id="diagSecurityBody" style="padding:8px 4px;display:flex;flex-direction:column;gap:4px"></div>
+          </div>
+        </div>
+
+        <!-- ══ CRM / LEADS ══ -->
+        <div class="admin-panel" id="panel-leads">
+          <div class="panel-title-row">
+            <h2 class="panel-title">CRM — Prospects & Leads</h2>
+            <div class="actions-inline">
+              <a href="/leads/export.csv" class="btn ghost" style="font-size:0.82rem">📊 Export CSV</a>
+              <button id="leadsRefreshBtn" class="btn ghost">↻ Actualiser</button>
+            </div>
+          </div>
+
+          <!-- Pipeline visuel -->
+          <div id="leadsPipeline" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-bottom:8px"></div>
+
+          <!-- Filtres -->
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+            <button class="chip active" data-leads-filter="all" onclick="filterLeads('all',this)">Tous</button>
+            <button class="chip" data-leads-filter="new" onclick="filterLeads('new',this)">🆕 Nouveau</button>
+            <button class="chip" data-leads-filter="contacted" onclick="filterLeads('contacted',this)">📞 Contacté</button>
+            <button class="chip" data-leads-filter="demo" onclick="filterLeads('demo',this)">🎯 Démo</button>
+            <button class="chip" data-leads-filter="proposal" onclick="filterLeads('proposal',this)">📄 Proposition</button>
+            <button class="chip" data-leads-filter="won" onclick="filterLeads('won',this)">🏆 Gagné</button>
+            <button class="chip" data-leads-filter="lost" onclick="filterLeads('lost',this)">❌ Perdu</button>
+          </div>
+
+          <!-- Liste leads -->
+          <div class="card" style="padding:0">
+            <div id="leadsTable" style="display:flex;flex-direction:column">
+              <div style="text-align:center;padding:40px;color:var(--text-muted)">Cliquez sur Actualiser pour charger les leads</div>
+            </div>
           </div>
         </div>
 
@@ -1946,6 +1982,280 @@
       if (detailEl) { detailEl.textContent = detail; detailEl.className = `kpi-trend ${colorClass === 'success' ? 'up' : colorClass === 'warning' ? 'neutral' : 'neutral'}`; }
     }
 
+    // ─── Analytics ───────────────────────────────────────────
+    async function loadAnalytics() {
+      if (!getAdminToken()) return;
+      try {
+        const [metricsRes, analyticsRes] = await Promise.all([
+          fetch('/admin/metrics', { headers: authHeaders() }),
+          fetch('/admin/analytics', { headers: authHeaders() })
+        ]);
+        const metrics = metricsRes.ok ? await metricsRes.json() : {};
+        const data = analyticsRes.ok ? await analyticsRes.json() : {};
+
+        const el = id => document.getElementById(id);
+
+        // Mini KPIs
+        if (el('miniKpiResponseValue')) el('miniKpiResponseValue').textContent = data.response_avg_minutes > 0 ? data.response_avg_minutes + 'min' : '—';
+        if (el('miniKpiResolutionValue')) el('miniKpiResolutionValue').textContent = data.resolution_avg_minutes > 0 ? data.resolution_avg_minutes + 'min' : '—';
+        if (el('miniKpiRatingValue')) el('miniKpiRatingValue').textContent = data.feedback?.average_rating > 0 ? data.feedback.average_rating + '/5' : '—';
+        const slaBreached = data.sla?.breached_open_count || 0;
+        const slaAtRisk = data.sla?.at_risk_count || 0;
+        if (el('miniKpiSlaValue')) {
+          el('miniKpiSlaValue').textContent = slaBreached + ' / ' + slaAtRisk;
+          el('miniKpiSlaValue').style.color = slaBreached > 0 ? 'var(--danger)' : slaAtRisk > 0 ? 'var(--warning)' : 'var(--success)';
+        }
+
+        // Bar charts
+        function renderBars(containerId, obj, colorMap) {
+          const container = el(containerId);
+          if (!container) return;
+          const entries = Object.entries(obj || {}).sort((a, b) => b[1] - a[1]);
+          const max = Math.max(...entries.map(e => e[1]), 1);
+          const COLORS = colorMap || { open: '#4f8ef7', resolved: '#22c55e', critical: '#ef4444', high: '#f97316', medium: '#4f8ef7', low: '#22c55e', email: '#a78bfa', network: '#4f8ef7', hardware: '#f97316', software: '#22c55e', password: '#f59e0b', security: '#ef4444', general: '#6b7280' };
+          container.innerHTML = entries.map(([key, val]) => {
+            const pct = Math.round((val / max) * 100);
+            const color = COLORS[key] || '#6b7280';
+            return `<div class="bar-row" style="display:flex;align-items:center;gap:8px;font-size:0.8rem">
+              <span style="min-width:80px;color:var(--text-muted);text-transform:capitalize">${key}</span>
+              <div class="bar-track" style="flex:1;height:8px;background:var(--bg3);border-radius:4px;overflow:hidden">
+                <div style="width:${pct}%;height:100%;background:${color};border-radius:4px;transition:width 0.6s ease"></div>
+              </div>
+              <span style="min-width:22px;text-align:right;font-weight:700;color:var(--text)">${val}</span>
+            </div>`;
+          }).join('') || '<p style="color:var(--text-muted);font-size:0.82rem;padding:8px 0">Aucune donnée</p>';
+        }
+        renderBars('miniStatusBars', data.tickets_by_status);
+        renderBars('miniPriorityBars', data.tickets_by_priority, { critical: '#ef4444', high: '#f97316', medium: '#4f8ef7', low: '#22c55e' });
+
+        // Volume sparkline
+        const volContainer = el('miniVolumeBars');
+        if (volContainer && data.volume_last_14_days) {
+          const vol = data.volume_last_14_days;
+          const maxConvo = Math.max(...vol.map(v => v.conversations + v.tickets), 1);
+          volContainer.innerHTML = vol.map(v => {
+            const total = v.conversations + v.tickets;
+            const pct = Math.max(Math.round((total / maxConvo) * 100), 2);
+            const day = v.day.slice(5); // MM-DD
+            return `<div title="${day}: ${total}" style="flex:1;height:${pct}%;background:${total > 0 ? 'var(--accent)' : 'var(--bg3)'};border-radius:3px 3px 0 0;opacity:${total > 0 ? 0.8 : 0.2};transition:opacity 0.2s;cursor:default"></div>`;
+          }).join('');
+        }
+
+        // ROI card
+        if (data.roi) {
+          const roi = data.roi;
+          const roiContainer = el('metricsStats') || el('metricsStatsCard');
+          if (roiContainer) {
+            roiContainer.innerHTML = `
+              <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;padding:16px">
+                <div style="background:var(--bg3);border-radius:12px;padding:16px;text-align:center">
+                  <div style="font-size:1.6rem;font-weight:900;color:var(--accent)">${roi.tickets_evites}</div>
+                  <div style="font-size:0.78rem;color:var(--text-muted);margin-top:4px">Tickets évités</div>
+                </div>
+                <div style="background:var(--bg3);border-radius:12px;padding:16px;text-align:center">
+                  <div style="font-size:1.6rem;font-weight:900;color:#22c55e">${roi.hours_saved}h</div>
+                  <div style="font-size:0.78rem;color:var(--text-muted);margin-top:4px">Heures économisées</div>
+                </div>
+                <div style="background:var(--bg3);border-radius:12px;padding:16px;text-align:center">
+                  <div style="font-size:1.6rem;font-weight:900;color:#a78bfa">${metrics.resolution_rate || 0}%</div>
+                  <div style="font-size:0.78rem;color:var(--text-muted);margin-top:4px">Taux résolution IA</div>
+                </div>
+                <div style="background:var(--bg3);border-radius:12px;padding:16px;text-align:center">
+                  <div style="font-size:1.6rem;font-weight:900;color:#f97316">${metrics.utilisateurs_actifs || 0}</div>
+                  <div style="font-size:0.78rem;color:var(--text-muted);margin-top:4px">Utilisateurs actifs</div>
+                </div>
+              </div>`;
+          }
+        }
+
+        // Tickets récents (derniers 5)
+        const recentEl = el('recentTicketsList');
+        if (recentEl && allTickets.length) {
+          const recent = [...allTickets].sort((a,b) => new Date(b.created_at) - new Date(a.created_at)).slice(0,5);
+          recentEl.innerHTML = recent.map(t => {
+            const prioColors = { critical:'#ef4444', high:'#f97316', medium:'#4f8ef7', low:'#22c55e' };
+            return `<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--stroke)">
+              <div style="width:6px;height:6px;border-radius:50%;background:${prioColors[t.priority]||'#6b7280'};flex-shrink:0"></div>
+              <div style="flex:1;font-size:0.84rem;font-weight:500;color:var(--text)">${escHtml(t.title||'Sans titre')}</div>
+              <span style="font-size:0.72rem;color:var(--text-muted)">${formatAge(t.created_at)}</span>
+              <span class="tag ${t.status==='resolved'?'resolved':'open'}" style="font-size:0.7rem">${t.status}</span>
+            </div>`;
+          }).join('');
+        } else if (recentEl) {
+          recentEl.innerHTML = '<p style="color:var(--text-muted);font-size:0.84rem;padding:12px 0">Aucun ticket</p>';
+        }
+
+        // Export PDF / CSV links
+        const exportArea = el('metricsStatsCard');
+        if (exportArea && !exportArea.querySelector('.analytics-exports')) {
+          const exp = document.createElement('div');
+          exp.className = 'analytics-exports';
+          exp.style.cssText = 'display:flex;gap:8px;padding:0 16px 16px;flex-wrap:wrap';
+          exp.innerHTML = `
+            <a href="/admin/analytics/pdf" target="_blank" class="btn ghost" style="font-size:0.8rem">📄 Export PDF</a>
+            <a href="/admin/analytics/summary.csv" class="btn ghost" style="font-size:0.8rem">📊 Export CSV</a>
+            <a href="/admin/checklist/export.csv" class="btn ghost" style="font-size:0.8rem">✅ Checklist CSV</a>`;
+          exportArea.appendChild(exp);
+        }
+
+      } catch(e) { console.error('Analytics error:', e); }
+    }
+
+    // ─── Users / Invites ─────────────────────────────────────
+    async function loadUsers() {
+      if (!getAdminToken()) return;
+      try {
+        const res = await fetch('/users', { headers: authHeaders() });
+        if (!res.ok) return;
+        const data = await res.json();
+        const users = data.items || [];
+
+        let container = document.getElementById('usersListBody');
+        if (!container) {
+          const card = document.createElement('div');
+          card.className = 'card';
+          card.style.marginBottom = '0';
+          card.innerHTML = `<div class="card-header"><h3>Utilisateurs du tenant</h3><span id="usersCount" class="tag" style="font-size:0.75rem">0</span></div>
+            <div class="table-wrap"><table><thead><tr><th>Email</th><th>Rôle</th><th>Créé le</th></tr></thead><tbody id="usersListBody"></tbody></table></div>`;
+          const usersPanel = document.getElementById('panel-users');
+          if (usersPanel) usersPanel.insertBefore(card, usersPanel.firstChild);
+          container = document.getElementById('usersListBody');
+        }
+
+        const countEl = document.getElementById('usersCount');
+        if (countEl) countEl.textContent = users.length + ' utilisateur' + (users.length > 1 ? 's' : '');
+
+        if (container) {
+          container.innerHTML = users.map(u => {
+            const roleColor = { admin: '#ef4444', agent: '#f97316', user: '#4f8ef7' }[u.role] || '#6b7280';
+            return `<tr>
+              <td style="font-size:0.85rem">${escHtml(u.email)}</td>
+              <td><span class="tag" style="font-size:0.72rem;background:${roleColor}22;color:${roleColor};border:1px solid ${roleColor}44">${u.role}</span></td>
+              <td style="font-size:0.78rem;color:var(--text-muted)">${u.created_at ? new Date(u.created_at).toLocaleDateString('fr-FR') : '—'}</td>
+            </tr>`;
+          }).join('') || '<tr><td colspan="3" style="text-align:center;color:var(--text-muted);padding:16px">Aucun utilisateur</td></tr>';
+        }
+      } catch(e) {}
+      await loadInvites();
+    }
+
+    async function loadInvites() {
+      if (!getAdminToken()) return;
+      try {
+        const res = await fetch('/users/invites', { headers: authHeaders() });
+        if (!res.ok) return;
+        const data = await res.json();
+        const invites = data.items || [];
+        const tbody = document.querySelector('#invitesTable tbody');
+        if (!tbody) return;
+        tbody.innerHTML = invites.map(inv => {
+          const expired = inv.expires_at && new Date(inv.expires_at) < new Date();
+          const used = inv.status === 'used';
+          const statusTag = used
+            ? '<span class="tag resolved" style="font-size:0.7rem">Utilisé</span>'
+            : expired
+            ? '<span class="tag" style="font-size:0.7rem;background:rgba(239,68,68,0.15);color:#f87171">Expiré</span>'
+            : '<span class="tag open" style="font-size:0.7rem">Actif</span>';
+          return `<tr>
+            <td style="font-size:0.82rem">${escHtml(inv.email)}</td>
+            <td><span class="tag" style="font-size:0.7rem">${inv.role}</span></td>
+            <td>${statusTag}</td>
+            <td style="font-size:0.75rem;color:var(--text-muted)">${inv.expires_at ? new Date(inv.expires_at).toLocaleDateString('fr-FR') : '∞'}</td>
+            <td style="font-size:0.72rem;font-family:monospace;max-width:120px;overflow:hidden;text-overflow:ellipsis">${escHtml(inv.token||'')}</td>
+            <td>${!used && !expired ? `<button class="btn ghost" style="font-size:0.72rem;padding:3px 8px" onclick="revokeInvite('${escHtml(inv.id)}',this)">Révoquer</button>` : ''}</td>
+          </tr>`;
+        }).join('') || '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:16px">Aucune invitation</td></tr>';
+      } catch(e) {}
+    }
+
+    async function revokeInvite(id, btn) {
+      btn.disabled = true; btn.textContent = '…';
+      try {
+        await fetch('/users/invites/' + id + '/revoke', { method: 'POST', headers: authHeaders() });
+        await loadInvites();
+      } catch(e) { btn.disabled = false; btn.textContent = 'Révoquer'; }
+    }
+
+    // ─── CRM / Leads ─────────────────────────────────────────
+    let allLeads = [];
+    let currentLeadsFilter = 'all';
+
+    const LEAD_STATUS_LABELS = { new: '🆕 Nouveau', contacted: '📞 Contacté', demo: '🎯 Démo', proposal: '📄 Proposition', won: '🏆 Gagné', lost: '❌ Perdu' };
+    const LEAD_STATUS_COLORS = { new: '#4f8ef7', contacted: '#a78bfa', demo: '#f59e0b', proposal: '#f97316', won: '#22c55e', lost: '#ef4444' };
+
+    async function loadLeads() {
+      if (!getAdminToken()) return;
+      try {
+        const res = await fetch('/leads', { headers: authHeaders() });
+        if (!res.ok) return;
+        const data = await res.json();
+        allLeads = data.items || [];
+        renderLeadsPipeline();
+        renderLeadsTable();
+      } catch(e) {}
+    }
+
+    function filterLeads(filter, btn) {
+      currentLeadsFilter = filter;
+      document.querySelectorAll('[data-leads-filter]').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      renderLeadsTable();
+    }
+
+    function renderLeadsPipeline() {
+      const container = document.getElementById('leadsPipeline');
+      if (!container) return;
+      const stages = ['new', 'contacted', 'demo', 'proposal', 'won', 'lost'];
+      container.innerHTML = stages.map(stage => {
+        const count = allLeads.filter(l => (l.status || 'new') === stage).length;
+        const color = LEAD_STATUS_COLORS[stage] || '#6b7280';
+        return `<div style="background:${color}18;border:1px solid ${color}44;border-radius:12px;padding:14px 10px;text-align:center;cursor:pointer" onclick="filterLeads('${stage}', document.querySelector('[data-leads-filter=${stage}]'))">
+          <div style="font-size:1.4rem;font-weight:900;color:${color}">${count}</div>
+          <div style="font-size:0.72rem;color:var(--text-muted);margin-top:2px">${LEAD_STATUS_LABELS[stage]}</div>
+        </div>`;
+      }).join('');
+    }
+
+    function renderLeadsTable() {
+      const container = document.getElementById('leadsTable');
+      if (!container) return;
+      const filtered = allLeads.filter(l => currentLeadsFilter === 'all' || (l.status || 'new') === currentLeadsFilter);
+      if (!filtered.length) {
+        container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted)">Aucun lead dans cette catégorie</div>';
+        return;
+      }
+      container.innerHTML = filtered.map(lead => {
+        const status = lead.status || 'new';
+        const color = LEAD_STATUS_COLORS[status] || '#6b7280';
+        const label = LEAD_STATUS_LABELS[status] || status;
+        return `<div style="display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;padding:14px 18px;border-bottom:1px solid var(--stroke);transition:background 0.15s" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background=''">
+          <div>
+            <div style="font-size:0.88rem;font-weight:600;color:var(--text)">${escHtml(lead.name || '—')} ${lead.company ? `<span style="font-size:0.78rem;color:var(--text-muted);font-weight:400">— ${escHtml(lead.company)}</span>` : ''}</div>
+            <div style="font-size:0.78rem;color:var(--text-muted);margin-top:2px">${escHtml(lead.email || '')} ${lead.next_action ? `· <em>${escHtml(lead.next_action)}</em>` : ''}</div>
+          </div>
+          <span style="font-size:0.72rem;padding:3px 10px;background:${color}18;color:${color};border:1px solid ${color}44;border-radius:20px;white-space:nowrap">${label}</span>
+          <div style="display:flex;gap:4px">
+            ${status !== 'won' && status !== 'contacted' ? `<button class="btn ghost" style="font-size:0.72rem;padding:3px 8px" onclick="updateLeadStatus('${lead.id}','contacted',this)">📞</button>` : ''}
+            ${status !== 'demo' ? `<button class="btn ghost" style="font-size:0.72rem;padding:3px 8px" onclick="updateLeadStatus('${lead.id}','demo',this)">🎯</button>` : ''}
+            ${status !== 'won' ? `<button class="btn ghost" style="font-size:0.72rem;padding:3px 8px;color:#22c55e" onclick="updateLeadStatus('${lead.id}','won',this)">🏆</button>` : ''}
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    async function updateLeadStatus(id, newStatus, btn) {
+      btn.disabled = true;
+      try {
+        const res = await fetch('/leads/' + id, { method: 'PUT', headers: authHeaders(), body: JSON.stringify({ status: newStatus }) });
+        if (res.ok) {
+          const lead = allLeads.find(l => l.id === id);
+          if (lead) lead.status = newStatus;
+          renderLeadsPipeline();
+          renderLeadsTable();
+        }
+      } catch(e) { btn.disabled = false; }
+    }
+
     // ─── Single DOMContentLoaded ─────────────────────────────
     document.addEventListener('DOMContentLoaded', () => {
       // Reset token si ?reset=1
@@ -2062,6 +2372,54 @@
         if (ss) ss.textContent = '';
         if (sc) sc.style.display = 'none';
       });
+
+      // Analytics
+      const analyticsBtn = document.querySelector('[data-panel="analytics"]');
+      if (analyticsBtn) analyticsBtn.addEventListener('click', () => loadAnalytics());
+      const miniRefreshBtn = document.getElementById('miniDashboardRefreshBtn');
+      if (miniRefreshBtn) miniRefreshBtn.addEventListener('click', loadAnalytics);
+      const recentRefreshBtn = document.getElementById('recentTicketsRefreshBtn');
+      if (recentRefreshBtn) recentRefreshBtn.addEventListener('click', loadAnalytics);
+
+      // Users
+      const usersBtn = document.querySelector('[data-panel="users"]');
+      if (usersBtn) usersBtn.addEventListener('click', () => loadUsers());
+      const invitesReloadBtn = document.getElementById('invitesReloadBtn');
+      if (invitesReloadBtn) invitesReloadBtn.addEventListener('click', loadUsers);
+
+      // Invite form submit
+      const inviteForm = document.getElementById('inviteForm');
+      if (inviteForm) inviteForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const fd = new FormData(inviteForm);
+        const statusEl = document.getElementById('inviteStatus');
+        const btn = inviteForm.querySelector('button[type="submit"]');
+        const payload = {
+          email: fd.get('email'),
+          role: fd.get('role') || 'user',
+          expires_hours: fd.get('expires_hours') ? Number(fd.get('expires_hours')) : 48
+        };
+        if (btn) { btn.disabled = true; btn.textContent = 'Envoi…'; }
+        if (statusEl) statusEl.textContent = '';
+        try {
+          const res = await fetch('/users/invite', { method: 'POST', headers: authHeaders(), body: JSON.stringify(payload) });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || 'invite_failed');
+          if (statusEl) { statusEl.textContent = '✅ Invitation créée — token: ' + (data.token || data.invite?.token || ''); statusEl.className = 'status success'; }
+          inviteForm.reset();
+          await loadInvites();
+        } catch(err) {
+          if (statusEl) { statusEl.textContent = '❌ ' + err.message; statusEl.className = 'status error'; }
+        } finally {
+          if (btn) { btn.disabled = false; btn.textContent = 'Envoyer l\'invitation'; }
+        }
+      });
+
+      // Leads CRM
+      const leadsBtn = document.querySelector('[data-panel="leads"]');
+      if (leadsBtn) leadsBtn.addEventListener('click', () => loadLeads());
+      const leadsRefreshBtn = document.getElementById('leadsRefreshBtn');
+      if (leadsRefreshBtn) leadsRefreshBtn.addEventListener('click', loadLeads);
 
       // Diagnostics
       const diagBtn = document.querySelector('[data-panel="diagnostics"]');

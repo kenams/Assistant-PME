@@ -6,9 +6,16 @@ const { env } = require("../config/env");
 // Réponses niveau N1/N2 par catégorie. Structure :
 // { detect, answer, steps, category, priority, kb_hint }
 
+function normalizeForDetect(text) {
+  return (text || "")
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase();
+}
+
 const KB = [
   {
-    detect: (t) => /outlook|message.*bloque|boite.*reception|mail.*plante|email.*crash|ost.*corrompu/i.test(t),
+    detect: (t) => /outlook|message.*bloque|boite.*reception|mail.*plante|email.*crash|ost.*corrompu/i.test(normalizeForDetect(t)),
     category: "email", priority: "high",
     answer: (t) =>
       `Outlook semble corrompu ou bloqué. Voici la procédure N1 :\n\n` +
@@ -21,7 +28,7 @@ const KB = [
     kb_hint: "Réparation Outlook / profil OST corrompu"
   },
   {
-    detect: (t) => /imprimante|printer|impression|imprimer|spooler|bac.*papier|toner|cartouche/i.test(t),
+    detect: (t) => /imprimante|printer|impression|imprimer|spooler|bac.*papier|toner|cartouche/i.test(normalizeForDetect(t)),
     category: "printer", priority: "medium",
     answer: (t) =>
       `Problème d'imprimante détecté. Procédure N1 :\n\n` +
@@ -34,7 +41,7 @@ const KB = [
     kb_hint: "Redémarrage spouleur / réinstallation imprimante réseau"
   },
   {
-    detect: (t) => /mot de passe|password|mdp|identifiant.*bloque|compte.*bloque|lockout|verrouill/i.test(t),
+    detect: (t) => /mot de passe|password|mdp|identifiant.*bloque|compte.*bloque|lockout|verrouill/i.test(normalizeForDetect(t)),
     category: "password", priority: "high",
     answer: (t) =>
       `Problème d'accès / mot de passe. Vérifications rapides :\n\n` +
@@ -46,7 +53,7 @@ const KB = [
     kb_hint: "Déverrouillage compte AD / reset mot de passe"
   },
   {
-    detect: (t) => /vpn|anyconnect|globalprotect|tunnel|connexion.*distante|telework|teletravail.*connexion/i.test(t),
+    detect: (t) => /vpn|anyconnect|globalprotect|tunnel|connexion.*distante|telework|teletravail.*connexion/i.test(normalizeForDetect(t)),
     category: "vpn", priority: "high",
     answer: (t) =>
       `Problème VPN identifié. Procédure :\n\n` +
@@ -59,7 +66,7 @@ const KB = [
     kb_hint: "Reconnexion VPN / réinstallation client"
   },
   {
-    detect: (t) => /internet.*plus|plus.*internet|wifi.*marche|reseau.*coupé|ping.*echoue|connexion.*perdu|ethernet/i.test(t),
+    detect: (t) => /internet.*plus|plus.*internet|wifi.*marche|reseau.*coupe|panne.*reseau|reseau.*general|ping.*echoue|connexion.*perdu|ethernet/i.test(normalizeForDetect(t)),
     category: "network", priority: "high",
     answer: (t) =>
       `Perte de connexion réseau/internet. Vérifications :\n\n` +
@@ -72,7 +79,7 @@ const KB = [
     kb_hint: "Dépannage réseau / IP / WiFi entreprise"
   },
   {
-    detect: (t) => /lent|ralenti|freeze|gel|bloque.*poste|ram|cpu|disque.*plein|memoire.*pleine|ventilateur/i.test(t),
+    detect: (t) => /lent|ralenti|freeze|gel|bloque.*poste|ram|cpu|disque.*plein|memoire.*pleine|ventilateur/i.test(normalizeForDetect(t)),
     category: "hardware", priority: "medium",
     answer: (t) =>
       `Poste lent ou figé. Diagnostic rapide :\n\n` +
@@ -85,7 +92,7 @@ const KB = [
     kb_hint: "Diagnostic performance / Gestionnaire des tâches"
   },
   {
-    detect: (t) => /ecran bleu|bsod|blue screen|kernel|stop error|0x000|dumpfile/i.test(t),
+    detect: (t) => /ecran bleu|bsod|blue screen|kernel|stop error|0x000|dumpfile/i.test(normalizeForDetect(t)),
     category: "hardware", priority: "critical",
     answer: (t) =>
       `⚠️ **Écran bleu (BSOD)** détecté — intervention technique requise.\n\n` +
@@ -98,7 +105,7 @@ const KB = [
     kb_hint: "BSOD / analyse dump / réparation système"
   },
   {
-    detect: (t) => /teams.*coupure|teams.*son|micro.*teams|camera.*teams|reunion.*probleme|visio.*bloque/i.test(t),
+    detect: (t) => /teams.*coupure|teams.*son|micro.*teams|camera.*teams|reunion.*probleme|visio.*bloque|teams.*ouvre|teams.*plante|teams.*connecte|microsoft teams/i.test(normalizeForDetect(t)),
     category: "software", priority: "medium",
     answer: (t) =>
       `Problème Microsoft Teams. Résolution rapide :\n\n` +
@@ -111,7 +118,7 @@ const KB = [
     kb_hint: "Dépannage Teams / cache / périphériques"
   },
   {
-    detect: (t) => /virus|malware|ransomware|chiffre|phishing|pirat|hacker|suspicious|suspect|spam.*dangereux/i.test(t),
+    detect: (t) => /virus|malware|ransomware|chiffre|phishing|pirat|hacker|suspicious|suspect|spam.*dangereux/i.test(normalizeForDetect(t)),
     category: "security", priority: "critical",
     answer: (t) =>
       `🚨 **ALERTE SÉCURITÉ** — Ne cliquez sur rien d'autre.\n\n` +
@@ -124,7 +131,7 @@ const KB = [
     kb_hint: "Procédure incident sécurité / isolation poste"
   },
   {
-    detect: (t) => /windows.*update|mise.*jour.*bloque|mise.*jour.*echec|update.*fail|windows.*boucle/i.test(t),
+    detect: (t) => /windows.*update|mise.*jour.*bloque|mise.*jour.*echec|update.*fail|windows.*boucle/i.test(normalizeForDetect(t)),
     category: "software", priority: "medium",
     answer: (t) =>
       `Problème de mise à jour Windows. Procédure :\n\n` +
@@ -137,7 +144,7 @@ const KB = [
     kb_hint: "Dépannage Windows Update / réinitialisation agent"
   },
   {
-    detect: (t) => /son.*marche|audio.*marche|micro.*marche|son.*coupé|haut.*parleur|casque.*reconnai|no sound|microphone|speaker|camera.*noir|caméra.*reconnai/i.test(t),
+    detect: (t) => /son.*marche|audio.*marche|micro.*marche|son.*coupe|haut.*parleur|casque.*reconnai|no sound|microphone|speaker|camera.*noir|camera.*reconnai|micro.*fonctionne|camera.*fonctionne|ecouteur|webcam/i.test(normalizeForDetect(t)),
     category: "hardware", priority: "medium",
     answer: (t) =>
       `Problème audio ou microphone. Étapes de diagnostic :\n\n` +
@@ -150,7 +157,7 @@ const KB = [
     kb_hint: "Dépannage audio / microphone / pilote son"
   },
   {
-    detect: (t) => /ecran.*noir|ecran.*eteint|ecran.*vide|ecran.*ne.*allume|moniteur.*noir|double.*ecran|deuxieme.*ecran|second.*ecran|ecran.*pas.*detect/i.test(t),
+    detect: (t) => /ecran.*noir|ecran.*eteint|ecran.*vide|ecran.*ne.*allume|moniteur.*noir|double.*ecran|deuxieme.*ecran|second.*ecran|ecran.*pas.*detect/i.test(normalizeForDetect(t)),
     category: "hardware", priority: "high",
     answer: (t) =>
       `Problème d'écran / affichage. Vérifications :\n\n` +
@@ -163,7 +170,7 @@ const KB = [
     kb_hint: "Dépannage écran noir / détection moniteur"
   },
   {
-    detect: (t) => /excel.*plante|word.*plante|excel.*erreur|word.*erreur|excel.*repond|word.*repond|powerpoint.*crash|office.*plante|fichier.*corrompu|\.xlsx.*ouvre|\.docx.*ouvre/i.test(t),
+    detect: (t) => /excel.*plante|word.*plante|excel.*erreur|word.*erreur|excel.*repond|word.*repond|powerpoint.*crash|office.*plante|fichier.*corrompu|\.xlsx.*ouvre|\.docx.*ouvre/i.test(normalizeForDetect(t)),
     category: "software", priority: "medium",
     answer: (t) =>
       `Problème Microsoft Office (Excel/Word/PowerPoint). Procédure :\n\n` +
@@ -176,7 +183,7 @@ const KB = [
     kb_hint: "Réparation Office / fichier corrompu / mode sans échec"
   },
   {
-    detect: (t) => /usb.*reconnai|cle.*usb|souris.*reconnai|clavier.*reconnai|peripherique.*reconnai|device.*not.*found|lecteur.*usb|disque.*externe/i.test(t),
+    detect: (t) => /usb.*reconnai|cle.*usb|souris.*reconnai|clavier.*reconnai|peripherique.*reconnai|device.*not.*found|lecteur.*usb|disque.*externe/i.test(normalizeForDetect(t)),
     category: "hardware", priority: "medium",
     answer: (t) =>
       `Périphérique USB non reconnu. Procédure :\n\n` +
@@ -189,7 +196,7 @@ const KB = [
     kb_hint: "USB non reconnu / pilote USB / gestionnaire de périphériques"
   },
   {
-    detect: (t) => /navigateur.*lent|chrome.*plante|edge.*plante|firefox.*plante|site.*charge|page.*charge|cache.*navigateur|cookies|extension.*bloque/i.test(t),
+    detect: (t) => /navigateur.*lent|chrome.*plante|edge.*plante|firefox.*plante|site.*charge|page.*charge|cache.*navigateur|cookies|extension.*bloque/i.test(normalizeForDetect(t)),
     category: "software", priority: "low",
     answer: (t) =>
       `Problème de navigateur. Résolution rapide :\n\n` +
@@ -202,7 +209,7 @@ const KB = [
     kb_hint: "Cache navigateur / extensions / mode privé"
   },
   {
-    detect: (t) => /phishing|mail.*suspect|email.*piege|lien.*suspect|piece.*jointe.*suspect|hameçon|arnaque.*email|recu.*email.*bizarre/i.test(t),
+    detect: (t) => /phishing|mail.*suspect|email.*piege|lien.*suspect|piece.*jointe.*suspect|hamecon|arnaque.*email|recu.*email.*bizarre/i.test(normalizeForDetect(t)),
     category: "security", priority: "high",
     answer: (t) =>
       `⚠️ **Email de phishing signalé** — Actions immédiates :\n\n` +
@@ -215,7 +222,7 @@ const KB = [
     kb_hint: "Procédure anti-phishing / signalement email suspect"
   },
   {
-    detect: (t) => /mfa|2fa|double.*facteur|authentification.*deux|authenticator|code.*sms.*marche|code.*verification/i.test(t),
+    detect: (t) => /mfa|2fa|double.*facteur|authentification.*deux|authenticator|code.*sms.*marche|code.*verification/i.test(normalizeForDetect(t)),
     category: "access", priority: "high",
     answer: (t) =>
       `Problème d'authentification multi-facteurs (MFA/2FA) :\n\n` +
@@ -228,7 +235,7 @@ const KB = [
     kb_hint: "Réinitialisation MFA / Microsoft Authenticator / TOTP"
   },
   {
-    detect: (t) => /acces.*refuse|permission.*refuse|dossier.*bloque|partage.*reseau|lecteur.*reseau|\\\\server/i.test(t),
+    detect: (t) => /acces.*refuse|permission.*refuse|dossier.*bloque|partage.*reseau|lecteur.*reseau|\\\\server/i.test(normalizeForDetect(t)),
     category: "access", priority: "medium",
     answer: (t) =>
       `Problème d'accès réseau / permissions. Vérifications :\n\n` +
@@ -254,9 +261,21 @@ const DEFAULT_STEPS = {
   ]
 };
 
+function detectMessageLang(message) {
+  const text = (message || "").trim();
+  if (!text) return null;
+  // Strong French signals: accented chars or typical FR words
+  if (/[àâéèêëîïôùûüçœæ]/i.test(text)) return "fr";
+  if (/\b(je|j'ai|mon|ma|mes|notre|votre|bonjour|merci|depuis|plus|n'arrive|n'ouvre|ne fonctionne|poste|réseau|imprimante)\b/i.test(text)) return "fr";
+  // Strong English signals
+  if (/\b(my|i am|i have|i can't|i cannot|won't|doesn't|the |is |are |was |were |doesn't|hello|hi |hey |please|help|issue|problem|computer|laptop|keyboard|screen|network|printer|password|cannot|click|working|restart|error|since |after |this morning)\b/i.test(text)) return "en";
+  return null;
+}
+
 function needsTicketFor(message) {
-  const text = (message || "").toLowerCase();
+  const text = normalizeForDetect(message);
   return (
+    // FR keywords
     text.includes("serveur") ||
     text.includes("ransomware") ||
     text.includes("bsod") ||
@@ -267,22 +286,25 @@ function needsTicketFor(message) {
     text.includes("phishing") ||
     text.includes("pirat") ||
     text.includes("virus") ||
-    text.includes("chiffre") ||
     text.includes("toujours pas") ||
-    text.includes("toujours le meme") ||
-    text.includes("ne marche toujours") ||
-    text.includes("ca na pas marche") ||
     text.includes("rien ne fonctionne") ||
     text.includes("urgence") ||
     text.includes("critique") ||
-    text.includes("ecran bleu") ||
-    text.includes("bsod") ||
-    text.includes("clique.*lien") ||
-    text.includes("ouvert.*piece jointe") ||
     text.includes("plusieurs personnes") ||
     text.includes("toute l'equipe") ||
+    // EN keywords
+    text.includes("server") ||
     text.includes("data loss") ||
-    text.includes("fichiers.*chiffres")
+    text.includes("blue screen") ||
+    text.includes("still not") ||
+    text.includes("still the same") ||
+    text.includes("nothing works") ||
+    text.includes("urgent") ||
+    text.includes("critical") ||
+    text.includes("multiple people") ||
+    text.includes("entire team") ||
+    text.includes("clicked the link") ||
+    text.includes("opened the attachment")
   );
 }
 
@@ -593,14 +615,97 @@ function formatSupportFooter(orgSettings, language) {
   return `\n\n${header}: ${parts.join(" | ")}${signature}`;
 }
 
+// Mots-clés IT — si présents, le message N'EST PAS social
+const IT_KEYWORDS = /outlook|teams|office|excel|word|windows|vpn|wifi|internet|réseau|réseau|imprimante|printer|password|mot.de.passe|écran|bleu|virus|malware|onedrive|sharepoint|pc|poste|serveur|erreur|error|crash|plante|lent|bloqué|connexion|login|compte/i;
+
+// Salutation — mot de salutation + message court (<50 chars) + pas de mot IT
+const GREETING_STARTS = /^(bonjour|salut|bonsoir|coucou|bjr|bsr|bj|hello|hi|hey|good\s+morning|good\s+afternoon|good\s+evening|howdy|yo|slt|cc|wesh|salam)\b/i;
+
+const FAILURE_RE = /marche\s*(toujours\s*)?pas|toujours\s*pas|ne\s*fonctionne\s*(toujours\s*)?pas|j.{0,3}ai\s*essay|rien\s*ne?\s*marche|ça\s*(ne\s*)?marche\s*pas|still\s*not|still\s*the\s*same|doesn.t\s*work|nothing\s*works|still\s*broken|i\s*tried|tried\s*everything/i;
+
+// Remerciement — commence par "merci/thanks" et message court
+const THANKS_STARTS = /^(merci|thanks|thank\s*you|nickel|parfait|super|c.est\s*(bon|réglé|résolu|ok)|résolu|réglé|problem\s*solved|fixed|all\s*good|great)\b/i;
+
+function isGreeting(text) {
+  const t = (text || "").trim();
+  // Message court qui commence par une salutation et sans mot IT
+  return t.length < 60 && GREETING_STARTS.test(t) && !IT_KEYWORDS.test(t);
+}
+
+function isFailureFollowUp(text) {
+  return FAILURE_RE.test((text || "").trim());
+}
+
+function isThanks(text) {
+  const t = (text || "").trim();
+  // Message court qui commence par un remerciement
+  return t.length < 80 && THANKS_STARTS.test(t) && !IT_KEYWORDS.test(t);
+}
+
+function greetingReply(lang) {
+  if (lang === "en") {
+    return {
+      answer: "Hello! How can I help you today? 😊",
+      needs_ticket: false,
+      ticket_draft: null,
+      kb_hint: null
+    };
+  }
+  const replies = [
+    "Bonjour ! Comment puis-je vous aider aujourd'hui ? 😊",
+    "Bonjour ! Qu'est-ce que je peux faire pour vous ?",
+    "Bonjour ! Je suis là pour vous aider. Quel est votre problème ?"
+  ];
+  return {
+    answer: replies[Math.floor(Math.random() * replies.length)],
+    needs_ticket: false,
+    ticket_draft: null,
+    kb_hint: null
+  };
+}
+
 function generateSupportAnswer({ message, kbChunks, language, orgSettings }) {
   const lang = language === "en" ? "en" : "fr";
   const text = message || "";
   const footer = formatSupportFooter(orgSettings, lang);
   const kbNote = formatKbNotes(kbChunks);
 
-  // Try KB entries first
-  const match = KB.find((entry) => entry.detect(text));
+  // Greeting — never return a procedure for a social message
+  if (isGreeting(text)) {
+    return greetingReply(lang);
+  }
+
+  // Thanks / resolved — acknowledge
+  if (isThanks(text)) {
+    const reply = lang === "en"
+      ? "You're welcome! I'm glad it's resolved. Don't hesitate to come back if you have any other issues. 😊"
+      : "Avec plaisir ! Je suis content que ce soit résolu. N'hésitez pas à revenir si vous avez d'autres problèmes. 😊";
+    return { answer: reply, needs_ticket: false, ticket_draft: null, kb_hint: null };
+  }
+
+  // Failure follow-up — skip steps, escalate empathetically
+  if (isFailureFollowUp(text)) {
+    const reply = lang === "en"
+      ? "I understand — the steps didn't resolve the issue. I'm creating a support ticket so a technician can take a closer look. Could you describe what you tried and the exact error you see?"
+      : "Je comprends, les étapes n'ont pas suffi. Je crée un ticket pour qu'un technicien prenne le relais. Pouvez-vous me dire ce que vous avez essayé et quel message d'erreur vous voyez exactement ?";
+    const category = "general";
+    return {
+      answer: reply,
+      needs_ticket: true,
+      ticket_draft: {
+        title: lang === "en" ? `Issue unresolved after L1 steps` : `Problème non résolu après procédure N1`,
+        summary: lang === "en"
+          ? `User reports the standard steps did not resolve the issue. Escalation to L2 required. Original message: "${text.slice(0, 200)}"`
+          : `L'utilisateur signale que la procédure standard n'a pas résolu le problème. Escalade N2 requise. Message : "${text.slice(0, 200)}"`,
+        category,
+        priority: "medium"
+      },
+      kb_hint: null
+    };
+  }
+
+  // KB entries have French-only answers — use them for FR, use detectIntent for EN
+  const match = lang === "fr" ? KB.find((entry) => entry.detect(text)) : null;
 
   let answer, category, priority, kb_hint;
 
@@ -610,30 +715,45 @@ function generateSupportAnswer({ message, kbChunks, language, orgSettings }) {
     priority = match.priority;
     kb_hint = match.kb_hint;
   } else {
-    // Fallback: detect intent (legacy)
     const intent = detectIntent(text, lang);
     const steps = intent.steps || DEFAULT_STEPS[lang] || DEFAULT_STEPS.fr;
     const questions = intent.questions || [];
-    answer = [
-      "Voici la procédure à suivre :",
-      "",
-      steps.map((s, i) => `${i + 1}. ${s}`).join("\n"),
-      "",
-      ...(questions.length ? [questions[0]] : []),
-      "Si le problème persiste après ces étapes, cliquez sur **Créer un ticket** pour qu'un technicien intervienne."
-    ].filter(Boolean).join("\n");
+    if (lang === "en") {
+      answer = [
+        "Here is the procedure to follow:",
+        "",
+        steps.map((s, i) => `${i + 1}. ${s}`).join("\n"),
+        "",
+        ...(questions.length ? [questions[0]] : []),
+        "If the issue persists after these steps, click **Create a ticket** so a technician can assist you."
+      ].filter(Boolean).join("\n");
+    } else {
+      answer = [
+        "Voici la procédure à suivre :",
+        "",
+        steps.map((s, i) => `${i + 1}. ${s}`).join("\n"),
+        "",
+        ...(questions.length ? [questions[0]] : []),
+        "Si le problème persiste après ces étapes, cliquez sur **Créer un ticket** pour qu'un technicien intervienne."
+      ].filter(Boolean).join("\n");
+    }
     category = intent.category || "general";
     priority = "medium";
     kb_hint = null;
   }
 
-  if (kbNote) answer += `\n\n📚 *Procédure interne disponible : ${kb_hint || "voir base de connaissances"}*`;
+  if (kbNote) {
+    const kbLabel = lang === "en"
+      ? `📚 *Internal procedure available: ${kb_hint || "see knowledge base"}*`
+      : `📚 *Procédure interne disponible : ${kb_hint || "voir base de connaissances"}*`;
+    answer += `\n\n${kbLabel}`;
+  }
   if (footer) answer += footer;
 
   const needs_ticket = needsTicketFor(text) || (match && match.priority === "critical");
 
   // Build professional ticket title from message
-  const ticketTitle = buildTicketTitle(text, category);
+  const ticketTitle = buildTicketTitle(text, category, lang);
 
   return {
     answer,
@@ -641,7 +761,7 @@ function generateSupportAnswer({ message, kbChunks, language, orgSettings }) {
     ticket_draft: needs_ticket
       ? {
           title: ticketTitle,
-          summary: buildTicketSummary(text, answer),
+          summary: buildTicketSummary(text, answer, lang),
           category,
           priority: needs_ticket && (match?.priority === "critical") ? "critical" : priority
         }
@@ -650,21 +770,24 @@ function generateSupportAnswer({ message, kbChunks, language, orgSettings }) {
   };
 }
 
-function buildTicketTitle(message, category) {
+function buildTicketTitle(message, category, lang) {
   const text = (message || "").trim();
-  // Remove noise words and build a concise title
   const short = text.replace(/[^\w\sàâéèêëîïôùûüç'-]/gi, " ").trim().slice(0, 80);
-  const catLabel = {
-    email: "Messagerie", printer: "Imprimante", network: "Réseau",
-    vpn: "VPN", password: "Accès/Mot de passe", hardware: "Matériel",
-    software: "Logiciel", security: "SÉCURITÉ", access: "Droits d'accès",
-    general: "Support IT"
-  }[category] || "Support IT";
+  const catLabel = lang === "en"
+    ? ({ email: "Email", printer: "Printer", network: "Network", vpn: "VPN", password: "Password/Access", hardware: "Hardware", software: "Software", security: "SECURITY", access: "Access Rights", general: "IT Support" }[category] || "IT Support")
+    : ({ email: "Messagerie", printer: "Imprimante", network: "Réseau", vpn: "VPN", password: "Accès/Mot de passe", hardware: "Matériel", software: "Logiciel", security: "SÉCURITÉ", access: "Droits d'accès", general: "Support IT" }[category] || "Support IT");
   return `[${catLabel}] ${short.charAt(0).toUpperCase() + short.slice(1)}`;
 }
 
-function buildTicketSummary(message, aiAnswer) {
+function buildTicketSummary(message, aiAnswer, lang) {
   const firstStepsLine = aiAnswer.split("\n").find(l => /^\d\./.test(l));
+  if (lang === "en") {
+    return [
+      `Issue reported: ${message.trim()}`,
+      firstStepsLine ? `L1 procedure attempted: ${firstStepsLine.replace(/^\d\.\s*/, "")}` : "",
+      "Escalation to L2 required."
+    ].filter(Boolean).join(" — ");
+  }
   return [
     `Problème signalé : ${message.trim()}`,
     firstStepsLine ? `Procédure N1 tentée : ${firstStepsLine.replace(/^\d\.\s*/, "")}` : "",
@@ -672,17 +795,19 @@ function buildTicketSummary(message, aiAnswer) {
   ].filter(Boolean).join(" — ");
 }
 
-let cachedPrompt = null;
-function loadSystemPrompt() {
-  if (!cachedPrompt) {
+const cachedPrompts = {};
+function loadSystemPrompt(lang) {
+  const key = lang === "en" ? "en" : "fr";
+  if (!cachedPrompts[key]) {
     try {
-      const promptPath = path.join(__dirname, "..", "prompts", "support.system.txt");
-      cachedPrompt = fs.readFileSync(promptPath, "utf8");
+      const file = key === "en" ? "support.system.en.txt" : "support.system.txt";
+      const promptPath = path.join(__dirname, "..", "prompts", file);
+      cachedPrompts[key] = fs.readFileSync(promptPath, "utf8");
     } catch {
-      cachedPrompt = "You are a professional IT support assistant. Answer in JSON with fields: answer, needs_ticket, ticket_draft.";
+      cachedPrompts[key] = "You are a professional IT support assistant. Always use polite address. Answer in JSON with fields: answer, needs_ticket, ticket_draft.";
     }
   }
-  return cachedPrompt;
+  return cachedPrompts[key];
 }
 
 function normalizeDraft(draft, fallbackMessage) {
@@ -704,34 +829,73 @@ function normalizeDraft(draft, fallbackMessage) {
   return { title, summary, category, priority };
 }
 
-async function callOpenAI({ message, kbChunks, language, orgSettings }) {
+async function callOpenAI({ message, kbChunks, language, orgSettings, conversationHistory, userPastTickets }) {
   const lang = language === "en" ? "en" : "fr";
-  const systemPrompt = loadSystemPrompt();
+  const systemPrompt = loadSystemPrompt(lang);
   const kbNote = formatKbNotes(kbChunks);
   const footer = formatSupportFooter(orgSettings, lang);
   const contactContext = footer ? footer.replace(/\n+/g, " ").trim() : "";
-  const userPrompt = [
-    `Langue: ${lang}`,
-    kbNote ? `Contexte:\n${kbNote}` : "",
-    "Reponds en JSON strict avec les champs:",
-    "- answer: string",
-    "- needs_ticket: boolean",
-    "- ticket_draft: { title, summary, category, priority } ou null",
-    "",
-    "Message utilisateur:",
-    message,
-    contactContext ? `Contact support: ${contactContext}` : ""
-  ]
-    .filter(Boolean)
-    .join("\n");
+
+  // Build past ticket memory context
+  let pastTicketContext = "";
+  if (userPastTickets && userPastTickets.length > 0) {
+    const ticketLines = userPastTickets.slice(0, 3).map(t =>
+      `- [${t.status || "open"}] ${t.title} (${t.category || "général"}, ${t.created_at ? new Date(t.created_at).toLocaleDateString("fr-FR") : "date inconnue"})`
+    );
+    pastTicketContext = lang === "en"
+      ? `User's recent support history:\n${ticketLines.join("\n")}`
+      : `Historique tickets récents de cet utilisateur:\n${ticketLines.join("\n")}`;
+  }
+
+  // Inject greeting detection — if it's a greeting, short-circuit before calling API
+  if (isGreeting(message)) {
+    return greetingReply(lang);
+  }
+
+  // Build system prompt with past ticket context appended
+  const fullSystem = pastTicketContext
+    ? `${systemPrompt}\n\n## MÉMOIRE UTILISATEUR\n${pastTicketContext}`
+    : systemPrompt;
+
+  // Build conversation history messages (last 10 turns, excluding current)
+  const historyMessages = (conversationHistory || [])
+    .filter(m => (m.role === "user" || m.role === "assistant") && m.content && !m.content.startsWith("__IMAGE__"))
+    .slice(-10)
+    .map(m => ({ role: m.role, content: m.content }));
+
+  // Current user message with KB context
+  const userPrompt = lang === "en"
+    ? [
+        kbNote ? `Internal knowledge:\n${kbNote}` : "",
+        "Reply in strict JSON with fields:",
+        "- answer: string (in English, polite, warm)",
+        "- needs_ticket: boolean",
+        "- ticket_draft: { title, summary, category, priority } or null",
+        "",
+        "User message:",
+        message,
+        contactContext ? `Support contact: ${contactContext}` : ""
+      ].filter(Boolean).join("\n")
+    : [
+        kbNote ? `Contexte base de connaissances:\n${kbNote}` : "",
+        "Réponds en JSON strict avec les champs :",
+        "- answer: string (en français, vouvoiement, chaleureux)",
+        "- needs_ticket: boolean",
+        "- ticket_draft: { title, summary, category, priority } ou null",
+        "",
+        "Message de l'utilisateur :",
+        message,
+        contactContext ? `Contact support: ${contactContext}` : ""
+      ].filter(Boolean).join("\n");
 
   const payload = {
     model: env.openaiModel || "gpt-4o-mini",
     messages: [
-      { role: "system", content: systemPrompt },
+      { role: "system", content: fullSystem },
+      ...historyMessages,
       { role: "user", content: userPrompt }
     ],
-    temperature: 0.2,
+    temperature: 0.3,
     response_format: { type: "json_object" }
   };
 
@@ -780,15 +944,57 @@ async function callOpenAI({ message, kbChunks, language, orgSettings }) {
   return { answer: finalAnswer, needs_ticket, ticket_draft };
 }
 
-async function answerWithLLM({ message, kbChunks, language, orgSettings }) {
+async function answerWithLLM({ message, kbChunks, language, orgSettings, conversationHistory, userPastTickets }) {
+  // Auto-detect language from message content — overrides frontend hint
+  const detected = detectMessageLang(message);
+  const resolvedLang = detected || (language === "en" ? "en" : "fr");
+
+  // ── Intercepts sociaux AVANT tout LLM ──────────────────────────────────────
+  const rawText = (message || "").trim();
+
+  // 1. Salutation — réponse humaine immédiate, aucune procédure
+  if (isGreeting(rawText)) {
+    return greetingReply(resolvedLang);
+  }
+
+  // 2. Remerciement / résolu
+  if (isThanks(rawText)) {
+    const reply = resolvedLang === "en"
+      ? "You're welcome! I'm glad it's resolved. Don't hesitate to come back if you need anything else. 😊"
+      : "Avec plaisir ! Ravi que ce soit résolu. N'hésitez pas à revenir si vous avez d'autres questions. 😊";
+    return { answer: reply, needs_ticket: false, ticket_draft: null, kb_hint: null };
+  }
+
+  // 3. Message d'échec après procédure → escalade empathique + ticket
+  if (isFailureFollowUp(rawText) && conversationHistory && conversationHistory.length > 0) {
+    const reply = resolvedLang === "en"
+      ? "I understand — the steps didn't fully resolve your issue. I'm creating a support ticket so a technician can step in. Can you describe what you tried and the exact error message you're seeing?"
+      : "Je comprends, les étapes n'ont pas suffi à résoudre votre problème. Je crée un ticket pour qu'un technicien prenne le relais. Pouvez-vous me décrire ce que vous avez essayé et le message d'erreur exact ?";
+    const lastUserMsg = [...(conversationHistory || [])].reverse().find(m => m.role === "user");
+    return {
+      answer: reply,
+      needs_ticket: true,
+      ticket_draft: {
+        title: resolvedLang === "en" ? "Issue unresolved after L1 steps" : "Problème non résolu après procédure N1",
+        summary: resolvedLang === "en"
+          ? `User reports L1 steps did not resolve the issue. Original problem: "${(lastUserMsg?.content || rawText).slice(0, 200)}". Escalation to L2 required.`
+          : `L'utilisateur signale que la procédure N1 n'a pas résolu le problème. Problème initial : "${(lastUserMsg?.content || rawText).slice(0, 200)}". Escalade N2 requise.`,
+        category: "general",
+        priority: "medium"
+      },
+      kb_hint: null
+    };
+  }
+  // ─────────────────────────────────────────────────────────────────────────────
+
   if (env.llmMode === "openai" && env.openaiApiKey) {
     try {
-      return await callOpenAI({ message, kbChunks, language, orgSettings });
+      return await callOpenAI({ message, kbChunks, language: resolvedLang, orgSettings, conversationHistory, userPastTickets });
     } catch (err) {
-      return generateSupportAnswer({ message, kbChunks, language, orgSettings });
+      return generateSupportAnswer({ message, kbChunks, language: resolvedLang, orgSettings });
     }
   }
-  return generateSupportAnswer({ message, kbChunks, language, orgSettings });
+  return generateSupportAnswer({ message, kbChunks, language: resolvedLang, orgSettings });
 }
 
 module.exports = { answerWithLLM };

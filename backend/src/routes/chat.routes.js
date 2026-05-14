@@ -11,7 +11,8 @@ const { searchKb, ensureProcedureForQuickIssue } = require("../services/rag.serv
 const {
   draftTicket,
   createTicket,
-  findTicketByConversation
+  findTicketByConversation,
+  listTicketsByUser
 } = require("../services/tickets.service");
 const { logEvent } = require("../services/audit.service");
 const { createNotification } = require("../services/notifications.service");
@@ -161,6 +162,9 @@ router.post("/", authRequired, async (req, res) => {
     });
   }
 
+  // Snapshot history BEFORE adding current message (so it's the true "prior context")
+  const conversationHistory = getHistory({ tenantId, conversationId: conversation.id });
+
   addMessage({
     tenantId,
     conversationId: conversation.id,
@@ -212,11 +216,20 @@ router.post("/", authRequired, async (req, res) => {
     ? `${message}\n\n${contextBlock}`
     : message;
   const kbChunks = await searchKb({ tenantId, query: message });
+
+  // Load user's past tickets for memory context
+  let userPastTickets = [];
+  try {
+    userPastTickets = listTicketsByUser({ tenantId, userId }).slice(0, 5);
+  } catch (_) { /* ignore */ }
+
   const llm = await answerWithLLM({
     message: messageWithContext,
     kbChunks,
     language: language || "fr",
-    orgSettings
+    orgSettings,
+    conversationHistory,
+    userPastTickets
   });
 
   addMessage({
