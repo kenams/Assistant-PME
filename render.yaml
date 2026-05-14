@@ -1,0 +1,54 @@
+services:
+  - type: web
+    name: assistant-pme
+    runtime: node
+    rootDir: backend
+    buildCommand: npm ci
+    startCommand: node src/index.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
+      - key: NODE_TLS_REJECT_UNAUTHORIZED
+        value: "0"
+      - key: JWT_SECRET
+        generateValue: true
+      - key: LLM_MODE
+        value: openai
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_MODEL
+        value: gpt-4o-mini
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_PRICE_STARTER
+        sync: false
+      - key: STRIPE_PRICE_PRO
+        sync: false
+      - key: STRIPE_PRICE_ENTERPRISE
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: APP_URL
+        sync: false
+      - key: SEED_ADMIN_EMAIL
+        sync: false
+      - key: SEED_ADMIN_PASSWORD
+        sync: false
+      - key: SEED_USER_EMAIL
+        sync: false
+      - key: SEED_USER_PASSWORD
+        sync: false
+      - key: SEED_TENANT_NAME
+        sync: false
+      - key: SEED_TENANT_CODE
+        sync: false
+      - key: DISABLE_QUICK_LOGIN
+        value: "true"
+      - key: RATE_LIMIT_LOGIN_MAX
+        value: "10"
+    disk:
+      name: data
+      mountPath: /opt/render/project/src/backend/data
+      sizeGB: 1
