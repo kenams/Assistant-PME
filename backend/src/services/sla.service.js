@@ -1,34 +1,35 @@
 const { env } = require("../config/env");
-const { loadDb } = require("./store.service");
+const { db } = require("../config/db");
 const { computeAnalytics } = require("./analytics.service");
 const { createNotification } = require("./notifications.service");
 const { logEvent } = require("./audit.service");
 const { listTenants } = require("./tenants.service");
 const { notifySlaBreach } = require("./email.service");
 
-function isDuplicateNotification({ tenantId, ticketId, windowMs }) {
-  const db = loadDb();
+async function isDuplicateNotification({ tenantId, ticketId, windowMs }) {
   const now = Date.now();
-  return (db.notifications || []).some((item) => {
-    if (item.tenant_id !== tenantId) return false;
-    if (item.type !== "sla_alert") return false;
-    if (!item.payload || item.payload.ticket_id !== ticketId) return false;
-    const created = item.created_at ? new Date(item.created_at).getTime() : 0;
-    return now - created < windowMs;
-  });
+  const since = new Date(now - windowMs).toISOString();
+  const row = await db("notifications")
+    .where({ tenant_id: tenantId, type: "sla_alert" })
+    .whereRaw("payload->>'ticket_id' = ?", [ticketId])
+    .where("created_at", ">=", since)
+    .first();
+  return !!row;
 }
 
-function sendSlaAlerts({ tenantId, userId, windowHours = 24 }) {
-  const analytics = computeAnalytics(tenantId);
+async function sendSlaAlerts({ tenantId, userId, windowHours = 24 }) {
+  const analytics = await computeAnalytics(tenantId);
   const alerts = analytics.sla?.alerts || [];
   const windowMs = windowHours * 60 * 60 * 1000;
   let sent = 0;
 
-  alerts.forEach((alert) => {
-    if (!alert.id) return;
-    if (isDuplicateNotification({ tenantId, ticketId: alert.id, windowMs })) return;
+  for (const alert of alerts) {
+    if (!alert.id) continue;
+    const isDup = await isDuplicateNotification({ tenantId, ticketId: alert.id, windowMs });
+    if (isDup) continue;
+
     const slaHours = analytics.sla?.hours || 24;
-    createNotification({
+    await createNotification({
       tenantId,
       userId: userId || null,
       type: "sla_alert",
@@ -48,10 +49,10 @@ function sendSlaAlerts({ tenantId, userId, windowHours = 24 }) {
       slaHours
     }).catch(() => {});
     sent += 1;
-  });
+  }
 
   if (sent > 0) {
-    logEvent({
+    await logEvent({
       tenantId,
       userId: userId || null,
       action: "sla_alerts_sent",
@@ -64,18 +65,21 @@ function sendSlaAlerts({ tenantId, userId, windowHours = 24 }) {
 
 function startSlaAlertScheduler() {
   const intervalMin = Number(env.slaNotifyIntervalMin || 0);
-  if (!intervalMin || Number.isNaN(intervalMin) || intervalMin <= 0) {
-    return;
-  }
-  setInterval(() => {
-    const tenants = listTenants();
-    tenants.forEach((tenant) => {
-      try {
-        sendSlaAlerts({ tenantId: tenant.id, userId: null });
-      } catch (err) {
-        // ignore scheduler errors
+  if (!intervalMin || Number.isNaN(intervalMin) || intervalMin <= 0) return;
+
+  setInterval(async () => {
+    try {
+      const tenants = await listTenants();
+      for (const tenant of tenants) {
+        try {
+          await sendSlaAlerts({ tenantId: tenant.id, userId: null });
+        } catch (err) {
+          // ignore individual tenant errors
+        }
       }
-    });
+    } catch (err) {
+      // ignore scheduler errors
+    }
   }, intervalMin * 60 * 1000);
 }
 

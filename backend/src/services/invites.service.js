@@ -1,73 +1,52 @@
 const crypto = require("crypto");
-const { withDb, loadDb } = require("./store.service");
+const { db } = require("../config/db");
 const { createUser } = require("./users.service");
 
-function createInvite({
-  tenantId,
-  email,
-  role = "user",
-  expiresHours = 72,
-  createdBy
-}) {
-  return withDb((db) => {
-    const exists = db.users.find(
-      (u) => u.tenant_id === tenantId && u.email.toLowerCase() === email.toLowerCase()
-    );
-    if (exists) {
-      return { error: "email_exists" };
-    }
-    const token = crypto.randomBytes(24).toString("hex");
-    const invite = {
-      id: crypto.randomUUID(),
-      tenant_id: tenantId,
-      email,
-      role,
-      token,
-      status: "pending",
-      created_by: createdBy || null,
-      created_at: new Date().toISOString(),
-      expires_at: new Date(Date.now() + expiresHours * 3600 * 1000).toISOString(),
-      accepted_at: null,
-      revoked_at: null
-    };
-    db.invites = db.invites || [];
-    db.invites.push(invite);
-    return { invite };
-  });
+async function createInvite({ tenantId, email, role = "user", expiresHours = 72, createdBy }) {
+  const exists = await db("users")
+    .where({ tenant_id: tenantId })
+    .whereRaw("LOWER(email) = ?", [email.toLowerCase()])
+    .first();
+  if (exists) {
+    return { error: "email_exists" };
+  }
+
+  const token = crypto.randomBytes(24).toString("hex");
+  const now = new Date().toISOString();
+  const [invite] = await db("invites").insert({
+    id: crypto.randomUUID(),
+    tenant_id: tenantId,
+    email,
+    role,
+    token,
+    status: "pending",
+    created_by: createdBy || null,
+    created_at: now,
+    expires_at: new Date(Date.now() + expiresHours * 3600 * 1000).toISOString(),
+    accepted_at: null,
+    revoked_at: null
+  }).returning("*");
+
+  return { invite };
 }
 
-function listInvites({ tenantId }) {
-  const db = loadDb();
-  return (db.invites || [])
-    .filter((invite) => invite.tenant_id === tenantId)
-    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-    .map((invite) => ({
-      id: invite.id,
-      email: invite.email,
-      role: invite.role,
-      token: invite.token,
-      status: invite.status,
-      created_at: invite.created_at,
-      expires_at: invite.expires_at,
-      accepted_at: invite.accepted_at
-    }));
+async function listInvites({ tenantId }) {
+  return db("invites")
+    .where({ tenant_id: tenantId })
+    .orderBy("created_at", "desc")
+    .select("id", "email", "role", "token", "status", "created_at", "expires_at", "accepted_at");
 }
 
-function revokeInvite({ tenantId, inviteId }) {
-  return withDb((db) => {
-    const invite = (db.invites || []).find(
-      (item) => item.id === inviteId && item.tenant_id === tenantId
-    );
-    if (!invite) return null;
-    invite.status = "revoked";
-    invite.revoked_at = new Date().toISOString();
-    return invite;
-  });
+async function revokeInvite({ tenantId, inviteId }) {
+  const [updated] = await db("invites")
+    .where({ id: inviteId, tenant_id: tenantId })
+    .update({ status: "revoked", revoked_at: new Date().toISOString() })
+    .returning("*");
+  return updated || null;
 }
 
-function acceptInvite({ token, password }) {
-  const db = loadDb();
-  const invite = (db.invites || []).find((item) => item.token === token);
+async function acceptInvite({ token, password }) {
+  const invite = await db("invites").where({ token }).first();
   if (!invite) {
     return { error: "invalid_token" };
   }
@@ -78,7 +57,7 @@ function acceptInvite({ token, password }) {
     return { error: "invite_expired" };
   }
 
-  const result = createUser({
+  const result = await createUser({
     tenantId: invite.tenant_id,
     email: invite.email,
     password,
@@ -88,12 +67,9 @@ function acceptInvite({ token, password }) {
     return result;
   }
 
-  withDb((dbInner) => {
-    const stored = (dbInner.invites || []).find((item) => item.id === invite.id);
-    if (stored) {
-      stored.status = "accepted";
-      stored.accepted_at = new Date().toISOString();
-    }
+  await db("invites").where({ id: invite.id }).update({
+    status: "accepted",
+    accepted_at: new Date().toISOString()
   });
 
   return { user: result.user, invite };

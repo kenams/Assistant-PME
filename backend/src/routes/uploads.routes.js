@@ -2,7 +2,7 @@ const express = require("express");
 const fs = require("fs");
 const path = require("path");
 const { authRequired } = require("../middleware/auth");
-const { loadDb } = require("../services/store.service");
+const { db } = require("../config/db");
 
 const router = express.Router();
 
@@ -28,72 +28,66 @@ function normalizeUploadPath(filename) {
   return `/uploads/${safe}`;
 }
 
-function userOwnsConversation(db, tenantId, userId, conversationId) {
-  return db.conversations.some(
-    (conversation) =>
-      conversation.tenant_id === tenantId &&
-      conversation.id === conversationId &&
-      conversation.user_id === userId
-  );
-}
-
-function canAccessUpload({ db, tenantId, userId, role, uploadPath }) {
-  const linkedMessages = (db.messages || []).filter(
-    (message) =>
-      message.tenant_id === tenantId && message.content === `${IMAGE_PREFIX}${uploadPath}`
-  );
+async function canAccessUpload({ tenantId, userId, role, uploadPath }) {
+  const linkedMessages = await db("messages")
+    .where({ tenant_id: tenantId, content: `${IMAGE_PREFIX}${uploadPath}` });
 
   if (role !== "user") {
-    if (linkedMessages.length) {
-      return true;
-    }
-    return (db.tickets || []).some(
-      (ticket) =>
-        ticket.tenant_id === tenantId &&
-        String(ticket.description || "").includes(uploadPath)
-    );
+    if (linkedMessages.length) return true;
+    const ticket = await db("tickets")
+      .where({ tenant_id: tenantId })
+      .whereILike("description", `%${uploadPath}%`)
+      .first();
+    return Boolean(ticket);
   }
 
-  if (
-    linkedMessages.some((message) =>
-      userOwnsConversation(db, tenantId, userId, message.conversation_id)
-    )
-  ) {
-    return true;
+  for (const msg of linkedMessages) {
+    const owns = await db("conversations")
+      .where({ tenant_id: tenantId, id: msg.conversation_id, user_id: userId })
+      .first();
+    if (owns) return true;
   }
 
-  return (db.tickets || []).some(
-    (ticket) =>
-      ticket.tenant_id === tenantId &&
-      String(ticket.description || "").includes(uploadPath) &&
-      userOwnsConversation(db, tenantId, userId, ticket.conversation_id)
-  );
+  const tickets = await db("tickets")
+    .where({ tenant_id: tenantId })
+    .whereILike("description", `%${uploadPath}%`);
+  for (const ticket of tickets) {
+    if (!ticket.conversation_id) continue;
+    const owns = await db("conversations")
+      .where({ tenant_id: tenantId, id: ticket.conversation_id, user_id: userId })
+      .first();
+    if (owns) return true;
+  }
+
+  return false;
 }
 
-router.get("/:filename", authRequired, (req, res) => {
-  const uploadPath = normalizeUploadPath(req.params.filename);
-  if (!uploadPath) {
-    return res.status(400).json({ error: "invalid_file" });
-  }
+router.get("/:filename", authRequired, async (req, res, next) => {
+  try {
+    const uploadPath = normalizeUploadPath(req.params.filename);
+    if (!uploadPath) {
+      return res.status(400).json({ error: "invalid_file" });
+    }
 
-  const db = loadDb();
-  const tenantId = req.user.tenant_id;
-  const userId = req.user.sub;
-  const role = req.user.role || "user";
+    const tenantId = req.user.tenant_id;
+    const userId = req.user.sub;
+    const role = req.user.role || "user";
 
-  if (!canAccessUpload({ db, tenantId, userId, role, uploadPath })) {
-    return res.status(404).json({ error: "file_not_found" });
-  }
+    const canAccess = await canAccessUpload({ tenantId, userId, role, uploadPath });
+    if (!canAccess) {
+      return res.status(404).json({ error: "file_not_found" });
+    }
 
-  const fullPath = path.join(uploadDir, path.basename(uploadPath));
-  if (!fs.existsSync(fullPath)) {
-    return res.status(404).json({ error: "file_not_found" });
-  }
+    const fullPath = path.join(uploadDir, path.basename(uploadPath));
+    if (!fs.existsSync(fullPath)) {
+      return res.status(404).json({ error: "file_not_found" });
+    }
 
-  const ext = path.extname(fullPath).toLowerCase();
-  res.setHeader("Cache-Control", "no-store");
-  res.setHeader("Content-Type", MIME_TYPES[ext] || "application/octet-stream");
-  return res.sendFile(fullPath);
+    const ext = path.extname(fullPath).toLowerCase();
+    res.setHeader("Cache-Control", "no-store");
+    res.setHeader("Content-Type", MIME_TYPES[ext] || "application/octet-stream");
+    return res.sendFile(fullPath);
+  } catch (err) { next(err); }
 });
 
 module.exports = router;

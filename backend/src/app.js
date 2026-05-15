@@ -7,6 +7,7 @@ const path = require("path");
 const { env } = require("./config/env");
 const { createLogger } = require("./config/logger");
 const { ensureSeeded } = require("./services/users.service");
+const { runMigrations } = require("./services/store.service");
 const { errorHandler } = require("./middleware/error");
 const { monitoringMiddleware } = require("./middleware/monitoring");
 const { defaultLimiter } = require("./middleware/rate-limit");
@@ -34,7 +35,10 @@ const uploadsRoutes = require("./routes/uploads.routes");
 const app = express();
 const logger = createLogger();
 
-ensureSeeded();
+runMigrations().then(() => {
+  ensureSeeded().catch(err => console.error("Seed error:", err));
+}).catch(err => console.error("Migration error:", err));
+
 if (env.nodeEnv !== "test") {
   startMailboxPolling();
   startSlaAlertScheduler();

@@ -84,96 +84,112 @@ router.get("/challenge", (req, res) => {
   return res.json(challenge);
 });
 
-router.post("/", (req, res) => {
-  const payload = validateOr400(leadSchema, res, req.body);
-  if (!payload) {
-    return;
-  }
-
-  if (!leadTokenAllowed(req)) {
-    return res.status(401).json({ error: "invalid_token" });
-  }
-
-  const honeypot = req.body ? req.body.company_website : "";
-  if (honeypot) {
-    return res.status(204).send();
-  }
-
-  const allowlist = parseAllowlist(env.leadAllowlistDomains);
-  if (!isAllowedDomain(payload.email, allowlist)) {
-    return res.status(403).json({ error: "domain_not_allowed" });
-  }
-
-  if (env.requireLeadChallenge) {
-    const challengeId = req.body ? req.body.challenge_id : "";
-    const answer = req.body ? req.body.challenge_answer : "";
-    if (!verifyChallenge(challengeId, answer)) {
-      return res.status(400).json({ error: "invalid_challenge" });
+router.post("/", async (req, res, next) => {
+  try {
+    const payload = validateOr400(leadSchema, res, req.body);
+    if (!payload) {
+      return;
     }
-  }
 
-  const lead = createLead(payload);
-  createNotification({
-    tenantId: lead.tenant_id,
-    userId: null,
-    type: "lead_created",
-    channel: "email_simulated",
-    payload: {
-      subject: `Nouveau lead: ${lead.name}`,
-      body: `${lead.email} - ${lead.company || ""}`
+    if (!leadTokenAllowed(req)) {
+      return res.status(401).json({ error: "invalid_token" });
     }
-  });
-  return res.status(201).json({ id: lead.id });
-});
 
-router.get("/", authRequired, (req, res) => {
-  const tenantId = req.user.tenant_id;
-  const items = listLeads({ tenantId });
-  return res.json({ items });
-});
+    const honeypot = req.body ? req.body.company_website : "";
+    if (honeypot) {
+      return res.status(204).send();
+    }
 
-router.put("/:id", authRequired, (req, res) => {
-  const payload = validateOr400(leadUpdateSchema, res, req.body);
-  if (!payload) {
-    return;
+    const allowlist = parseAllowlist(env.leadAllowlistDomains);
+    if (!isAllowedDomain(payload.email, allowlist)) {
+      return res.status(403).json({ error: "domain_not_allowed" });
+    }
+
+    if (env.requireLeadChallenge) {
+      const challengeId = req.body ? req.body.challenge_id : "";
+      const answer = req.body ? req.body.challenge_answer : "";
+      if (!verifyChallenge(challengeId, answer)) {
+        return res.status(400).json({ error: "invalid_challenge" });
+      }
+    }
+
+    const lead = await createLead(payload);
+    await createNotification({
+      tenantId: lead.tenant_id,
+      userId: null,
+      type: "lead_created",
+      channel: "email_simulated",
+      payload: {
+        subject: `Nouveau lead: ${lead.name}`,
+        body: `${lead.email} - ${lead.company || ""}`
+      }
+    });
+    return res.status(201).json({ id: lead.id });
+  } catch (err) {
+    next(err);
   }
-  const lead = updateLead({ id: req.params.id, updates: payload });
-  if (!lead) {
-    return res.status(404).json({ error: "lead_not_found" });
-  }
-  return res.json(lead);
 });
 
-router.get("/export.csv", authRequired, (req, res) => {
-  const tenantId = req.user.tenant_id;
-  const items = listLeads({ tenantId });
-  const headers = [
-    "created_at",
-    "name",
-    "email",
-    "company",
-    "message",
-    "status",
-    "next_action",
-    "notes",
-    "owner"
-  ];
-  const rows = items.map((lead) => [
-    lead.created_at,
-    lead.name,
-    lead.email,
-    lead.company,
-    lead.message,
-    lead.status,
-    lead.next_action,
-    lead.notes,
-    lead.owner
-  ]);
+router.get("/", authRequired, async (req, res, next) => {
+  try {
+    const tenantId = req.user.tenant_id;
+    const items = await listLeads({ tenantId });
+    return res.json({ items });
+  } catch (err) {
+    next(err);
+  }
+});
 
-  const csv = buildCsv(headers, rows);
-  res.setHeader("Content-Type", "text/csv; charset=utf-8");
-  res.setHeader("Content-Disposition", "attachment; filename=\"leads.csv\"");
-  return res.send(csv);
+router.put("/:id", authRequired, async (req, res, next) => {
+  try {
+    const payload = validateOr400(leadUpdateSchema, res, req.body);
+    if (!payload) {
+      return;
+    }
+    const lead = await updateLead({ id: req.params.id, updates: payload });
+    if (!lead) {
+      return res.status(404).json({ error: "lead_not_found" });
+    }
+    return res.json(lead);
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.get("/export.csv", authRequired, async (req, res, next) => {
+  try {
+    const tenantId = req.user.tenant_id;
+    const items = await listLeads({ tenantId });
+    const headers = [
+      "created_at",
+      "name",
+      "email",
+      "company",
+      "message",
+      "status",
+      "next_action",
+      "notes",
+      "owner"
+    ];
+    const rows = items.map((lead) => [
+      lead.created_at,
+      lead.name,
+      lead.email,
+      lead.company,
+      lead.message,
+      lead.status,
+      lead.next_action,
+      lead.notes,
+      lead.owner
+    ]);
+
+    const csv = buildCsv(headers, rows);
+    res.setHeader("Content-Type", "text/csv; charset=utf-8");
+    res.setHeader("Content-Disposition", "attachment; filename=\"leads.csv\"");
+    return res.send(csv);
+  } catch (err) {
+    next(err);
+  }
 });
 
 module.exports = router;

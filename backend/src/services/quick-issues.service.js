@@ -1,5 +1,5 @@
 const crypto = require("crypto");
-const { withDb, loadDb } = require("./store.service");
+const { db } = require("../config/db");
 
 const ISSUE_CATALOG = [
   {
@@ -57,7 +57,7 @@ function normalizeText(text) {
   return (text || "")
     .toString()
     .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[̀-ͯ]/g, "")
     .toLowerCase()
     .trim();
 }
@@ -103,13 +103,7 @@ function shouldTrackMessage(message) {
   return words.length >= 2;
 }
 
-function ensureQuickIssues(db) {
-  if (!Array.isArray(db.quick_issues)) {
-    db.quick_issues = [];
-  }
-}
-
-function trackQuickIssue({ tenantId, message }) {
+async function trackQuickIssue({ tenantId, message }) {
   if (!shouldTrackMessage(message)) return null;
   const known = detectKnownIssue(message);
   const key = known ? known.key : buildCustomKey(message);
@@ -117,73 +111,69 @@ function trackQuickIssue({ tenantId, message }) {
   const example = known ? known.example : normalizeSpacing(message);
   const now = new Date().toISOString();
 
-  return withDb((db) => {
-    ensureQuickIssues(db);
-    const existing = db.quick_issues.find(
-      (item) => item.tenant_id === tenantId && item.key === key
-    );
-    if (existing) {
-      existing.count += 1;
-      existing.last_seen = now;
-      if (!existing.label && label) {
-        existing.label = label;
-      }
-      if (!existing.example && example) {
-        existing.example = example;
-      }
-      return { record: existing, isNew: false };
-    }
-    const record = {
-      id: crypto.randomUUID(),
-      tenant_id: tenantId,
-      key,
-      label,
-      example,
-      count: 1,
-      created_at: now,
-      last_seen: now
-    };
-    db.quick_issues.push(record);
-    return { record, isNew: true };
-  });
+  const existing = await db("quick_issues").where({ tenant_id: tenantId, key }).first();
+
+  if (existing) {
+    const [updated] = await db("quick_issues")
+      .where({ id: existing.id })
+      .update({
+        count: existing.count + 1,
+        last_seen: now,
+        label: existing.label || label || existing.label,
+        example: existing.example || example || existing.example,
+        updated_at: now
+      })
+      .returning("*");
+    return { record: updated || existing, isNew: false };
+  }
+
+  const record = {
+    id: crypto.randomUUID(),
+    tenant_id: tenantId,
+    key,
+    label,
+    example,
+    count: 1,
+    sort_order: 0,
+    created_at: now,
+    updated_at: now
+  };
+  const [inserted] = await db("quick_issues").insert(record).returning("*");
+  return { record: inserted || record, isNew: true };
 }
 
-function listQuickIssues({ tenantId, limit = 6 }) {
-  const db = loadDb();
-  ensureQuickIssues(db);
+async function listQuickIssues({ tenantId, limit = 6 }) {
   const sanitizedLimit = Math.min(Math.max(Number(limit) || 6, 2), 12);
-  return db.quick_issues
-    .filter((item) => item.tenant_id === tenantId)
-    .sort((a, b) => {
-      if (b.count !== a.count) return b.count - a.count;
-      return new Date(b.last_seen).getTime() - new Date(a.last_seen).getTime();
-    })
-    .slice(0, sanitizedLimit)
-    .map((item) => ({
-      key: item.key,
-      label: item.label || "Probleme",
-      message: item.example || item.label || ""
-    }));
+  const rows = await db("quick_issues")
+    .where({ tenant_id: tenantId })
+    .orderBy("sort_order", "asc")
+    .orderBy("count", "desc")
+    .limit(sanitizedLimit);
+
+  return rows.map((item) => ({
+    key: item.key,
+    label: item.label || "Probleme",
+    message: item.example || item.label || ""
+  }));
 }
 
-function searchQuickIssues({ tenantId, query, limit = 12 }) {
-  const db = loadDb();
-  ensureQuickIssues(db);
+async function searchQuickIssues({ tenantId, query, limit = 12 }) {
   const normalizedQuery = normalizeText(query);
   if (!normalizedQuery) {
     return listQuickIssues({ tenantId, limit });
   }
   const sanitizedLimit = Math.min(Math.max(Number(limit) || 12, 2), 24);
-  return db.quick_issues
-    .filter((item) => item.tenant_id === tenantId)
+
+  const rows = await db("quick_issues").where({ tenant_id: tenantId });
+  return rows
     .filter((item) => {
-      const label = normalizeText(item.label || "");
-      const example = normalizeText(item.example || "");
-      return label.includes(normalizedQuery) || example.includes(normalizedQuery);
+      const lbl = normalizeText(item.label || "");
+      const ex = normalizeText(item.example || "");
+      return lbl.includes(normalizedQuery) || ex.includes(normalizedQuery);
     })
     .sort((a, b) => {
       if (b.count !== a.count) return b.count - a.count;
-      return new Date(b.last_seen).getTime() - new Date(a.last_seen).getTime();
+      return new Date(b.updated_at || b.created_at).getTime() - new Date(a.updated_at || a.created_at).getTime();
     })
     .slice(0, sanitizedLimit)
     .map((item) => ({
@@ -193,4 +183,61 @@ function searchQuickIssues({ tenantId, query, limit = 12 }) {
     }));
 }
 
-module.exports = { trackQuickIssue, listQuickIssues, searchQuickIssues };
+async function createQuickIssue({ tenantId, payload }) {
+  const now = new Date().toISOString();
+  const record = {
+    id: crypto.randomUUID(),
+    tenant_id: tenantId,
+    label: payload.label,
+    icon: payload.icon || null,
+    prompt: payload.prompt || null,
+    sort_order: payload.sort_order || 0,
+    count: 0,
+    example: payload.example || null,
+    key: payload.key || buildCustomKey(payload.label || ""),
+    created_at: now,
+    updated_at: now
+  };
+  const [inserted] = await db("quick_issues").insert(record).returning("*");
+  return inserted || record;
+}
+
+async function updateQuickIssue({ tenantId, id, payload }) {
+  const patch = { updated_at: new Date().toISOString() };
+  if (payload.label !== undefined) patch.label = payload.label;
+  if (payload.icon !== undefined) patch.icon = payload.icon;
+  if (payload.prompt !== undefined) patch.prompt = payload.prompt;
+  if (payload.sort_order !== undefined) patch.sort_order = payload.sort_order;
+  if (payload.example !== undefined) patch.example = payload.example;
+
+  const [updated] = await db("quick_issues")
+    .where({ id, tenant_id: tenantId })
+    .update(patch)
+    .returning("*");
+  return updated || null;
+}
+
+async function deleteQuickIssue({ tenantId, id }) {
+  const deleted = await db("quick_issues").where({ id, tenant_id: tenantId }).delete();
+  return deleted > 0;
+}
+
+async function incrementQuickIssue({ tenantId, id }) {
+  const row = await db("quick_issues").where({ id, tenant_id: tenantId }).first();
+  if (!row) return null;
+  const [updated] = await db("quick_issues")
+    .where({ id })
+    .update({ count: row.count + 1, updated_at: new Date().toISOString() })
+    .returning("*");
+  return updated || null;
+}
+
+module.exports = {
+  trackQuickIssue,
+  listQuickIssues,
+  searchQuickIssues,
+  createQuickIssue,
+  updateQuickIssue,
+  deleteQuickIssue,
+  incrementQuickIssue
+};

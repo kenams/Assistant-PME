@@ -69,197 +69,241 @@ function filterTickets(items, query) {
   });
 }
 
-router.post("/", authRequired, async (req, res) => {
-  const payload = validateOr400(ticketSchema, res, req.body);
-  if (!payload) {
-    return;
+router.post("/", authRequired, async (req, res, next) => {
+  try {
+    const payload = validateOr400(ticketSchema, res, req.body);
+    if (!payload) {
+      return;
+    }
+
+    const tenantId = req.user.tenant_id;
+    const ticket = await createTicket({
+      tenantId,
+      conversationId: null,
+      draft: payload
+    });
+
+    await logEvent({
+      tenantId,
+      userId: req.user.sub,
+      action: "ticket_created",
+      meta: { ticket_id: ticket.id }
+    });
+
+    await createNotification({
+      tenantId,
+      userId: req.user.sub,
+      type: "ticket_created",
+      channel: "email",
+      payload: { ticket, subject: `Nouveau ticket: ${ticket.title}`, body: ticket.description }
+    });
+
+    return res.status(201).json(ticket);
+  } catch (err) {
+    next(err);
   }
-
-  const tenantId = req.user.tenant_id;
-  const ticket = await createTicket({
-    tenantId,
-    conversationId: null,
-    draft: payload
-  });
-
-  logEvent({
-    tenantId,
-    userId: req.user.sub,
-    action: "ticket_created",
-    meta: { ticket_id: ticket.id }
-  });
-
-  createNotification({
-    tenantId,
-    userId: req.user.sub,
-    type: "ticket_created",
-    channel: "email",
-    payload: { ticket, subject: `Nouveau ticket: ${ticket.title}`, body: ticket.description }
-  });
-
-  return res.status(201).json(ticket);
 });
 
-router.post("/draft", authRequired, (req, res) => {
-  const payload = validateOr400(ticketDraftSchema, res, req.body);
-  if (!payload) {
-    return;
+router.post("/draft", authRequired, async (req, res, next) => {
+  try {
+    const payload = validateOr400(ticketDraftSchema, res, req.body);
+    if (!payload) {
+      return;
+    }
+    const tenantId = req.user.tenant_id;
+    const { conversation_id, message } = payload;
+    let sourceMessage = message || "";
+    if (!sourceMessage && conversation_id) {
+      const conversation = await findConversation({ tenantId, conversationId: conversation_id });
+      if (!conversation) {
+        return res.status(404).json({ error: "conversation_not_found" });
+      }
+      if (req.user.role === "user" && conversation.user_id !== req.user.sub) {
+        return res.status(403).json({ error: "forbidden" });
+      }
+      const messages = await getHistory({ tenantId, conversationId: conversation_id });
+      const lastUser = [...messages].reverse().find((msg) => msg.role === "user");
+      sourceMessage = lastUser ? lastUser.content : "Demande utilisateur";
+    }
+    const draft = draftTicket({ message: sourceMessage || "Demande utilisateur" });
+    return res.json({ draft });
+  } catch (err) {
+    next(err);
   }
-  const tenantId = req.user.tenant_id;
-  const { conversation_id, message } = payload;
-  let sourceMessage = message || "";
-  if (!sourceMessage && conversation_id) {
-    const conversation = findConversation({ tenantId, conversationId: conversation_id });
+});
+
+router.get("/", authRequired, requireStaff, async (req, res, next) => {
+  try {
+    const tenantId = req.user.tenant_id;
+    const items = filterTickets(await listTickets({ tenantId }), req.query || {});
+    return res.json({ items });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.get("/export.csv", authRequired, requireStaff, async (req, res, next) => {
+  try {
+    const tenantId = req.user.tenant_id;
+    const items = filterTickets(await listTickets({ tenantId }), req.query || {});
+    const headers = [
+      "created_at",
+      "title",
+      "description",
+      "category",
+      "priority",
+      "status"
+    ];
+    const rows = items.map((ticket) => [
+      ticket.created_at,
+      ticket.title,
+      ticket.description,
+      ticket.category,
+      ticket.priority,
+      ticket.status
+    ]);
+
+    const csv = buildCsv(headers, rows);
+    res.setHeader("Content-Type", "text/csv; charset=utf-8");
+    res.setHeader("Content-Disposition", "attachment; filename=\"tickets.csv\"");
+    return res.send(csv);
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.get("/export.pdf", authRequired, requireStaff, async (req, res, next) => {
+  try {
+    const tenantId = req.user.tenant_id;
+    const items = filterTickets(await listTickets({ tenantId }), req.query || {});
+    const tenant = await getTenantById(tenantId);
+    const pdf = await buildTicketsPdf({
+      tickets: items,
+      filters: req.query || {},
+      tenantName: tenant ? tenant.name : null
+    });
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", "attachment; filename=\"tickets.pdf\"");
+    return res.send(pdf);
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.patch("/:id", authRequired, requireStaff, async (req, res, next) => {
+  try {
+    const payload = validateOr400(ticketUpdateSchema, res, req.body);
+    if (!payload) {
+      return;
+    }
+    const tenantId = req.user.tenant_id;
+    const ticketId = req.params.id;
+    const updated = await updateTicket({ tenantId, ticketId, updates: payload });
+    if (!updated) {
+      return res.status(404).json({ error: "ticket_not_found" });
+    }
+    await logEvent({
+      tenantId,
+      userId: req.user.sub,
+      action: "ticket_updated",
+      meta: { ticket_id: ticketId, updates: payload }
+    });
+    if (payload.status === "resolved" || payload.status === "closed") {
+      maybeGenerateKbFromTicket({ tenantId, ticket: updated }).catch(() => {});
+    }
+    return res.json(updated);
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.get("/conversation/:id", authRequired, async (req, res, next) => {
+  try {
+    const tenantId = req.user.tenant_id;
+    const conversationId = req.params.id;
+    const conversation = await findConversation({ tenantId, conversationId });
     if (!conversation) {
       return res.status(404).json({ error: "conversation_not_found" });
     }
     if (req.user.role === "user" && conversation.user_id !== req.user.sub) {
       return res.status(403).json({ error: "forbidden" });
     }
-    const messages = getHistory({ tenantId, conversationId: conversation_id });
-    const lastUser = [...messages].reverse().find((msg) => msg.role === "user");
-    sourceMessage = lastUser ? lastUser.content : "Demande utilisateur";
+    const items = await listTicketsByConversation({ tenantId, conversationId });
+    return res.json({ items });
+  } catch (err) {
+    next(err);
   }
-  const draft = draftTicket({ message: sourceMessage || "Demande utilisateur" });
-  return res.json({ draft });
 });
 
-router.get("/", authRequired, requireStaff, (req, res) => {
-  const tenantId = req.user.tenant_id;
-  const items = filterTickets(listTickets({ tenantId }), req.query || {});
-  return res.json({ items });
-});
-
-router.get("/export.csv", authRequired, requireStaff, (req, res) => {
-  const tenantId = req.user.tenant_id;
-  const items = filterTickets(listTickets({ tenantId }), req.query || {});
-  const headers = [
-    "created_at",
-    "title",
-    "description",
-    "category",
-    "priority",
-    "status"
-  ];
-  const rows = items.map((ticket) => [
-    ticket.created_at,
-    ticket.title,
-    ticket.description,
-    ticket.category,
-    ticket.priority,
-    ticket.status
-  ]);
-
-  const csv = buildCsv(headers, rows);
-  res.setHeader("Content-Type", "text/csv; charset=utf-8");
-  res.setHeader("Content-Disposition", "attachment; filename=\"tickets.csv\"");
-  return res.send(csv);
-});
-
-router.get("/export.pdf", authRequired, requireStaff, async (req, res) => {
-  const tenantId = req.user.tenant_id;
-  const items = filterTickets(listTickets({ tenantId }), req.query || {});
-  const tenant = getTenantById(tenantId);
-  const pdf = await buildTicketsPdf({
-    tickets: items,
-    filters: req.query || {},
-    tenantName: tenant ? tenant.name : null
-  });
-  res.setHeader("Content-Type", "application/pdf");
-  res.setHeader("Content-Disposition", "attachment; filename=\"tickets.pdf\"");
-  return res.send(pdf);
-});
-
-router.patch("/:id", authRequired, requireStaff, (req, res) => {
-  const payload = validateOr400(ticketUpdateSchema, res, req.body);
-  if (!payload) {
-    return;
+router.get("/user/:id", authRequired, requireStaff, async (req, res, next) => {
+  try {
+    const tenantId = req.user.tenant_id;
+    const userId = req.params.id;
+    const items = await listTicketsByUser({ tenantId, userId });
+    return res.json({ items });
+  } catch (err) {
+    next(err);
   }
-  const tenantId = req.user.tenant_id;
-  const ticketId = req.params.id;
-  const updated = updateTicket({ tenantId, ticketId, updates: payload });
-  if (!updated) {
-    return res.status(404).json({ error: "ticket_not_found" });
+});
+
+router.get("/mine", authRequired, async (req, res, next) => {
+  try {
+    const tenantId = req.user.tenant_id;
+    const userId = req.user.sub;
+    const items = await listTicketsByUser({ tenantId, userId });
+    return res.json({ items });
+  } catch (err) {
+    next(err);
   }
-  logEvent({
-    tenantId,
-    userId: req.user.sub,
-    action: "ticket_updated",
-    meta: { ticket_id: ticketId, updates: payload }
-  });
-  if (payload.status === "resolved" || payload.status === "closed") {
-    maybeGenerateKbFromTicket({ tenantId, ticket: updated }).catch(() => {});
+});
+
+router.get("/mine/export.csv", authRequired, async (req, res, next) => {
+  try {
+    const tenantId = req.user.tenant_id;
+    const userId = req.user.sub;
+    const items = await listTicketsByUser({ tenantId, userId });
+    const headers = [
+      "created_at",
+      "title",
+      "description",
+      "category",
+      "priority",
+      "status"
+    ];
+    const rows = items.map((ticket) => [
+      ticket.created_at,
+      ticket.title,
+      ticket.description,
+      ticket.category,
+      ticket.priority,
+      ticket.status
+    ]);
+    const csv = buildCsv(headers, rows);
+    res.setHeader("Content-Type", "text/csv; charset=utf-8");
+    res.setHeader("Content-Disposition", "attachment; filename=\"mes_tickets.csv\"");
+    return res.send(csv);
+  } catch (err) {
+    next(err);
   }
-  return res.json(updated);
 });
 
-router.get("/conversation/:id", authRequired, (req, res) => {
-  const tenantId = req.user.tenant_id;
-  const conversationId = req.params.id;
-  const conversation = findConversation({ tenantId, conversationId });
-  if (!conversation) {
-    return res.status(404).json({ error: "conversation_not_found" });
+router.get("/mine/export.pdf", authRequired, async (req, res, next) => {
+  try {
+    const tenantId = req.user.tenant_id;
+    const userId = req.user.sub;
+    const items = await listTicketsByUser({ tenantId, userId });
+    const tenant = await getTenantById(tenantId);
+    const pdf = await buildTicketsPdf({
+      tickets: items,
+      filters: { owner: "me" },
+      tenantName: tenant ? tenant.name : null
+    });
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", "attachment; filename=\"mes_tickets.pdf\"");
+    return res.send(pdf);
+  } catch (err) {
+    next(err);
   }
-  if (req.user.role === "user" && conversation.user_id !== req.user.sub) {
-    return res.status(403).json({ error: "forbidden" });
-  }
-  const items = listTicketsByConversation({ tenantId, conversationId });
-  return res.json({ items });
-});
-
-router.get("/user/:id", authRequired, requireStaff, (req, res) => {
-  const tenantId = req.user.tenant_id;
-  const userId = req.params.id;
-  const items = listTicketsByUser({ tenantId, userId });
-  return res.json({ items });
-});
-
-router.get("/mine", authRequired, (req, res) => {
-  const tenantId = req.user.tenant_id;
-  const userId = req.user.sub;
-  const items = listTicketsByUser({ tenantId, userId });
-  return res.json({ items });
-});
-
-router.get("/mine/export.csv", authRequired, (req, res) => {
-  const tenantId = req.user.tenant_id;
-  const userId = req.user.sub;
-  const items = listTicketsByUser({ tenantId, userId });
-  const headers = [
-    "created_at",
-    "title",
-    "description",
-    "category",
-    "priority",
-    "status"
-  ];
-  const rows = items.map((ticket) => [
-    ticket.created_at,
-    ticket.title,
-    ticket.description,
-    ticket.category,
-    ticket.priority,
-    ticket.status
-  ]);
-  const csv = buildCsv(headers, rows);
-  res.setHeader("Content-Type", "text/csv; charset=utf-8");
-  res.setHeader("Content-Disposition", "attachment; filename=\"mes_tickets.csv\"");
-  return res.send(csv);
-});
-
-router.get("/mine/export.pdf", authRequired, async (req, res) => {
-  const tenantId = req.user.tenant_id;
-  const userId = req.user.sub;
-  const items = listTicketsByUser({ tenantId, userId });
-  const tenant = getTenantById(tenantId);
-  const pdf = await buildTicketsPdf({
-    tickets: items,
-    filters: { owner: "me" },
-    tenantName: tenant ? tenant.name : null
-  });
-  res.setHeader("Content-Type", "application/pdf");
-  res.setHeader("Content-Disposition", "attachment; filename=\"mes_tickets.pdf\"");
-  return res.send(pdf);
 });
 
 module.exports = router;

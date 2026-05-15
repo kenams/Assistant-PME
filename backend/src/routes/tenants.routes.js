@@ -7,7 +7,7 @@ const { authRequired } = require("../middleware/auth");
 const { requireSuperAdmin } = require("../middleware/roles");
 const { listTenants, createTenant } = require("../services/tenants.service");
 const { findUserByEmailInTenant } = require("../services/users.service");
-const { loadDb, saveDb } = require("../services/store.service");
+const { db: pgDb } = require("../config/db");
 const { validateOr400 } = require("../utils/validate");
 
 const router = express.Router();
@@ -25,54 +25,66 @@ const tokenSchema = z.object({
   email: z.string().email().optional()
 });
 
-router.get("/", authRequired, requireSuperAdmin, (req, res) => {
-  return res.json({ items: listTenants() });
+router.get("/", authRequired, requireSuperAdmin, async (req, res, next) => {
+  try {
+    return res.json({ items: await listTenants() });
+  } catch (err) {
+    next(err);
+  }
 });
 
-router.post("/", authRequired, requireSuperAdmin, (req, res) => {
-  const payload = validateOr400(tenantSchema, res, req.body);
-  if (!payload) return;
-  const result = createTenant({
-    name: payload.name,
-    plan: payload.plan,
-    code: payload.code,
-    adminEmail: payload.admin_email,
-    adminPassword: payload.admin_password
-  });
-  if (result.error === "email_exists") {
-    return res.status(409).json({ error: "email_exists" });
+router.post("/", authRequired, requireSuperAdmin, async (req, res, next) => {
+  try {
+    const payload = validateOr400(tenantSchema, res, req.body);
+    if (!payload) return;
+    const result = await createTenant({
+      name: payload.name,
+      plan: payload.plan,
+      code: payload.code,
+      adminEmail: payload.admin_email,
+      adminPassword: payload.admin_password
+    });
+    if (result.error === "email_exists") {
+      return res.status(409).json({ error: "email_exists" });
+    }
+    if (result.error === "code_exists") {
+      return res.status(409).json({ error: "code_exists" });
+    }
+    return res.status(201).json(result);
+  } catch (err) {
+    next(err);
   }
-  if (result.error === "code_exists") {
-    return res.status(409).json({ error: "code_exists" });
-  }
-  return res.status(201).json(result);
 });
 
-router.post("/:id/token", authRequired, requireSuperAdmin, (req, res) => {
-  const payload = validateOr400(tokenSchema, res, req.body || {});
-  if (!payload) return;
-  const tenantId = req.params.id;
-  const email = payload.email;
-  if (!email) {
-    return res.status(400).json({ error: "missing_email" });
+router.post("/:id/token", authRequired, requireSuperAdmin, async (req, res, next) => {
+  try {
+    const payload = validateOr400(tokenSchema, res, req.body || {});
+    if (!payload) return;
+    const tenantId = req.params.id;
+    const email = payload.email;
+    if (!email) {
+      return res.status(400).json({ error: "missing_email" });
+    }
+    const user = await findUserByEmailInTenant({ tenantId, email });
+    if (!user) {
+      return res.status(404).json({ error: "user_not_found" });
+    }
+    if (!env.jwtSecret) {
+      return res.status(500).json({ error: "missing_jwt_secret" });
+    }
+    const token = jwt.sign(
+      {
+        sub: user.id,
+        tenant_id: user.tenant_id,
+        role: user.role
+      },
+      env.jwtSecret,
+      { expiresIn: "1h" }
+    );
+    return res.json({ token });
+  } catch (err) {
+    next(err);
   }
-  const user = findUserByEmailInTenant({ tenantId, email });
-  if (!user) {
-    return res.status(404).json({ error: "user_not_found" });
-  }
-  if (!env.jwtSecret) {
-    return res.status(500).json({ error: "missing_jwt_secret" });
-  }
-  const token = jwt.sign(
-    {
-      sub: user.id,
-      tenant_id: user.tenant_id,
-      role: user.role
-    },
-    env.jwtSecret,
-    { expiresIn: "1h" }
-  );
-  return res.json({ token });
 });
 
 function normalizeBackup(payload) {
@@ -171,50 +183,56 @@ function mergeTenantData(db, tenantId, payload) {
   ].forEach(replace);
 }
 
-router.get("/overview", authRequired, requireSuperAdmin, (req, res) => {
-  const db = loadDb();
-  return res.json({
-    tenants: db.tenants.length,
-    users: db.users.length,
-    conversations: db.conversations.length,
-    messages: db.messages.length,
-    tickets: db.tickets.length,
-    leads: db.leads.length,
-    kb_documents: db.kb_documents.length
-  });
+router.get("/overview", authRequired, requireSuperAdmin, async (req, res, next) => {
+  try {
+    const counts = await Promise.all([
+      pgDb("tenants").count("id as c").first(),
+      pgDb("users").count("id as c").first(),
+      pgDb("conversations").count("id as c").first(),
+      pgDb("messages").count("id as c").first(),
+      pgDb("tickets").count("id as c").first(),
+      pgDb("leads").count("id as c").first(),
+      pgDb("kb_documents").count("id as c").first()
+    ]);
+    const [tenants, users, conversations, messages, tickets, leads, kb_documents] = counts.map(r => Number(r.c));
+    return res.json({ tenants, users, conversations, messages, tickets, leads, kb_documents });
+  } catch (err) { next(err); }
 });
 
-router.get("/export.json", authRequired, requireSuperAdmin, (req, res) => {
-  const db = loadDb();
-  res.setHeader("Content-Type", "application/json; charset=utf-8");
-  res.setHeader("Content-Disposition", "attachment; filename=\"global_backup.json\"");
-  return res.send(JSON.stringify(db, null, 2));
+router.get("/export.json", authRequired, requireSuperAdmin, async (req, res, next) => {
+  try {
+    const [tenants, users, conversations, messages, tickets, kb_documents, kb_chunks, leads] = await Promise.all([
+      pgDb("tenants"), pgDb("users").select("id","tenant_id","email","role","created_at"),
+      pgDb("conversations"), pgDb("messages"), pgDb("tickets"),
+      pgDb("kb_documents"), pgDb("kb_chunks"), pgDb("leads")
+    ]);
+    res.setHeader("Content-Type", "application/json; charset=utf-8");
+    res.setHeader("Content-Disposition", "attachment; filename=\"global_backup.json\"");
+    return res.send(JSON.stringify({ tenants, users, conversations, messages, tickets, kb_documents, kb_chunks, leads }, null, 2));
+  } catch (err) { next(err); }
 });
 
 router.post("/import", authRequired, requireSuperAdmin, upload.single("file"), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: "missing_file" });
   }
-  try {
-    const parsed = JSON.parse(req.file.buffer.toString("utf8"));
-    const normalized = normalizeBackup(parsed);
-    saveDb(normalized);
-    return res.json({ ok: true });
-  } catch (err) {
-    return res.status(400).json({ error: "invalid_backup" });
-  }
+  return res.status(400).json({ error: "import_not_available_in_pg_mode" });
 });
 
-router.get("/:id/export.json", authRequired, requireSuperAdmin, (req, res) => {
-  const tenantId = req.params.id;
-  const db = loadDb();
-  const payload = filterDbByTenant(db, tenantId);
-  res.setHeader("Content-Type", "application/json; charset=utf-8");
-  res.setHeader(
-    "Content-Disposition",
-    `attachment; filename=\"tenant_${tenantId}.json\"`
-  );
-  return res.send(JSON.stringify(payload, null, 2));
+router.get("/:id/export.json", authRequired, requireSuperAdmin, async (req, res, next) => {
+  try {
+    const tenantId = req.params.id;
+    const [conversations, messages, tickets, kb_documents, kb_chunks] = await Promise.all([
+      pgDb("conversations").where({ tenant_id: tenantId }),
+      pgDb("messages").where({ tenant_id: tenantId }),
+      pgDb("tickets").where({ tenant_id: tenantId }),
+      pgDb("kb_documents").where({ tenant_id: tenantId }),
+      pgDb("kb_chunks").where({ tenant_id: tenantId })
+    ]);
+    res.setHeader("Content-Type", "application/json; charset=utf-8");
+    res.setHeader("Content-Disposition", `attachment; filename="tenant_${tenantId}.json"`);
+    return res.send(JSON.stringify({ conversations, messages, tickets, kb_documents, kb_chunks }, null, 2));
+  } catch (err) { next(err); }
 });
 
 router.post(
@@ -226,16 +244,9 @@ router.post(
     if (!req.file) {
       return res.status(400).json({ error: "missing_file" });
     }
-    try {
-      const parsed = JSON.parse(req.file.buffer.toString("utf8"));
-      const db = loadDb();
-      mergeTenantData(db, req.params.id, parsed);
-      saveDb(db);
-      return res.json({ ok: true });
-    } catch (err) {
-      return res.status(400).json({ error: "invalid_backup" });
-    }
+    return res.status(400).json({ error: "import_not_available_in_pg_mode" });
   }
 );
+
 
 module.exports = router;

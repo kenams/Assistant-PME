@@ -1,5 +1,5 @@
 const { env } = require("../config/env");
-const { loadDb } = require("./store.service");
+const { db } = require("../config/db");
 const { ingestDocument } = require("./rag.service");
 
 const AUTO_KB_PREFIX = "auto-kb:";
@@ -9,11 +9,12 @@ function buildSourceUrl(ticketId) {
   return `${AUTO_KB_PREFIX}${ticketId}`;
 }
 
-function kbEntryExists({ tenantId, ticketId }) {
+async function kbEntryExists({ tenantId, ticketId }) {
   const sourceUrl = buildSourceUrl(ticketId);
-  return loadDb().kb_documents.some(
-    (doc) => doc.tenant_id === tenantId && doc.source_url === sourceUrl
-  );
+  const row = await db("kb_documents")
+    .where({ tenant_id: tenantId, source_url: sourceUrl })
+    .first();
+  return !!row;
 }
 
 async function callOpenAiForProcedure({ title, description }) {
@@ -61,13 +62,10 @@ async function maybeGenerateKbFromTicket({ tenantId, ticket }) {
   if (!tenantId || !ticket || !ticket.id) return null;
 
   const description = (ticket.description || "").trim();
-  if (description.length < 50) {
-    return null;
-  }
+  if (description.length < 50) return null;
 
-  if (kbEntryExists({ tenantId, ticketId: ticket.id })) {
-    return null;
-  }
+  const exists = await kbEntryExists({ tenantId, ticketId: ticket.id });
+  if (exists) return null;
 
   let content;
   try {
@@ -80,9 +78,7 @@ async function maybeGenerateKbFromTicket({ tenantId, ticket }) {
     return null;
   }
 
-  if (!content) {
-    return null;
-  }
+  if (!content) return null;
 
   try {
     const doc = await ingestDocument({
@@ -103,18 +99,19 @@ async function maybeGenerateKbFromTicket({ tenantId, ticket }) {
 async function runAutoKbForTenant({ tenantId }) {
   if (!tenantId) return;
 
-  const db = loadDb();
-  const resolved = db.tickets.filter(
-    (t) =>
-      t.tenant_id === tenantId &&
-      (t.status === "resolved" || t.status === "closed") &&
-      !kbEntryExists({ tenantId, ticketId: t.id })
-  );
+  const tickets = await db("tickets")
+    .where({ tenant_id: tenantId })
+    .whereIn("status", ["resolved", "closed"])
+    .limit(MAX_TICKETS_PER_RUN * 3); // fetch more to filter already-processed
 
-  const batch = resolved.slice(0, MAX_TICKETS_PER_RUN);
-  if (batch.length === 0) {
-    return;
+  const batch = [];
+  for (const ticket of tickets) {
+    if (batch.length >= MAX_TICKETS_PER_RUN) break;
+    const exists = await kbEntryExists({ tenantId, ticketId: ticket.id });
+    if (!exists) batch.push(ticket);
   }
+
+  if (batch.length === 0) return;
 
   console.log(`[auto-kb] Processing ${batch.length} ticket(s) for tenant ${tenantId}`);
 

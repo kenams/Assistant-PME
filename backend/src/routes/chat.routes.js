@@ -132,462 +132,499 @@ function formatContextBlock(context) {
   return `[Contexte technicien]\n${lines.join("\n")}`;
 }
 
-router.post("/", authRequired, async (req, res) => {
-  const payload = validateOr400(chatSchema, res, req.body);
-  if (!payload) {
-    return;
-  }
-
-  const tenantId = req.user.tenant_id;
-  const userId = req.user.sub;
-  const message = payload.message.trim();
-  const { conversation_id, language, context } = payload;
-  if (!message) {
-    return res.status(400).json({ error: "empty_message" });
-  }
-  const orgSettings = getOrgSettings({ tenantId });
-
-  let conversation = null;
-  if (conversation_id) {
-    conversation = findConversation({ tenantId, conversationId: conversation_id });
-    if (conversation && req.user.role === "user" && conversation.user_id !== userId) {
-      return res.status(403).json({ error: "forbidden" });
-    }
-  }
-  if (!conversation) {
-    conversation = createConversation({ tenantId, userId });
-    logEvent({
-      tenantId,
-      userId,
-      action: "conversation_created",
-      meta: { conversation_id: conversation.id }
-    });
-  } else if (conversation.status === "resolved") {
-    updateConversation({
-      tenantId,
-      conversationId: conversation.id,
-      updates: { status: "open", failure_count: 0 }
-    });
-  }
-
-  // Snapshot history BEFORE adding current message (so it's the true "prior context")
-  const conversationHistory = getHistory({ tenantId, conversationId: conversation.id });
-
-  addMessage({
-    tenantId,
-    conversationId: conversation.id,
-    role: "user",
-    content: message
-  });
-  const trackedIssue = trackQuickIssue({ tenantId, message });
-  const quickIssueThreshold =
-    orgSettings && orgSettings.quick_issue_threshold
-      ? orgSettings.quick_issue_threshold
-      : 4;
-  if (trackedIssue && trackedIssue.record) {
-    try {
-      await ensureProcedureForQuickIssue({
-        tenantId,
-        issue: trackedIssue.record,
-        threshold: quickIssueThreshold
-      });
-    } catch (err) {
-      // ignore auto-procedure failures
-    }
-  }
-  logEvent({
-    tenantId,
-    userId,
-    action: "chat_user_message",
-    meta: { conversation_id: conversation.id }
-  });
-
-  let failureCount = null;
-  if (isFailureMessage(message)) {
-    failureCount = incrementFailure({
-      tenantId,
-      conversationId: conversation.id
-    });
-  }
-
-  if (isSuccessMessage(message)) {
-    updateConversation({
-      tenantId,
-      conversationId: conversation.id,
-      updates: { status: "resolved", failure_count: 0 }
-    });
-  }
-
-  const clientIp =
-    ((req.headers["x-forwarded-for"] || "").split(",")[0].trim()) ||
-    req.socket.remoteAddress ||
-    req.ip ||
-    "Inconnue";
-  const userLogin = req.user.email || req.user.sub || "Inconnu";
-
-  const baseContext = context || conversation.context || null;
-  const activeContext = baseContext
-    ? { ...baseContext, ip: clientIp, user_login: userLogin }
-    : { ip: clientIp, user_login: userLogin };
-
-  updateConversation({
-    tenantId,
-    conversationId: conversation.id,
-    updates: { context: activeContext }
-  });
-
-  const contextBlock = formatContextBlock(activeContext);
-  const messageWithContext = contextBlock
-    ? `${message}\n\n${contextBlock}`
-    : message;
-  const kbChunks = await searchKb({ tenantId, query: message });
-
-  // Load user's past tickets for memory context
-  let userPastTickets = [];
+router.post("/", authRequired, async (req, res, next) => {
   try {
-    userPastTickets = listTicketsByUser({ tenantId, userId }).slice(0, 5);
-  } catch (_) { /* ignore */ }
+    const payload = validateOr400(chatSchema, res, req.body);
+    if (!payload) {
+      return;
+    }
 
-  const llm = await answerWithLLM({
-    message: messageWithContext,
-    kbChunks,
-    language: language || "fr",
-    orgSettings,
-    conversationHistory,
-    userPastTickets
-  });
+    const tenantId = req.user.tenant_id;
+    const userId = req.user.sub;
+    const message = payload.message.trim();
+    const { conversation_id, language, context } = payload;
+    if (!message) {
+      return res.status(400).json({ error: "empty_message" });
+    }
+    const orgSettings = await getOrgSettings({ tenantId });
 
-  addMessage({
-    tenantId,
-    conversationId: conversation.id,
-    role: "assistant",
-    content: llm.answer
-  });
-
-  const threshold =
-    orgSettings && orgSettings.escalation_threshold
-      ? orgSettings.escalation_threshold
-      : 2;
-  const autoEscalate = failureCount !== null && failureCount >= threshold;
-  let ticket = null;
-  const currentFailureCount =
-    failureCount !== null
-      ? failureCount
-      : (conversation && conversation.failure_count) || 0;
-  if (llm.needs_ticket || autoEscalate) {
-    const draft = llm.ticket_draft || draftTicket({ message });
-    const existing = findTicketByConversation({
-      tenantId,
-      conversationId: conversation.id
-    });
-    ticket =
-      existing ||
-      (await createTicket({
+    let conversation = null;
+    if (conversation_id) {
+      conversation = await findConversation({ tenantId, conversationId: conversation_id });
+      if (conversation && req.user.role === "user" && conversation.user_id !== userId) {
+        return res.status(403).json({ error: "forbidden" });
+      }
+    }
+    if (!conversation) {
+      conversation = await createConversation({ tenantId, userId });
+      await logEvent({
+        tenantId,
+        userId,
+        action: "conversation_created",
+        meta: { conversation_id: conversation.id }
+      });
+    } else if (conversation.status === "resolved") {
+      await updateConversation({
         tenantId,
         conversationId: conversation.id,
-        draft
-      }));
-    updateConversation({
+        updates: { status: "open", failure_count: 0 }
+      });
+    }
+
+    // Snapshot history BEFORE adding current message (so it's the true "prior context")
+    const conversationHistory = await getHistory({ tenantId, conversationId: conversation.id });
+
+    await addMessage({
       tenantId,
       conversationId: conversation.id,
-      updates: { status: "escalated" }
+      role: "user",
+      content: message
     });
-    logEvent({
-      tenantId,
-      userId,
-      action: "ticket_created",
-      meta: { ticket_id: ticket.id }
-    });
-    createNotification({
-      tenantId,
-      userId,
-      type: "ticket_created",
-      channel: "email",
-      payload: {
-        ticket,
-        subject: `Nouveau ticket: ${ticket.title}`,
-        body: ticket.description
-      }
-    });
-  }
-
-  const needsTicket = llm.needs_ticket || autoEscalate;
-  const quickIssue =
-    trackedIssue && trackedIssue.record
-      ? {
-          key: trackedIssue.record.key,
-          label: trackedIssue.record.label,
-          message: trackedIssue.record.example || trackedIssue.record.label || "",
-          count: trackedIssue.record.count || 1,
-          is_new: Boolean(trackedIssue.isNew)
-        }
-      : null;
-  return res.json({
-    conversation_id: conversation.id,
-    answer: llm.answer,
-    needs_ticket: needsTicket,
-    ticket,
-    sources: kbChunks,
-    failure_count: currentFailureCount,
-    threshold,
-    quick_issue: quickIssue
-  });
-});
-
-router.post("/feedback", authRequired, (req, res) => {
-  const payload = feedbackSchema.safeParse(req.body);
-  if (!payload.success) {
-    return res.status(400).json({ error: "invalid_payload" });
-  }
-
-  const tenantId = req.user.tenant_id;
-  const { conversation_id, resolved, rating, comment } = payload.data;
-  const orgSettings = getOrgSettings({ tenantId });
-  const conversation = findConversation({ tenantId, conversationId: conversation_id });
-  if (!conversation) {
-    return res.status(404).json({ error: "conversation_not_found" });
-  }
-  if (req.user.role === "user" && conversation.user_id !== req.user.sub) {
-    return res.status(403).json({ error: "forbidden" });
-  }
-
-  addFeedback({
-    tenantId,
-    conversationId: conversation_id,
-    userId: req.user.sub,
-    resolved,
-    rating,
-    comment
-  });
-
-  const threshold =
-    orgSettings && orgSettings.escalation_threshold
-      ? orgSettings.escalation_threshold
-      : 2;
-  let failureCount = conversation.failure_count || 0;
-  let createdTicket = null;
-
-  if (resolved) {
-    updateConversation({
-      tenantId,
-      conversationId: conversation_id,
-      updates: { status: "resolved", failure_count: 0 }
-    });
-    failureCount = 0;
-  } else {
-    const count = incrementFailure({ tenantId, conversationId: conversation_id });
-    failureCount = count !== null ? count : failureCount + 1;
-    if (count !== null && count >= threshold) {
-      const existing = findTicketByConversation({
-        tenantId,
-        conversationId: conversation_id
-      });
-      if (!existing) {
-        const draft = draftTicket({ message: comment || "Issue unresolved" });
-        const ticket = createTicket({
+    const trackedIssue = await trackQuickIssue({ tenantId, message });
+    const quickIssueThreshold =
+      orgSettings && orgSettings.quick_issue_threshold
+        ? orgSettings.quick_issue_threshold
+        : 4;
+    if (trackedIssue && trackedIssue.record) {
+      try {
+        await ensureProcedureForQuickIssue({
           tenantId,
-          conversationId: conversation_id,
-          draft
+          issue: trackedIssue.record,
+          threshold: quickIssueThreshold
         });
-        createdTicket = ticket;
-        updateConversation({
-          tenantId,
-          conversationId: conversation_id,
-          updates: { status: "escalated" }
-        });
-        logEvent({
-          tenantId,
-          userId: req.user.sub,
-          action: "ticket_created",
-          meta: { ticket_id: ticket.id }
-        });
-        createNotification({
-          tenantId,
-          userId: req.user.sub,
-          type: "ticket_created",
-          channel: "email",
-          payload: { ticket, subject: `Nouveau ticket: ${ticket.title}`, body: ticket.description }
-        });
-      } else {
-        createdTicket = existing;
-        updateConversation({
-          tenantId,
-          conversationId: conversation_id,
-          updates: { status: "escalated" }
-        });
+      } catch (err) {
+        // ignore auto-procedure failures
       }
     }
+    await logEvent({
+      tenantId,
+      userId,
+      action: "chat_user_message",
+      meta: { conversation_id: conversation.id }
+    });
+
+    let failureCount = null;
+    if (isFailureMessage(message)) {
+      failureCount = await incrementFailure({
+        tenantId,
+        conversationId: conversation.id
+      });
+    }
+
+    if (isSuccessMessage(message)) {
+      await updateConversation({
+        tenantId,
+        conversationId: conversation.id,
+        updates: { status: "resolved", failure_count: 0 }
+      });
+    }
+
+    const clientIp =
+      ((req.headers["x-forwarded-for"] || "").split(",")[0].trim()) ||
+      req.socket.remoteAddress ||
+      req.ip ||
+      "Inconnue";
+    const userLogin = req.user.email || req.user.sub || "Inconnu";
+
+    const baseContext = context || conversation.context || null;
+    const activeContext = baseContext
+      ? { ...baseContext, ip: clientIp, user_login: userLogin }
+      : { ip: clientIp, user_login: userLogin };
+
+    await updateConversation({
+      tenantId,
+      conversationId: conversation.id,
+      updates: { context: activeContext }
+    });
+
+    const contextBlock = formatContextBlock(activeContext);
+    const messageWithContext = contextBlock
+      ? `${message}\n\n${contextBlock}`
+      : message;
+    const kbChunks = await searchKb({ tenantId, query: message });
+
+    // Load user's past tickets for memory context
+    let userPastTickets = [];
+    try {
+      userPastTickets = (await listTicketsByUser({ tenantId, userId })).slice(0, 5);
+    } catch (_) { /* ignore */ }
+
+    const llm = await answerWithLLM({
+      message: messageWithContext,
+      kbChunks,
+      language: language || "fr",
+      orgSettings,
+      conversationHistory,
+      userPastTickets
+    });
+
+    await addMessage({
+      tenantId,
+      conversationId: conversation.id,
+      role: "assistant",
+      content: llm.answer
+    });
+
+    const threshold =
+      orgSettings && orgSettings.escalation_threshold
+        ? orgSettings.escalation_threshold
+        : 2;
+    const autoEscalate = failureCount !== null && failureCount >= threshold;
+    let ticket = null;
+    const currentFailureCount =
+      failureCount !== null
+        ? failureCount
+        : (conversation && conversation.failure_count) || 0;
+    if (llm.needs_ticket || autoEscalate) {
+      const draft = llm.ticket_draft || draftTicket({ message });
+      const existing = await findTicketByConversation({
+        tenantId,
+        conversationId: conversation.id
+      });
+      ticket =
+        existing ||
+        (await createTicket({
+          tenantId,
+          conversationId: conversation.id,
+          draft
+        }));
+      await updateConversation({
+        tenantId,
+        conversationId: conversation.id,
+        updates: { status: "escalated" }
+      });
+      await logEvent({
+        tenantId,
+        userId,
+        action: "ticket_created",
+        meta: { ticket_id: ticket.id }
+      });
+      await createNotification({
+        tenantId,
+        userId,
+        type: "ticket_created",
+        channel: "email",
+        payload: {
+          ticket,
+          subject: `Nouveau ticket: ${ticket.title}`,
+          body: ticket.description
+        }
+      });
+    }
+
+    const needsTicket = llm.needs_ticket || autoEscalate;
+    const quickIssue =
+      trackedIssue && trackedIssue.record
+        ? {
+            key: trackedIssue.record.key,
+            label: trackedIssue.record.label,
+            message: trackedIssue.record.example || trackedIssue.record.label || "",
+            count: trackedIssue.record.count || 1,
+            is_new: Boolean(trackedIssue.isNew)
+          }
+        : null;
+    return res.json({
+      conversation_id: conversation.id,
+      answer: llm.answer,
+      needs_ticket: needsTicket,
+      ticket,
+      sources: kbChunks,
+      failure_count: currentFailureCount,
+      threshold,
+      quick_issue: quickIssue
+    });
+  } catch (err) {
+    next(err);
   }
-
-  logEvent({
-    tenantId,
-    userId: req.user.sub,
-    action: "conversation_feedback",
-    meta: { conversation_id, resolved, rating: rating || null }
-  });
-
-  return res.json({
-    ok: true,
-    failure_count: failureCount,
-    threshold,
-    ticket_created: Boolean(createdTicket),
-    ticket: createdTicket || null
-  });
 });
 
-router.post("/attachments", authRequired, upload.single("file"), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ error: "missing_file" });
-  }
-  const tenantId = req.user.tenant_id;
-  const userId = req.user.sub;
-  const conversationId = req.body.conversation_id;
+router.post("/feedback", authRequired, async (req, res, next) => {
+  try {
+    const payload = feedbackSchema.safeParse(req.body);
+    if (!payload.success) {
+      return res.status(400).json({ error: "invalid_payload" });
+    }
 
-  let conversation = null;
-  if (conversationId) {
-    conversation = findConversation({ tenantId, conversationId });
-    if (conversation && req.user.role === "user" && conversation.user_id !== userId) {
+    const tenantId = req.user.tenant_id;
+    const { conversation_id, resolved, rating, comment } = payload.data;
+    const orgSettings = await getOrgSettings({ tenantId });
+    const conversation = await findConversation({ tenantId, conversationId: conversation_id });
+    if (!conversation) {
+      return res.status(404).json({ error: "conversation_not_found" });
+    }
+    if (req.user.role === "user" && conversation.user_id !== req.user.sub) {
       return res.status(403).json({ error: "forbidden" });
     }
+
+    await addFeedback({
+      tenantId,
+      conversationId: conversation_id,
+      userId: req.user.sub,
+      resolved,
+      rating,
+      comment
+    });
+
+    const threshold =
+      orgSettings && orgSettings.escalation_threshold
+        ? orgSettings.escalation_threshold
+        : 2;
+    let failureCount = conversation.failure_count || 0;
+    let createdTicket = null;
+
+    if (resolved) {
+      await updateConversation({
+        tenantId,
+        conversationId: conversation_id,
+        updates: { status: "resolved", failure_count: 0 }
+      });
+      failureCount = 0;
+    } else {
+      const count = await incrementFailure({ tenantId, conversationId: conversation_id });
+      failureCount = count !== null ? count : failureCount + 1;
+      if (count !== null && count >= threshold) {
+        const existing = await findTicketByConversation({
+          tenantId,
+          conversationId: conversation_id
+        });
+        if (!existing) {
+          const draft = draftTicket({ message: comment || "Issue unresolved" });
+          const ticket = await createTicket({
+            tenantId,
+            conversationId: conversation_id,
+            draft
+          });
+          createdTicket = ticket;
+          await updateConversation({
+            tenantId,
+            conversationId: conversation_id,
+            updates: { status: "escalated" }
+          });
+          await logEvent({
+            tenantId,
+            userId: req.user.sub,
+            action: "ticket_created",
+            meta: { ticket_id: ticket.id }
+          });
+          await createNotification({
+            tenantId,
+            userId: req.user.sub,
+            type: "ticket_created",
+            channel: "email",
+            payload: { ticket, subject: `Nouveau ticket: ${ticket.title}`, body: ticket.description }
+          });
+        } else {
+          createdTicket = existing;
+          await updateConversation({
+            tenantId,
+            conversationId: conversation_id,
+            updates: { status: "escalated" }
+          });
+        }
+      }
+    }
+
+    await logEvent({
+      tenantId,
+      userId: req.user.sub,
+      action: "conversation_feedback",
+      meta: { conversation_id, resolved, rating: rating || null }
+    });
+
+    return res.json({
+      ok: true,
+      failure_count: failureCount,
+      threshold,
+      ticket_created: Boolean(createdTicket),
+      ticket: createdTicket || null
+    });
+  } catch (err) {
+    next(err);
   }
-  if (!conversation) {
-    conversation = createConversation({ tenantId, userId });
-  } else if (conversation.status === "resolved") {
-    updateConversation({
+});
+
+router.post("/attachments", authRequired, upload.single("file"), async (req, res, next) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "missing_file" });
+    }
+    const tenantId = req.user.tenant_id;
+    const userId = req.user.sub;
+    const conversationId = req.body.conversation_id;
+
+    let conversation = null;
+    if (conversationId) {
+      conversation = await findConversation({ tenantId, conversationId });
+      if (conversation && req.user.role === "user" && conversation.user_id !== userId) {
+        return res.status(403).json({ error: "forbidden" });
+      }
+    }
+    if (!conversation) {
+      conversation = await createConversation({ tenantId, userId });
+    } else if (conversation.status === "resolved") {
+      await updateConversation({
+        tenantId,
+        conversationId: conversation.id,
+        updates: { status: "open", failure_count: 0 }
+      });
+    }
+
+    const url = `/uploads/${req.file.filename}`;
+    await addMessage({
       tenantId,
       conversationId: conversation.id,
-      updates: { status: "open", failure_count: 0 }
+      role: "user",
+      content: `__IMAGE__:${url}`
     });
+
+    await logEvent({
+      tenantId,
+      userId,
+      action: "chat_attachment",
+      meta: { conversation_id: conversation.id, file: req.file.originalname }
+    });
+
+    return res.json({ conversation_id: conversation.id, url });
+  } catch (err) {
+    next(err);
   }
-
-  const url = `/uploads/${req.file.filename}`;
-  addMessage({
-    tenantId,
-    conversationId: conversation.id,
-    role: "user",
-    content: `__IMAGE__:${url}`
-  });
-
-  logEvent({
-    tenantId,
-    userId,
-    action: "chat_attachment",
-    meta: { conversation_id: conversation.id, file: req.file.originalname }
-  });
-
-  return res.json({ conversation_id: conversation.id, url });
 });
 
-router.post("/escalate", authRequired, async (req, res) => {
-  const payload = escalateSchema.safeParse(req.body);
-  if (!payload.success) {
-    return res.status(400).json({ error: "invalid_payload" });
-  }
+router.post("/escalate", authRequired, async (req, res, next) => {
+  try {
+    const payload = escalateSchema.safeParse(req.body);
+    if (!payload.success) {
+      return res.status(400).json({ error: "invalid_payload" });
+    }
 
-  const tenantId = req.user.tenant_id;
-  const { conversation_id, reason } = payload.data;
-  const conversation = findConversation({ tenantId, conversationId: conversation_id });
-  if (!conversation) {
-    return res.status(404).json({ error: "conversation_not_found" });
-  }
-  if (req.user.role === "user" && conversation.user_id !== req.user.sub) {
-    return res.status(403).json({ error: "forbidden" });
-  }
+    const tenantId = req.user.tenant_id;
+    const { conversation_id, reason } = payload.data;
+    const conversation = await findConversation({ tenantId, conversationId: conversation_id });
+    if (!conversation) {
+      return res.status(404).json({ error: "conversation_not_found" });
+    }
+    if (req.user.role === "user" && conversation.user_id !== req.user.sub) {
+      return res.status(403).json({ error: "forbidden" });
+    }
 
-  const existing = findTicketByConversation({
-    tenantId,
-    conversationId: conversation_id
-  });
-  if (existing) {
-    return res.json({ created: false, ticket: existing });
-  }
+    const existing = await findTicketByConversation({
+      tenantId,
+      conversationId: conversation_id
+    });
+    if (existing) {
+      return res.json({ created: false, ticket: existing });
+    }
 
-  const history = getHistory({ tenantId, conversationId: conversation_id });
-  const lastUser = [...history].reverse().find((msg) => msg.role === "user");
-  const draft = draftTicket({
-    message: lastUser ? lastUser.content : reason || "Demande escalade utilisateur"
-  });
-  const ticket = await createTicket({
-    tenantId,
-    conversationId: conversation_id,
-    draft
-  });
-  updateConversation({
-    tenantId,
-    conversationId: conversation_id,
-    updates: { status: "escalated" }
-  });
-  logEvent({
-    tenantId,
-    userId: req.user.sub,
-    action: "ticket_created",
-    meta: { ticket_id: ticket.id, reason: reason || "manual_escalation" }
-  });
-  createNotification({
-    tenantId,
-    userId: req.user.sub,
-    type: "ticket_created",
-    channel: "email",
-    payload: { ticket, subject: `Nouveau ticket: ${ticket.title}`, body: ticket.description }
-  });
+    const history = await getHistory({ tenantId, conversationId: conversation_id });
+    const lastUser = [...history].reverse().find((msg) => msg.role === "user");
+    const draft = draftTicket({
+      message: lastUser ? lastUser.content : reason || "Demande escalade utilisateur"
+    });
+    const ticket = await createTicket({
+      tenantId,
+      conversationId: conversation_id,
+      draft
+    });
+    await updateConversation({
+      tenantId,
+      conversationId: conversation_id,
+      updates: { status: "escalated" }
+    });
+    await logEvent({
+      tenantId,
+      userId: req.user.sub,
+      action: "ticket_created",
+      meta: { ticket_id: ticket.id, reason: reason || "manual_escalation" }
+    });
+    await createNotification({
+      tenantId,
+      userId: req.user.sub,
+      type: "ticket_created",
+      channel: "email",
+      payload: { ticket, subject: `Nouveau ticket: ${ticket.title}`, body: ticket.description }
+    });
 
-  return res.json({ created: true, ticket });
-});
-router.get("/history", authRequired, (req, res) => {
-  const conversationId = req.query.conversation_id;
-  if (!conversationId) {
-    return res.status(400).json({ error: "missing_conversation_id" });
+    return res.json({ created: true, ticket });
+  } catch (err) {
+    next(err);
   }
-
-  const tenantId = req.user.tenant_id;
-  const conversation = findConversation({ tenantId, conversationId });
-  if (!conversation) {
-    return res.status(404).json({ error: "conversation_not_found" });
-  }
-  if (req.user.role === "user" && conversation.user_id !== req.user.sub) {
-    return res.status(403).json({ error: "forbidden" });
-  }
-  const items = getHistory({ tenantId, conversationId });
-  return res.json({ items });
 });
 
-router.get("/conversations", authRequired, (req, res) => {
-  const tenantId = req.user.tenant_id;
-  const query = req.query.query || "";
-  const items = listConversations({
-    tenantId,
-    query,
-    userId: req.user.sub,
-    role: req.user.role
-  });
-  return res.json({ items });
+router.get("/history", authRequired, async (req, res, next) => {
+  try {
+    const conversationId = req.query.conversation_id;
+    if (!conversationId) {
+      return res.status(400).json({ error: "missing_conversation_id" });
+    }
+
+    const tenantId = req.user.tenant_id;
+    const conversation = await findConversation({ tenantId, conversationId });
+    if (!conversation) {
+      return res.status(404).json({ error: "conversation_not_found" });
+    }
+    if (req.user.role === "user" && conversation.user_id !== req.user.sub) {
+      return res.status(403).json({ error: "forbidden" });
+    }
+    const items = await getHistory({ tenantId, conversationId });
+    return res.json({ items });
+  } catch (err) {
+    next(err);
+  }
 });
 
-router.get("/quick-issues", authRequired, (req, res) => {
-  const tenantId = req.user.tenant_id;
-  const limit = Number(req.query.limit || 6);
-  const items = listQuickIssues({ tenantId, limit });
-  return res.json({ items });
+router.get("/conversations", authRequired, async (req, res, next) => {
+  try {
+    const tenantId = req.user.tenant_id;
+    const query = req.query.query || "";
+    const items = await listConversations({
+      tenantId,
+      query,
+      userId: req.user.sub,
+      role: req.user.role
+    });
+    return res.json({ items });
+  } catch (err) {
+    next(err);
+  }
 });
 
-router.get("/quick-issues/search", authRequired, (req, res) => {
-  const tenantId = req.user.tenant_id;
-  const query = req.query.query || "";
-  const limit = Number(req.query.limit || 12);
-  const items = searchQuickIssues({ tenantId, query, limit });
-  return res.json({ items });
+router.get("/quick-issues", authRequired, async (req, res, next) => {
+  try {
+    const tenantId = req.user.tenant_id;
+    const limit = Number(req.query.limit || 6);
+    const items = await listQuickIssues({ tenantId, limit });
+    return res.json({ items });
+  } catch (err) {
+    next(err);
+  }
 });
 
-router.get("/search", authRequired, (req, res) => {
-  const tenantId = req.user.tenant_id;
-  const query = req.query.query || "";
-  const items = searchMessages({
-    tenantId,
-    query,
-    userId: req.user.sub,
-    role: req.user.role
-  });
-  return res.json({ items });
+router.get("/quick-issues/search", authRequired, async (req, res, next) => {
+  try {
+    const tenantId = req.user.tenant_id;
+    const query = req.query.query || "";
+    const limit = Number(req.query.limit || 12);
+    const items = await searchQuickIssues({ tenantId, query, limit });
+    return res.json({ items });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.get("/search", authRequired, async (req, res, next) => {
+  try {
+    const tenantId = req.user.tenant_id;
+    const query = req.query.query || "";
+    const items = await searchMessages({
+      tenantId,
+      query,
+      userId: req.user.sub,
+      role: req.user.role
+    });
+    return res.json({ items });
+  } catch (err) {
+    next(err);
+  }
 });
 
 module.exports = router;

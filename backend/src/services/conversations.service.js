@@ -1,79 +1,70 @@
 const crypto = require("crypto");
-const { withDb, loadDb } = require("./store.service");
+const { db } = require("../config/db");
 
-function createConversation({ tenantId, userId }) {
-  return withDb((db) => {
-    const conversation = {
-      id: crypto.randomUUID(),
-      tenant_id: tenantId,
-      user_id: userId,
-      status: "open",
-      failure_count: 0,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
-    db.conversations.push(conversation);
-    return conversation;
-  });
+async function createConversation({ tenantId, userId }) {
+  const now = new Date().toISOString();
+  const [conversation] = await db("conversations").insert({
+    id: crypto.randomUUID(),
+    tenant_id: tenantId,
+    user_id: userId,
+    status: "open",
+    failure_count: 0,
+    context: null,
+    created_at: now,
+    updated_at: now
+  }).returning("*");
+  return conversation;
 }
 
-function findConversation({ tenantId, conversationId }) {
-  const db = loadDb();
-  return (
-    db.conversations.find(
-      (c) => c.id === conversationId && c.tenant_id === tenantId
-    ) || null
-  );
+async function findConversation({ tenantId, conversationId }) {
+  const row = await db("conversations")
+    .where({ id: conversationId, tenant_id: tenantId })
+    .first();
+  return row || null;
 }
 
-function addMessage({ tenantId, conversationId, role, content }) {
-  return withDb((db) => {
-    const message = {
-      id: crypto.randomUUID(),
-      tenant_id: tenantId,
-      conversation_id: conversationId,
-      role,
-      content,
-      created_at: new Date().toISOString()
-    };
-    db.messages.push(message);
-    const convo = db.conversations.find((c) => c.id === conversationId);
-    if (convo) {
-      convo.updated_at = new Date().toISOString();
-    }
-    return message;
-  });
+async function addMessage({ tenantId, conversationId, role, content }) {
+  const now = new Date().toISOString();
+  const [message] = await db("messages").insert({
+    id: crypto.randomUUID(),
+    tenant_id: tenantId,
+    conversation_id: conversationId,
+    role,
+    content,
+    created_at: now
+  }).returning("*");
+
+  await db("conversations")
+    .where({ id: conversationId, tenant_id: tenantId })
+    .update({ updated_at: now });
+
+  return message;
 }
 
-function updateConversation({ tenantId, conversationId, updates }) {
-  return withDb((db) => {
-    const convo = db.conversations.find(
-      (c) => c.id === conversationId && c.tenant_id === tenantId
-    );
-    if (!convo) {
-      return null;
-    }
-    Object.assign(convo, updates);
-    convo.updated_at = new Date().toISOString();
-    return convo;
-  });
+async function updateConversation({ tenantId, conversationId, updates }) {
+  const payload = { ...updates, updated_at: new Date().toISOString() };
+  // Sérialiser context en JSON si objet
+  if (payload.context && typeof payload.context === "object") {
+    payload.context = JSON.stringify(payload.context);
+  }
+  const [updated] = await db("conversations")
+    .where({ id: conversationId, tenant_id: tenantId })
+    .update(payload)
+    .returning("*");
+  return updated || null;
 }
 
-function incrementFailure({ tenantId, conversationId }) {
-  return withDb((db) => {
-    const convo = db.conversations.find(
-      (c) => c.id === conversationId && c.tenant_id === tenantId
-    );
-    if (!convo) {
-      return null;
-    }
-    convo.failure_count = (convo.failure_count || 0) + 1;
-    convo.updated_at = new Date().toISOString();
-    return convo.failure_count;
-  });
+async function incrementFailure({ tenantId, conversationId }) {
+  const convo = await findConversation({ tenantId, conversationId });
+  if (!convo) return null;
+  const newCount = (convo.failure_count || 0) + 1;
+  await db("conversations")
+    .where({ id: conversationId, tenant_id: tenantId })
+    .update({ failure_count: newCount, updated_at: new Date().toISOString() });
+  return newCount;
 }
 
-function resetFailure({ tenantId, conversationId }) {
+async function resetFailure({ tenantId, conversationId }) {
   return updateConversation({
     tenantId,
     conversationId,
@@ -81,13 +72,89 @@ function resetFailure({ tenantId, conversationId }) {
   });
 }
 
-function getHistory({ tenantId, conversationId }) {
-  const db = loadDb();
-  return db.messages
-    .filter(
-      (m) => m.tenant_id === tenantId && m.conversation_id === conversationId
+async function getHistory({ tenantId, conversationId }) {
+  return db("messages")
+    .where({ tenant_id: tenantId, conversation_id: conversationId })
+    .orderBy("created_at", "asc");
+}
+
+async function listConversations({ tenantId, query, userId, role }) {
+  const search = (query || "").trim();
+
+  let convoQuery = db("conversations").where({ tenant_id: tenantId });
+
+  if (role === "user") {
+    convoQuery = convoQuery.where({ user_id: userId });
+  }
+
+  if (search) {
+    const matchedRows = await db("messages")
+      .where("tenant_id", tenantId)
+      .whereILike("content", `%${search}%`)
+      .select("conversation_id")
+      .distinct();
+    const matchedIds = matchedRows.map((r) => r.conversation_id);
+    if (!matchedIds.length) return [];
+    convoQuery = convoQuery.whereIn("id", matchedIds);
+  }
+
+  const conversations = await convoQuery.orderBy("updated_at", "desc");
+
+  if (!conversations.length) return [];
+
+  // Dernier message par conversation
+  const convoIds = conversations.map((c) => c.id);
+  const lastMessages = await db("messages")
+    .where("tenant_id", tenantId)
+    .whereIn("conversation_id", convoIds)
+    .whereNotNull("content")
+    .select(
+      db.raw(
+        "DISTINCT ON (conversation_id) conversation_id, content, created_at"
+      )
     )
-    .sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+    .orderBy("conversation_id")
+    .orderBy("created_at", "desc");
+
+  const lastMsgMap = new Map();
+  for (const msg of lastMessages) {
+    lastMsgMap.set(msg.conversation_id, msg.content);
+  }
+
+  return conversations.map((c) => ({
+    id: c.id,
+    status: c.status,
+    failure_count: c.failure_count || 0,
+    created_at: c.created_at,
+    updated_at: c.updated_at,
+    last_message: lastMsgMap.get(c.id) || ""
+  }));
+}
+
+async function searchMessages({ tenantId, query, userId, role }) {
+  const search = (query || "").trim();
+  if (!search) return [];
+
+  let msgQuery = db("messages")
+    .where("tenant_id", tenantId)
+    .whereNotNull("content")
+    .whereILike("content", `%${search}%`);
+
+  if (role === "user") {
+    const allowedConvos = await db("conversations")
+      .where({ tenant_id: tenantId, user_id: userId })
+      .select("id");
+    const allowedIds = allowedConvos.map((c) => c.id);
+    if (!allowedIds.length) return [];
+    msgQuery = msgQuery.whereIn("conversation_id", allowedIds);
+  }
+
+  const messages = await msgQuery
+    .orderBy("created_at", "desc")
+    .limit(50)
+    .select("id", "conversation_id", "role", "content", "created_at");
+
+  return messages;
 }
 
 module.exports = {
@@ -98,78 +165,6 @@ module.exports = {
   incrementFailure,
   resetFailure,
   getHistory,
-  listConversations: ({ tenantId, query, userId, role }) => {
-    const db = loadDb();
-    const search = (query || "").toLowerCase().trim();
-    let conversations = db.conversations.filter((c) => c.tenant_id === tenantId);
-
-    if (role === "user") {
-      conversations = conversations.filter((c) => c.user_id === userId);
-    }
-
-    const lastMessageByConversation = new Map();
-    db.messages
-      .filter((m) => m.tenant_id === tenantId && m.content)
-      .forEach((message) => {
-        const current = lastMessageByConversation.get(message.conversation_id);
-        if (!current || new Date(message.created_at) > new Date(current.created_at)) {
-          lastMessageByConversation.set(message.conversation_id, message);
-        }
-      });
-
-    if (search) {
-      const matchedConversationIds = new Set(
-        db.messages
-          .filter((m) => m.tenant_id === tenantId && m.content)
-          .filter((m) => m.content.toLowerCase().includes(search))
-          .map((m) => m.conversation_id)
-      );
-      conversations = conversations.filter((c) => matchedConversationIds.has(c.id));
-    }
-
-    return conversations
-      .filter((c) => c.tenant_id === tenantId)
-      .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at))
-      .map((conversation) => {
-        const lastMessage = lastMessageByConversation.get(conversation.id);
-        return {
-          id: conversation.id,
-          status: conversation.status,
-          failure_count: conversation.failure_count || 0,
-          created_at: conversation.created_at,
-          updated_at: conversation.updated_at,
-          last_message: lastMessage ? lastMessage.content : ""
-        };
-      });
-  },
-  searchMessages: ({ tenantId, query, userId, role }) => {
-    const db = loadDb();
-    const search = (query || "").toLowerCase().trim();
-    if (!search) {
-      return [];
-    }
-    let messages = db.messages
-      .filter((m) => m.tenant_id === tenantId && m.content);
-
-    if (role === "user") {
-      const allowedConversations = new Set(
-        db.conversations
-          .filter((c) => c.tenant_id === tenantId && c.user_id === userId)
-          .map((c) => c.id)
-      );
-      messages = messages.filter((m) => allowedConversations.has(m.conversation_id));
-    }
-
-    return messages
-      .filter((m) => m.content.toLowerCase().includes(search))
-      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-      .slice(0, 50)
-      .map((m) => ({
-        id: m.id,
-        conversation_id: m.conversation_id,
-        role: m.role,
-        content: m.content,
-        created_at: m.created_at
-      }));
-  }
+  listConversations,
+  searchMessages
 };

@@ -1,4 +1,5 @@
-const { loadDb, withDb } = require("./store.service");
+const crypto = require("crypto");
+const { db } = require("../config/db");
 
 const SECRET_FIELDS = new Set([
   "webhook_secret",
@@ -72,41 +73,47 @@ function defaultSettings(tenantId) {
   };
 }
 
-function getOrgSettings({ tenantId }) {
-  const db = loadDb();
-  const settings = (db.org_settings || []).find((s) => s.tenant_id === tenantId);
+async function getOrgSettings({ tenantId }) {
+  const row = await db("org_settings").where({ tenant_id: tenantId }).first();
   const defaults = defaultSettings(tenantId);
-  return settings ? { ...defaults, ...settings } : defaults;
+  if (!row) return defaults;
+  const stored = typeof row.settings === "string" ? JSON.parse(row.settings) : (row.settings || {});
+  return { ...defaults, ...stored };
 }
 
-function updateOrgSettings({ tenantId, payload }) {
-  return withDb((db) => {
-    db.org_settings = db.org_settings || [];
-    const index = db.org_settings.findIndex((s) => s.tenant_id === tenantId);
-    const current = index >= 0 ? db.org_settings[index] : defaultSettings(tenantId);
-    const next = {
-      ...current,
-      ...payload,
+async function updateOrgSettings({ tenantId, payload }) {
+  const current = await getOrgSettings({ tenantId });
+  const next = {
+    ...current,
+    ...payload,
+    tenant_id: tenantId,
+    updated_at: new Date().toISOString()
+  };
+
+  for (const field of SECRET_FIELDS) {
+    if (!Object.prototype.hasOwnProperty.call(payload, field)) {
+      next[field] = current[field];
+      continue;
+    }
+    if (typeof payload[field] === "string" && !payload[field].trim()) {
+      next[field] = current[field];
+    }
+  }
+
+  const settingsJson = JSON.stringify(next);
+  const now = new Date().toISOString();
+
+  await db("org_settings")
+    .insert({
+      id: crypto.randomUUID(),
       tenant_id: tenantId,
-      updated_at: new Date().toISOString()
-    };
-    for (const field of SECRET_FIELDS) {
-      if (!Object.prototype.hasOwnProperty.call(payload, field)) {
-        next[field] = current[field];
-        continue;
-      }
-      const value = payload[field];
-      if (typeof value === "string" && !value.trim()) {
-        next[field] = current[field];
-      }
-    }
-    if (index >= 0) {
-      db.org_settings[index] = next;
-    } else {
-      db.org_settings.push(next);
-    }
-    return next;
-  });
+      settings: settingsJson,
+      updated_at: now
+    })
+    .onConflict("tenant_id")
+    .merge({ settings: settingsJson, updated_at: now });
+
+  return next;
 }
 
 module.exports = { getOrgSettings, updateOrgSettings, SECRET_FIELDS };

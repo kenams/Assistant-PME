@@ -13,12 +13,16 @@ const { validateOr400 } = require("../utils/validate");
 
 const router = express.Router();
 
-router.get("/", authRequired, (req, res) => {
-  const tenant = getTenantById(req.user.tenant_id);
-  if (!tenant) {
-    return res.status(404).json({ error: "tenant_not_found" });
+router.get("/", authRequired, async (req, res, next) => {
+  try {
+    const tenant = await getTenantById(req.user.tenant_id);
+    if (!tenant) {
+      return res.status(404).json({ error: "tenant_not_found" });
+    }
+    return res.json(tenant);
+  } catch (err) {
+    next(err);
   }
-  return res.json(tenant);
 });
 
 const settingsSchema = z.object({
@@ -96,35 +100,47 @@ const orgUpdateSchema = z.object({
   plan: z.string().min(1).optional()
 });
 
-router.get("/settings", authRequired, (req, res) => {
-  const tenantId = req.user.tenant_id;
-  const settings = getOrgSettings({ tenantId });
-  const role = req.user.role || "";
-  const includeSecrets = role === "admin" || role === "superadmin";
-  return res.json(sanitizeSettings(settings, includeSecrets));
+router.get("/settings", authRequired, async (req, res, next) => {
+  try {
+    const tenantId = req.user.tenant_id;
+    const settings = await getOrgSettings({ tenantId });
+    const role = req.user.role || "";
+    const includeSecrets = role === "admin" || role === "superadmin";
+    return res.json(sanitizeSettings(settings, includeSecrets));
+  } catch (err) {
+    next(err);
+  }
 });
 
-router.put("/settings", authRequired, requireAdmin, (req, res) => {
-  const payload = validateOr400(settingsSchema, res, req.body);
-  if (!payload) {
-    return;
+router.put("/settings", authRequired, requireAdmin, async (req, res, next) => {
+  try {
+    const payload = validateOr400(settingsSchema, res, req.body);
+    if (!payload) {
+      return;
+    }
+    const tenantId = req.user.tenant_id;
+    const next_settings = await updateOrgSettings({ tenantId, payload });
+    return res.json(next_settings);
+  } catch (err) {
+    next(err);
   }
-  const tenantId = req.user.tenant_id;
-  const next = updateOrgSettings({ tenantId, payload });
-  return res.json(next);
 });
 
-router.put("/", authRequired, requireAdmin, (req, res) => {
-  const payload = validateOr400(orgUpdateSchema, res, req.body);
-  if (!payload) {
-    return;
+router.put("/", authRequired, requireAdmin, async (req, res, next) => {
+  try {
+    const payload = validateOr400(orgUpdateSchema, res, req.body);
+    if (!payload) {
+      return;
+    }
+    const tenantId = req.user.tenant_id;
+    const updated = await updateTenant({ tenantId, updates: payload });
+    if (!updated) {
+      return res.status(404).json({ error: "tenant_not_found" });
+    }
+    return res.json(updated);
+  } catch (err) {
+    next(err);
   }
-  const tenantId = req.user.tenant_id;
-  const updated = updateTenant({ tenantId, updates: payload });
-  if (!updated) {
-    return res.status(404).json({ error: "tenant_not_found" });
-  }
-  return res.json(updated);
 });
 
 module.exports = router;

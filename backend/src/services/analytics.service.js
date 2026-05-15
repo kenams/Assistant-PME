@@ -1,7 +1,5 @@
-const { loadDb, getStoreVersion } = require("./store.service");
+const { db } = require("../config/db");
 const { getOrgSettings } = require("./org.service");
-
-const analyticsCache = new Map();
 
 function round(value, digits = 1) {
   const factor = 10 ** digits;
@@ -68,9 +66,8 @@ function computeSla({ tickets, settings }) {
 
   tickets.forEach((ticket) => {
     const createdAt = ticket.created_at ? new Date(ticket.created_at).getTime() : null;
-    if (!createdAt || Number.isNaN(createdAt)) {
-      return;
-    }
+    if (!createdAt || Number.isNaN(createdAt)) return;
+
     const status = ticket.status || "open";
     const isOpen = status === "open" || status === "pending";
     const updatedAt = ticket.updated_at ? new Date(ticket.updated_at).getTime() : null;
@@ -122,23 +119,14 @@ function computeSla({ tickets, settings }) {
   };
 }
 
-function computeAnalytics(tenantId) {
-  const version = getStoreVersion();
-  const cached = analyticsCache.get(tenantId);
-  if (cached && cached.version === version) {
-    return cached.data;
-  }
-
-  const db = loadDb();
-  const conversations = (db.conversations || []).filter(
-    (c) => c.tenant_id === tenantId
-  );
-  const messages = (db.messages || []).filter((m) => m.tenant_id === tenantId);
-  const tickets = (db.tickets || []).filter((t) => t.tenant_id === tenantId);
-  const feedback = (db.conversation_feedback || []).filter(
-    (f) => f.tenant_id === tenantId
-  );
-  const settings = getOrgSettings({ tenantId });
+async function computeAnalytics(tenantId) {
+  const [conversations, messages, tickets, feedback, settings] = await Promise.all([
+    db("conversations").where({ tenant_id: tenantId }),
+    db("messages").where({ tenant_id: tenantId }),
+    db("tickets").where({ tenant_id: tenantId }),
+    db("conversation_feedback").where({ tenant_id: tenantId }),
+    getOrgSettings({ tenantId })
+  ]);
 
   let responseSum = 0;
   let responseCount = 0;
@@ -148,11 +136,10 @@ function computeAnalytics(tenantId) {
   const firstTimes = new Map();
   messages.forEach((msg) => {
     if (!msg.conversation_id || !msg.created_at) return;
-    const entry =
-      firstTimes.get(msg.conversation_id) || {
-        userTime: null,
-        assistantTime: null
-      };
+    const entry = firstTimes.get(msg.conversation_id) || {
+      userTime: null,
+      assistantTime: null
+    };
     const createdAt = new Date(msg.created_at).getTime();
     if (Number.isNaN(createdAt)) return;
     if (msg.role === "user") {
@@ -208,8 +195,7 @@ function computeAnalytics(tenantId) {
   const feedbackAvg =
     feedbackCount > 0
       ? round(
-          feedback.reduce((acc, item) => acc + (item.rating || 0), 0) /
-            feedbackCount,
+          feedback.reduce((acc, item) => acc + (item.rating || 0), 0) / feedbackCount,
           1
         )
       : 0;
@@ -229,7 +215,7 @@ function computeAnalytics(tenantId) {
     tickets: ticketsByDay.get(day) || 0
   }));
 
-  const result = {
+  return {
     response_avg_minutes: responseAvgMinutes,
     resolution_avg_minutes: resolutionAvgMinutes,
     tickets_by_status: ticketsByStatus,
@@ -244,9 +230,6 @@ function computeAnalytics(tenantId) {
     sla: computeSla({ tickets, settings }),
     roi: computeRoi({ conversations, tickets, settings })
   };
-
-  analyticsCache.set(tenantId, { version, data: result });
-  return result;
 }
 
 module.exports = { computeAnalytics };

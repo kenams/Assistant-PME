@@ -31,108 +31,132 @@ const acceptSchema = z.object({
   password: z.string().min(6)
 });
 
-router.get("/", authRequired, requireAdmin, (req, res) => {
-  const tenantId = req.user.tenant_id;
-  const items = listUsers({ tenantId });
-  return res.json({ items });
+router.get("/", authRequired, requireAdmin, async (req, res, next) => {
+  try {
+    const tenantId = req.user.tenant_id;
+    const items = await listUsers({ tenantId });
+    return res.json({ items });
+  } catch (err) {
+    next(err);
+  }
 });
 
-router.post("/", authRequired, requireAdmin, (req, res) => {
-  const payload = validateOr400(userSchema, res, req.body);
-  if (!payload) {
-    return;
-  }
-  const tenantId = req.user.tenant_id;
-  const result = createUser({
-    tenantId,
-    email: payload.email,
-    password: payload.password,
-    role: payload.role || "user"
-  });
-  if (result.error === "email_exists") {
-    return res.status(409).json({ error: "email_exists" });
-  }
+router.post("/", authRequired, requireAdmin, async (req, res, next) => {
+  try {
+    const payload = validateOr400(userSchema, res, req.body);
+    if (!payload) {
+      return;
+    }
+    const tenantId = req.user.tenant_id;
+    const result = await createUser({
+      tenantId,
+      email: payload.email,
+      password: payload.password,
+      role: payload.role || "user"
+    });
+    if (result.error === "email_exists") {
+      return res.status(409).json({ error: "email_exists" });
+    }
 
-  logEvent({
-    tenantId,
-    userId: req.user.sub,
-    action: "user_created",
-    meta: { user_id: result.user.id, email: result.user.email }
-  });
-  return res.status(201).json(result.user);
+    await logEvent({
+      tenantId,
+      userId: req.user.sub,
+      action: "user_created",
+      meta: { user_id: result.user.id, email: result.user.email }
+    });
+    return res.status(201).json(result.user);
+  } catch (err) {
+    next(err);
+  }
 });
 
-router.get("/invites", authRequired, requireAdmin, (req, res) => {
-  const tenantId = req.user.tenant_id;
-  const items = listInvites({ tenantId });
-  return res.json({ items });
+router.get("/invites", authRequired, requireAdmin, async (req, res, next) => {
+  try {
+    const tenantId = req.user.tenant_id;
+    const items = await listInvites({ tenantId });
+    return res.json({ items });
+  } catch (err) {
+    next(err);
+  }
 });
 
-router.post("/invite", authRequired, requireAdmin, (req, res) => {
-  const payload = validateOr400(inviteSchema, res, req.body);
-  if (!payload) {
-    return;
-  }
-  const tenantId = req.user.tenant_id;
-  const result = createInvite({
-    tenantId,
-    email: payload.email,
-    role: payload.role || "user",
-    expiresHours: payload.expires_hours || 72,
-    createdBy: req.user.sub
-  });
-  if (result.error === "email_exists") {
-    return res.status(409).json({ error: "email_exists" });
-  }
+router.post("/invite", authRequired, requireAdmin, async (req, res, next) => {
+  try {
+    const payload = validateOr400(inviteSchema, res, req.body);
+    if (!payload) {
+      return;
+    }
+    const tenantId = req.user.tenant_id;
+    const result = await createInvite({
+      tenantId,
+      email: payload.email,
+      role: payload.role || "user",
+      expiresHours: payload.expires_hours || 72,
+      createdBy: req.user.sub
+    });
+    if (result.error === "email_exists") {
+      return res.status(409).json({ error: "email_exists" });
+    }
 
-  logEvent({
-    tenantId,
-    userId: req.user.sub,
-    action: "invite_created",
-    meta: { email: payload.email, role: payload.role || "user" }
-  });
+    await logEvent({
+      tenantId,
+      userId: req.user.sub,
+      action: "invite_created",
+      meta: { email: payload.email, role: payload.role || "user" }
+    });
 
-  const inviteUrl = `/app/?invite=${result.invite.token}`;
-  return res.status(201).json({ invite: result.invite, invite_url: inviteUrl });
+    const inviteUrl = `/app/?invite=${result.invite.token}`;
+    return res.status(201).json({ invite: result.invite, invite_url: inviteUrl });
+  } catch (err) {
+    next(err);
+  }
 });
 
-router.delete("/invite/:id", authRequired, requireAdmin, (req, res) => {
-  const tenantId = req.user.tenant_id;
-  const updated = revokeInvite({ tenantId, inviteId: req.params.id });
-  if (!updated) {
-    return res.status(404).json({ error: "invite_not_found" });
+router.delete("/invite/:id", authRequired, requireAdmin, async (req, res, next) => {
+  try {
+    const tenantId = req.user.tenant_id;
+    const updated = await revokeInvite({ tenantId, inviteId: req.params.id });
+    if (!updated) {
+      return res.status(404).json({ error: "invite_not_found" });
+    }
+    await logEvent({
+      tenantId,
+      userId: req.user.sub,
+      action: "invite_revoked",
+      meta: { invite_id: req.params.id }
+    });
+    return res.json({ ok: true });
+  } catch (err) {
+    next(err);
   }
-  logEvent({
-    tenantId,
-    userId: req.user.sub,
-    action: "invite_revoked",
-    meta: { invite_id: req.params.id }
-  });
-  return res.json({ ok: true });
 });
 
-router.post("/invite/accept", (req, res) => {
-  const payload = validateOr400(acceptSchema, res, req.body);
-  if (!payload) {
-    return;
+router.post("/invite/accept", async (req, res, next) => {
+  try {
+    const payload = validateOr400(acceptSchema, res, req.body);
+    if (!payload) {
+      return;
+    }
+    const result = await acceptInvite({
+      token: payload.token,
+      password: payload.password
+    });
+    if (result.error === "invalid_token") {
+      return res.status(404).json({ error: "invalid_token" });
+    }
+    if (result.error === "invite_expired") {
+      return res.status(410).json({ error: "invite_expired" });
+    }
+    if (result.error === "invite_not_active") {
+      return res.status(409).json({ error: "invite_not_active" });
+    }
+    if (result.error === "email_exists") {
+      return res.status(409).json({ error: "email_exists" });
+    }
+    return res.status(201).json({ ok: true, email: result.user.email });
+  } catch (err) {
+    next(err);
   }
-  const result = acceptInvite({
-    token: payload.token,
-    password: payload.password
-  });
-  if (result.error === "invalid_token") {
-    return res.status(404).json({ error: "invalid_token" });
-  }
-  if (result.error === "invite_expired") {
-    return res.status(410).json({ error: "invite_expired" });
-  }
-  if (result.error === "invite_not_active") {
-    return res.status(409).json({ error: "invite_not_active" });
-  }
-  if (result.error === "email_exists") {
-    return res.status(409).json({ error: "email_exists" });
-  }
-  return res.status(201).json({ ok: true, email: result.user.email });
 });
 
 module.exports = router;

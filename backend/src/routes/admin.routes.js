@@ -3,13 +3,7 @@ const multer = require("multer");
 const { authRequired } = require("../middleware/auth");
 const { requireAdmin } = require("../middleware/roles");
 const { env } = require("../config/env");
-const {
-  loadDb,
-  saveDb,
-  withDb,
-  listBackups,
-  restoreLatestSnapshot
-} = require("../services/store.service");
+const { db } = require("../config/db");
 const { listAudit, logEvent } = require("../services/audit.service");
 const { testGlpiConnection, isGlpiEnabled } = require("../services/glpi.service");
 const { getSnapshot } = require("../services/monitoring.service");
@@ -19,7 +13,7 @@ const { computeAnalytics } = require("../services/analytics.service");
 const { getOrgSettings } = require("../services/org.service");
 const { testMailboxConnection } = require("../services/mailbox.service");
 const { buildCsv, parseCsv } = require("../utils/csv");
-const { ingestDocument } = require("../services/rag.service");
+const { ingestDocument, listDocuments } = require("../services/rag.service");
 const { sendSlaAlerts } = require("../services/sla.service");
 
 const router = express.Router();
@@ -44,30 +38,22 @@ function extractMessageImageUrl(content) {
   return null;
 }
 
-function computeMetrics(tenantId) {
-  const db = loadDb();
-  const tickets = db.tickets.filter((t) => t.tenant_id === tenantId);
-  const users = db.users.filter((u) => u.tenant_id === tenantId);
-  const conversations = db.conversations.filter(
-    (c) => c.tenant_id === tenantId
-  );
-  const ticketConversations = new Set(
-    tickets.map((ticket) => ticket.conversation_id).filter(Boolean)
-  );
-  const ticketsEvites = conversations.filter(
-    (c) => c.status === "resolved" && !ticketConversations.has(c.id)
-  ).length;
-  const activeUsers = new Set(conversations.map((c) => c.user_id)).size;
-  const resolved = conversations.filter((c) => c.status === "resolved").length;
-  const escalated = conversations.filter((c) => c.status === "escalated").length;
-  const resolution_rate =
-    conversations.length > 0 ? Math.round((resolved / conversations.length) * 100) : 0;
-  const minutesEconomisees = ticketsEvites * 8;
-
+async function computeMetrics(tenantId) {
+  const [tickets, users, conversations] = await Promise.all([
+    db("tickets").where({ tenant_id: tenantId }),
+    db("users").where({ tenant_id: tenantId }),
+    db("conversations").where({ tenant_id: tenantId })
+  ]);
+  const ticketConversations = new Set(tickets.map(t => t.conversation_id).filter(Boolean));
+  const ticketsEvites = conversations.filter(c => c.status === "resolved" && !ticketConversations.has(c.id)).length;
+  const activeUsers = new Set(conversations.map(c => c.user_id)).size;
+  const resolved = conversations.filter(c => c.status === "resolved").length;
+  const escalated = conversations.filter(c => c.status === "escalated").length;
+  const resolution_rate = conversations.length > 0 ? Math.round((resolved / conversations.length) * 100) : 0;
   return {
     tickets_evites: ticketsEvites,
     tickets_crees: tickets.length,
-    minutes_economisees: minutesEconomisees,
+    minutes_economisees: ticketsEvites * 8,
     utilisateurs_actifs: activeUsers || users.length,
     conversations: conversations.length,
     resolved,
@@ -77,7 +63,7 @@ function computeMetrics(tenantId) {
 }
 
 async function buildDiagnostics({ tenantId, deep }) {
-  const settings = getOrgSettings({ tenantId });
+  const settings = await getOrgSettings({ tenantId });
   const glpiConfig = {
     enabled: Boolean(settings.glpi_enabled),
     baseUrl: settings.glpi_base_url || "",
@@ -222,182 +208,182 @@ function buildChecklist({ diagnostics, settings, orgInfo, kbCount }) {
   ];
 }
 
-router.get("/metrics", authRequired, (req, res) => {
-  const tenantId = req.user.tenant_id;
-  return res.json(computeMetrics(tenantId));
+router.get("/metrics", authRequired, async (req, res, next) => {
+  try {
+    return res.json(await computeMetrics(req.user.tenant_id));
+  } catch (err) { next(err); }
 });
 
 router.get("/metrics/system", authRequired, requireAdmin, (req, res) => {
   return res.json(getSnapshot());
 });
 
-router.get("/analytics", authRequired, requireAdmin, (req, res) => {
-  const tenantId = req.user.tenant_id;
-  return res.json(computeAnalytics(tenantId));
+router.get("/analytics", authRequired, requireAdmin, async (req, res, next) => {
+  try {
+    const tenantId = req.user.tenant_id;
+    return res.json(await computeAnalytics(tenantId));
+  } catch (err) {
+    next(err);
+  }
 });
 
-router.get("/analytics/pdf", authRequired, requireAdmin, async (req, res) => {
-  const tenantId = req.user.tenant_id;
-  const tenant = getTenantById(tenantId);
-  const analytics = computeAnalytics(tenantId);
-  const pdf = await buildAnalyticsPdf({
-    tenantName: tenant ? tenant.name : null,
-    analytics
-  });
-  res.setHeader("Content-Type", "application/pdf");
-  res.setHeader(
-    "Content-Disposition",
-    "attachment; filename=\"analytics_report.pdf\""
-  );
-  return res.send(pdf);
+router.get("/analytics/pdf", authRequired, requireAdmin, async (req, res, next) => {
+  try {
+    const tenantId = req.user.tenant_id;
+    const tenant = await getTenantById(tenantId);
+    const analytics = await computeAnalytics(tenantId);
+    const pdf = await buildAnalyticsPdf({
+      tenantName: tenant ? tenant.name : null,
+      analytics
+    });
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=\"analytics_report.pdf\""
+    );
+    return res.send(pdf);
+  } catch (err) {
+    next(err);
+  }
 });
 
-router.get("/analytics/summary.csv", authRequired, requireAdmin, (req, res) => {
-  const tenantId = req.user.tenant_id;
-  const metrics = computeMetrics(tenantId);
-  const analytics = computeAnalytics(tenantId);
-  const row = {
-    tickets_evites: analytics.roi?.tickets_evites || metrics.tickets_evites || 0,
-    tickets_crees: metrics.tickets_crees || 0,
-    minutes_economisees: analytics.roi?.minutes_saved || metrics.minutes_economisees || 0,
-    heures_gagnees: analytics.roi?.hours_saved || 0,
-    gain_estime: analytics.roi?.savings_estimate || 0,
-    response_avg_minutes: analytics.response_avg_minutes || 0,
-    resolution_avg_minutes: analytics.resolution_avg_minutes || 0,
-    feedback_avg: analytics.feedback?.average_rating || 0,
-    feedback_resolved_rate: analytics.feedback?.resolved_rate || 0,
-    sla_hours: analytics.sla?.hours || 0,
-    sla_breached_open: analytics.sla?.breached_open_count || 0,
-    sla_at_risk: analytics.sla?.at_risk_count || 0
-  };
-  const headers = Object.keys(row);
-  const csv = buildCsv(headers, [headers.map((key) => row[key])]);
-  res.setHeader("Content-Type", "text/csv; charset=utf-8");
-  res.setHeader("Content-Disposition", "attachment; filename=\"analytics_summary.csv\"");
-  return res.send(csv);
+router.get("/analytics/summary.csv", authRequired, requireAdmin, async (req, res, next) => {
+  try {
+    const tenantId = req.user.tenant_id;
+    const metrics = await computeMetrics(tenantId);
+    const analytics = await computeAnalytics(tenantId);
+    const row = {
+      tickets_evites: analytics.roi?.tickets_evites || metrics.tickets_evites || 0,
+      tickets_crees: metrics.tickets_crees || 0,
+      minutes_economisees: analytics.roi?.minutes_saved || metrics.minutes_economisees || 0,
+      heures_gagnees: analytics.roi?.hours_saved || 0,
+      gain_estime: analytics.roi?.savings_estimate || 0,
+      response_avg_minutes: analytics.response_avg_minutes || 0,
+      resolution_avg_minutes: analytics.resolution_avg_minutes || 0,
+      feedback_avg: analytics.feedback?.average_rating || 0,
+      feedback_resolved_rate: analytics.feedback?.resolved_rate || 0,
+      sla_hours: analytics.sla?.hours || 0,
+      sla_breached_open: analytics.sla?.breached_open_count || 0,
+      sla_at_risk: analytics.sla?.at_risk_count || 0
+    };
+    const headers = Object.keys(row);
+    const csv = buildCsv(headers, [headers.map((key) => row[key])]);
+    res.setHeader("Content-Type", "text/csv; charset=utf-8");
+    res.setHeader("Content-Disposition", "attachment; filename=\"analytics_summary.csv\"");
+    return res.send(csv);
+  } catch (err) {
+    next(err);
+  }
 });
 
 router.get("/backups", authRequired, requireAdmin, (req, res) => {
-  const items = listBackups().map((item) => ({
-    file: item.file,
-    mtime: item.mtime,
-    size: item.size
-  }));
-  return res.json({ items });
+  return res.json({ items: [] });
 });
 
 router.post("/backups/restore-latest", authRequired, requireAdmin, (req, res) => {
-  const restored = restoreLatestSnapshot();
-  if (!restored) {
-    return res.status(404).json({ error: "backup_not_found" });
-  }
-  return res.json({ ok: true });
+  return res.status(404).json({ error: "not_available_in_pg_mode" });
 });
 
 router.post("/backups/restore/:file", authRequired, requireAdmin, (req, res) => {
-  const file = req.params.file;
-  const match = listBackups().find((item) => item.file === file);
-  if (!match) {
-    return res.status(404).json({ error: "backup_not_found" });
-  }
-  try {
-    const raw = require("fs").readFileSync(match.full, "utf8");
-    const parsed = JSON.parse(raw);
-    saveDb(parsed);
-    return res.json({ ok: true });
-  } catch (err) {
-    return res.status(500).json({ error: "backup_restore_failed" });
-  }
+  return res.status(404).json({ error: "not_available_in_pg_mode" });
 });
 
 router.get("/backups/download/:file", authRequired, requireAdmin, (req, res) => {
-  const file = req.params.file;
-  const match = listBackups().find((item) => item.file === file);
-  if (!match) {
-    return res.status(404).json({ error: "backup_not_found" });
-  }
-  res.setHeader("Content-Type", "application/json; charset=utf-8");
-  res.setHeader(
-    "Content-Disposition",
-    `attachment; filename="${match.file}"`
-  );
-  return res.sendFile(match.full);
+  return res.status(404).json({ error: "not_available_in_pg_mode" });
 });
 
-router.get("/diagnostics", authRequired, requireAdmin, async (req, res) => {
-  const tenantId = req.user.tenant_id;
-  const deep = String(req.query.deep || "") === "1";
-  const diagnostics = await buildDiagnostics({ tenantId, deep });
-  return res.json(diagnostics);
-});
-
-router.get("/checklist", authRequired, requireAdmin, async (req, res) => {
-  const tenantId = req.user.tenant_id;
-  const diagnostics = await buildDiagnostics({ tenantId, deep: false });
-  const settings = getOrgSettings({ tenantId });
-  const db = loadDb();
-  const kbCount = (db.kb_documents || []).filter((doc) => doc.tenant_id === tenantId)
-    .length;
-  const orgInfo = getTenantById(tenantId);
-  const items = buildChecklist({ diagnostics, settings, orgInfo, kbCount });
-  const completed = items.filter((item) => item.ok).length;
-  return res.json({ completed, total: items.length, items });
-});
-
-router.get("/checklist/export.csv", authRequired, requireAdmin, async (req, res) => {
-  const tenantId = req.user.tenant_id;
-  const diagnostics = await buildDiagnostics({ tenantId, deep: false });
-  const settings = getOrgSettings({ tenantId });
-  const db = loadDb();
-  const kbCount = (db.kb_documents || []).filter((doc) => doc.tenant_id === tenantId)
-    .length;
-  const orgInfo = getTenantById(tenantId);
-  const items = buildChecklist({ diagnostics, settings, orgInfo, kbCount });
-  const headers = ["label", "ok", "hint"];
-  const csv = buildCsv(
-    headers,
-    items.map((item) => [item.label, item.ok ? "OK" : "A faire", item.hint])
-  );
-  res.setHeader("Content-Type", "text/csv; charset=utf-8");
-  res.setHeader("Content-Disposition", "attachment; filename=\"checklist_config.csv\"");
-  return res.send(csv);
-});
-
-router.post("/sla/notify", authRequired, requireAdmin, (req, res) => {
-  const tenantId = req.user.tenant_id;
-  const userId = req.user.sub;
+router.get("/diagnostics", authRequired, requireAdmin, async (req, res, next) => {
   try {
-    const result = sendSlaAlerts({ tenantId, userId, windowHours: 24 });
+    const tenantId = req.user.tenant_id;
+    const deep = String(req.query.deep || "") === "1";
+    const diagnostics = await buildDiagnostics({ tenantId, deep });
+    return res.json(diagnostics);
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.get("/checklist", authRequired, requireAdmin, async (req, res, next) => {
+  try {
+    const tenantId = req.user.tenant_id;
+    const diagnostics = await buildDiagnostics({ tenantId, deep: false });
+    const settings = await getOrgSettings({ tenantId });
+    const [{ count }] = await db("kb_documents").where({ tenant_id: tenantId }).count("id as count");
+    const kbCount = Number(count) || 0;
+    const orgInfo = await getTenantById(tenantId);
+    const items = buildChecklist({ diagnostics, settings, orgInfo, kbCount });
+    const completed = items.filter((item) => item.ok).length;
+    return res.json({ completed, total: items.length, items });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.get("/checklist/export.csv", authRequired, requireAdmin, async (req, res, next) => {
+  try {
+    const tenantId = req.user.tenant_id;
+    const diagnostics = await buildDiagnostics({ tenantId, deep: false });
+    const settings = await getOrgSettings({ tenantId });
+    const [{ count }] = await db("kb_documents").where({ tenant_id: tenantId }).count("id as count");
+    const kbCount = Number(count) || 0;
+    const orgInfo = await getTenantById(tenantId);
+    const items = buildChecklist({ diagnostics, settings, orgInfo, kbCount });
+    const headers = ["label", "ok", "hint"];
+    const csv = buildCsv(
+      headers,
+      items.map((item) => [item.label, item.ok ? "OK" : "A faire", item.hint])
+    );
+    res.setHeader("Content-Type", "text/csv; charset=utf-8");
+    res.setHeader("Content-Disposition", "attachment; filename=\"checklist_config.csv\"");
+    return res.send(csv);
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post("/sla/notify", authRequired, requireAdmin, async (req, res, next) => {
+  try {
+    const tenantId = req.user.tenant_id;
+    const userId = req.user.sub;
+    const result = await sendSlaAlerts({ tenantId, userId, windowHours: 24 });
     return res.json({ ok: true, sent: result.sent, alerts: result.alerts });
   } catch (err) {
     return res.status(500).json({ error: "sla_notify_failed" });
   }
 });
 
-router.get("/metrics/roi.pdf", authRequired, requireAdmin, async (req, res) => {
-  const tenantId = req.user.tenant_id;
-  const tenant = getTenantById(tenantId);
-  const metrics = computeMetrics(tenantId);
-  const pdf = await buildRoiPdf({
-    tenantName: tenant ? tenant.name : null,
-    metrics
-  });
-  res.setHeader("Content-Type", "application/pdf");
-  res.setHeader("Content-Disposition", "attachment; filename=\"roi_report.pdf\"");
-  return res.send(pdf);
+router.get("/metrics/roi.pdf", authRequired, requireAdmin, async (req, res, next) => {
+  try {
+    const tenantId = req.user.tenant_id;
+    const tenant = await getTenantById(tenantId);
+    const metrics = await computeMetrics(tenantId);
+    const pdf = await buildRoiPdf({
+      tenantName: tenant ? tenant.name : null,
+      metrics
+    });
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", "attachment; filename=\"roi_report.pdf\"");
+    return res.send(pdf);
+  } catch (err) {
+    next(err);
+  }
 });
 
-router.get("/uploads", authRequired, requireAdmin, (req, res) => {
-  const tenantId = req.user.tenant_id;
-  const limit = Number(req.query.limit || 50);
-  const days = Number(req.query.days || 0);
-  const since = days > 0 ? Date.now() - days * 24 * 60 * 60 * 1000 : null;
-  const db = loadDb();
-  const map = new Map();
+router.get("/uploads", authRequired, requireAdmin, async (req, res, next) => {
+  try {
+    const tenantId = req.user.tenant_id;
+    const limit = Number(req.query.limit || 50);
+    const days = Number(req.query.days || 0);
+    const since = days > 0 ? Date.now() - days * 24 * 60 * 60 * 1000 : null;
 
-  (db.messages || [])
-    .filter((m) => m.tenant_id === tenantId)
-    .forEach((msg) => {
+    const [messages, tickets] = await Promise.all([
+      db("messages").where({ tenant_id: tenantId }),
+      db("tickets").where({ tenant_id: tenantId })
+    ]);
+
+    const map = new Map();
+
+    messages.forEach((msg) => {
       const url = extractMessageImageUrl(msg.content);
       if (!url) return;
       const existing = map.get(url) || {
@@ -422,9 +408,7 @@ router.get("/uploads", authRequired, requireAdmin, (req, res) => {
       map.set(url, existing);
     });
 
-  (db.tickets || [])
-    .filter((t) => t.tenant_id === tenantId)
-    .forEach((ticket) => {
+    tickets.forEach((ticket) => {
       const urls = extractUploadUrls(ticket.description || "");
       urls.forEach((url) => {
         const existing = map.get(url) || {
@@ -453,158 +437,186 @@ router.get("/uploads", authRequired, requireAdmin, (req, res) => {
       });
     });
 
-  let items = Array.from(map.values()).map((item) => ({
-    ...item,
-    conversation_ids: Array.from(item.conversation_ids || []),
-    ticket_ids: Array.from(item.ticket_ids || [])
-  }));
-  if (since) {
-    items = items.filter((item) => {
-      const last = item.last_seen ? new Date(item.last_seen).getTime() : 0;
-      return last >= since;
-    });
+    let items = Array.from(map.values()).map((item) => ({
+      ...item,
+      conversation_ids: Array.from(item.conversation_ids || []),
+      ticket_ids: Array.from(item.ticket_ids || [])
+    }));
+    if (since) {
+      items = items.filter((item) => {
+        const last = item.last_seen ? new Date(item.last_seen).getTime() : 0;
+        return last >= since;
+      });
+    }
+    items = items
+      .sort((a, b) => new Date(b.last_seen) - new Date(a.last_seen))
+      .slice(0, Number.isNaN(limit) ? 50 : limit);
+
+    return res.json({ items, total: map.size });
+  } catch (err) { next(err); }
+});
+
+router.get("/audit", authRequired, requireAdmin, async (req, res, next) => {
+  try {
+    const tenantId = req.user.tenant_id;
+    const limit = req.query.limit ? Number(req.query.limit) : 200;
+    const items = await listAudit({ tenantId, limit });
+    return res.json({ items });
+  } catch (err) {
+    next(err);
   }
-  items = items
-    .sort((a, b) => new Date(b.last_seen) - new Date(a.last_seen))
-    .slice(0, Number.isNaN(limit) ? 50 : limit);
-
-  return res.json({ items, total: map.size });
 });
 
-router.get("/audit", authRequired, requireAdmin, (req, res) => {
-  const tenantId = req.user.tenant_id;
-  const limit = req.query.limit ? Number(req.query.limit) : 200;
-  const items = listAudit({ tenantId, limit });
-  return res.json({ items });
-});
+router.get("/activity/users", authRequired, requireAdmin, async (req, res, next) => {
+  try {
+    const tenantId = req.user.tenant_id;
+    const [users, conversations, messages, tickets] = await Promise.all([
+      db("users").where({ tenant_id: tenantId }),
+      db("conversations").where({ tenant_id: tenantId }),
+      db("messages").where({ tenant_id: tenantId }),
+      db("tickets").where({ tenant_id: tenantId })
+    ]);
 
-router.get("/activity/users", authRequired, requireAdmin, (req, res) => {
-  const tenantId = req.user.tenant_id;
-  const db = loadDb();
-  const users = (db.users || []).filter((u) => u.tenant_id === tenantId);
-  const conversations = (db.conversations || []).filter((c) => c.tenant_id === tenantId);
-  const messages = (db.messages || []).filter((m) => m.tenant_id === tenantId);
-  const tickets = (db.tickets || []).filter((t) => t.tenant_id === tenantId);
-
-  const items = users.map((user) => {
-    const convoIds = new Set(
-      conversations.filter((c) => c.user_id === user.id).map((c) => c.id)
-    );
-    const userMessages = messages.filter(
-      (m) => convoIds.has(m.conversation_id) && m.role === "user"
-    );
-    const allMessages = messages.filter((m) => convoIds.has(m.conversation_id));
-    const userTickets = tickets.filter((t) => convoIds.has(t.conversation_id));
-    const lastActive = allMessages
-      .map((m) => m.created_at)
-      .sort()
-      .slice(-1)[0];
-
-    return {
-      user_id: user.id,
-      email: user.email,
-      role: user.role,
-      conversations: convoIds.size,
-      messages: userMessages.length,
-      tickets: userTickets.length,
-      last_active: lastActive || null
-    };
-  });
-
-  items.sort((a, b) => {
-    const aTime = a.last_active ? new Date(a.last_active).getTime() : 0;
-    const bTime = b.last_active ? new Date(b.last_active).getTime() : 0;
-    return bTime - aTime;
-  });
-
-  return res.json({ items });
-});
-
-router.get("/backup", authRequired, requireAdmin, (req, res) => {
-  const db = loadDb();
-  res.setHeader("Content-Type", "application/json; charset=utf-8");
-  res.setHeader("Content-Disposition", "attachment; filename=\"backup.json\"");
-  return res.send(JSON.stringify(db, null, 2));
-});
-
-router.get("/kb/export.json", authRequired, requireAdmin, (req, res) => {
-  const tenantId = req.user.tenant_id;
-  const db = loadDb();
-  const payload = {
-    kb_documents: (db.kb_documents || []).filter((d) => d.tenant_id === tenantId),
-    kb_chunks: (db.kb_chunks || []).filter((c) => c.tenant_id === tenantId)
-  };
-  res.setHeader("Content-Type", "application/json; charset=utf-8");
-  res.setHeader("Content-Disposition", "attachment; filename=\"kb_export.json\"");
-  return res.send(JSON.stringify(payload, null, 2));
-});
-
-router.get("/kb/export.csv", authRequired, requireAdmin, (req, res) => {
-  const tenantId = req.user.tenant_id;
-  const db = loadDb();
-  const query = (req.query.query || "").toString().toLowerCase().trim();
-  const level = (req.query.level || "all").toString().toLowerCase().trim();
-  const matchLevel = (title) => {
-    const text = (title || "").toString().toLowerCase();
-    const isInfra = text.includes("infra") || text.includes("reseau") || text.includes("réseau");
-    if (level === "infra") return isInfra;
-    if (level === "n1") return text.includes("(n1)");
-    if (level === "n2") return text.includes("(n2)");
-    if (level === "n3") return text.includes("(n3)") || isInfra;
-    return true;
-  };
-  const headers = ["document_id", "title", "chunk_text"];
-  const rows = (db.kb_chunks || [])
-    .filter((chunk) => chunk.tenant_id === tenantId)
-    .map((chunk) => {
-      const doc = (db.kb_documents || []).find((d) => d.id === chunk.document_id);
-      return [chunk.document_id, doc ? doc.title : "", chunk.chunk_text];
-    })
-    .filter((row) => {
-      const title = (row[1] || "").toString();
-      const text = (row[2] || "").toString();
-      if (!matchLevel(title)) return false;
-      if (!query) return true;
-      return (
-        title.toLowerCase().includes(query) || text.toLowerCase().includes(query)
+    const items = users.map((user) => {
+      const convoIds = new Set(
+        conversations.filter((c) => c.user_id === user.id).map((c) => c.id)
       );
+      const userMessages = messages.filter(
+        (m) => convoIds.has(m.conversation_id) && m.role === "user"
+      );
+      const allMessages = messages.filter((m) => convoIds.has(m.conversation_id));
+      const userTickets = tickets.filter((t) => convoIds.has(t.conversation_id));
+      const lastActive = allMessages
+        .map((m) => m.created_at)
+        .sort()
+        .slice(-1)[0];
+
+      return {
+        user_id: user.id,
+        email: user.email,
+        role: user.role,
+        conversations: convoIds.size,
+        messages: userMessages.length,
+        tickets: userTickets.length,
+        last_active: lastActive || null
+      };
     });
-  const csv = buildCsv(headers, rows);
-  res.setHeader("Content-Type", "text/csv; charset=utf-8");
-  res.setHeader("Content-Disposition", "attachment; filename=\"kb_export.csv\"");
-  return res.send(csv);
+
+    items.sort((a, b) => {
+      const aTime = a.last_active ? new Date(a.last_active).getTime() : 0;
+      const bTime = b.last_active ? new Date(b.last_active).getTime() : 0;
+      return bTime - aTime;
+    });
+
+    return res.json({ items });
+  } catch (err) { next(err); }
 });
 
-router.get("/conversations/export.json", authRequired, requireAdmin, (req, res) => {
-  const tenantId = req.user.tenant_id;
-  const db = loadDb();
-  const payload = {
-    conversations: (db.conversations || []).filter((c) => c.tenant_id === tenantId),
-    messages: (db.messages || []).filter((m) => m.tenant_id === tenantId)
-  };
-  res.setHeader("Content-Type", "application/json; charset=utf-8");
-  res.setHeader(
-    "Content-Disposition",
-    "attachment; filename=\"conversations_export.json\""
-  );
-  return res.send(JSON.stringify(payload, null, 2));
+router.get("/backup", authRequired, requireAdmin, async (req, res, next) => {
+  try {
+    const tenantId = req.user.tenant_id;
+    const [users, conversations, messages, tickets, kb_documents, kb_chunks] = await Promise.all([
+      db("users").where({ tenant_id: tenantId }).select("id", "email", "role", "created_at"),
+      db("conversations").where({ tenant_id: tenantId }),
+      db("messages").where({ tenant_id: tenantId }),
+      db("tickets").where({ tenant_id: tenantId }),
+      db("kb_documents").where({ tenant_id: tenantId }),
+      db("kb_chunks").where({ tenant_id: tenantId })
+    ]);
+    res.setHeader("Content-Type", "application/json; charset=utf-8");
+    res.setHeader("Content-Disposition", "attachment; filename=\"backup.json\"");
+    return res.send(JSON.stringify({ users, conversations, messages, tickets, kb_documents, kb_chunks }, null, 2));
+  } catch (err) { next(err); }
 });
 
-router.get("/conversations/export.csv", authRequired, requireAdmin, (req, res) => {
-  const tenantId = req.user.tenant_id;
-  const db = loadDb();
-  const headers = [
-    "conversation_id",
-    "user_id",
-    "status",
-    "message_role",
-    "message_content",
-    "message_created_at"
-  ];
-  const rows = (db.messages || [])
-    .filter((m) => m.tenant_id === tenantId)
-    .map((m) => {
-      const convo = (db.conversations || []).find((c) => c.id === m.conversation_id);
+router.get("/kb/export.json", authRequired, requireAdmin, async (req, res, next) => {
+  try {
+    const tenantId = req.user.tenant_id;
+    const [kb_documents, kb_chunks] = await Promise.all([
+      db("kb_documents").where({ tenant_id: tenantId }),
+      db("kb_chunks").where({ tenant_id: tenantId })
+    ]);
+    res.setHeader("Content-Type", "application/json; charset=utf-8");
+    res.setHeader("Content-Disposition", "attachment; filename=\"kb_export.json\"");
+    return res.send(JSON.stringify({ kb_documents, kb_chunks }, null, 2));
+  } catch (err) { next(err); }
+});
+
+router.get("/kb/export.csv", authRequired, requireAdmin, async (req, res, next) => {
+  try {
+    const tenantId = req.user.tenant_id;
+    const query = (req.query.query || "").toString().toLowerCase().trim();
+    const level = (req.query.level || "all").toString().toLowerCase().trim();
+    const matchLevel = (title) => {
+      const text = (title || "").toString().toLowerCase();
+      const isInfra = text.includes("infra") || text.includes("reseau") || text.includes("réseau");
+      if (level === "infra") return isInfra;
+      if (level === "n1") return text.includes("(n1)");
+      if (level === "n2") return text.includes("(n2)");
+      if (level === "n3") return text.includes("(n3)") || isInfra;
+      return true;
+    };
+    const [chunks, docs] = await Promise.all([
+      db("kb_chunks").where({ tenant_id: tenantId }),
+      db("kb_documents").where({ tenant_id: tenantId })
+    ]);
+    const docsMap = new Map(docs.map(d => [d.id, d]));
+    const headers = ["document_id", "title", "chunk_text"];
+    const rows = chunks
+      .map((chunk) => {
+        const doc = docsMap.get(chunk.document_id);
+        return [chunk.document_id, doc ? doc.title : "", chunk.chunk_text];
+      })
+      .filter((row) => {
+        const title = (row[1] || "").toString();
+        const text = (row[2] || "").toString();
+        if (!matchLevel(title)) return false;
+        if (!query) return true;
+        return (
+          title.toLowerCase().includes(query) || text.toLowerCase().includes(query)
+        );
+      });
+    const csv = buildCsv(headers, rows);
+    res.setHeader("Content-Type", "text/csv; charset=utf-8");
+    res.setHeader("Content-Disposition", "attachment; filename=\"kb_export.csv\"");
+    return res.send(csv);
+  } catch (err) { next(err); }
+});
+
+router.get("/conversations/export.json", authRequired, requireAdmin, async (req, res, next) => {
+  try {
+    const tenantId = req.user.tenant_id;
+    const [conversations, messages] = await Promise.all([
+      db("conversations").where({ tenant_id: tenantId }),
+      db("messages").where({ tenant_id: tenantId })
+    ]);
+    const payload = { conversations, messages };
+    res.setHeader("Content-Type", "application/json; charset=utf-8");
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=\"conversations_export.json\""
+    );
+    return res.send(JSON.stringify(payload, null, 2));
+  } catch (err) { next(err); }
+});
+
+router.get("/conversations/export.csv", authRequired, requireAdmin, async (req, res, next) => {
+  try {
+    const tenantId = req.user.tenant_id;
+    const [conversations, messages] = await Promise.all([
+      db("conversations").where({ tenant_id: tenantId }),
+      db("messages").where({ tenant_id: tenantId })
+    ]);
+    const headers = [
+      "conversation_id",
+      "user_id",
+      "status",
+      "message_role",
+      "message_content",
+      "message_created_at"
+    ];
+    const rows = messages.map((m) => {
+      const convo = conversations.find((c) => c.id === m.conversation_id);
       return [
         m.conversation_id,
         convo ? convo.user_id : "",
@@ -614,121 +626,103 @@ router.get("/conversations/export.csv", authRequired, requireAdmin, (req, res) =
         m.created_at
       ];
     });
-  const csv = buildCsv(headers, rows);
-  res.setHeader("Content-Type", "text/csv; charset=utf-8");
-  res.setHeader(
-    "Content-Disposition",
-    "attachment; filename=\"conversations_export.csv\""
-  );
-  return res.send(csv);
+    const csv = buildCsv(headers, rows);
+    res.setHeader("Content-Type", "text/csv; charset=utf-8");
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=\"conversations_export.csv\""
+    );
+    return res.send(csv);
+  } catch (err) { next(err); }
 });
 
-router.get("/glpi/test", authRequired, requireAdmin, async (req, res) => {
-  const settings = getOrgSettings({ tenantId: req.user.tenant_id });
-  const glpiConfig = {
-    enabled: Boolean(settings.glpi_enabled),
-    baseUrl: settings.glpi_base_url || "",
-    appToken: settings.glpi_app_token || "",
-    userToken: settings.glpi_user_token || ""
-  };
-  if (!isGlpiEnabled(glpiConfig)) {
-    return res.status(400).json({ ok: false, error: "glpi_not_configured" });
-  }
+router.get("/glpi/test", authRequired, requireAdmin, async (req, res, next) => {
   try {
-    await testGlpiConnection(glpiConfig);
-    return res.json({ ok: true });
+    const settings = await getOrgSettings({ tenantId: req.user.tenant_id });
+    const glpiConfig = {
+      enabled: Boolean(settings.glpi_enabled),
+      baseUrl: settings.glpi_base_url || "",
+      appToken: settings.glpi_app_token || "",
+      userToken: settings.glpi_user_token || ""
+    };
+    if (!isGlpiEnabled(glpiConfig)) {
+      return res.status(400).json({ ok: false, error: "glpi_not_configured" });
+    }
+    try {
+      await testGlpiConnection(glpiConfig);
+      return res.json({ ok: true });
+    } catch (err) {
+      return res.status(500).json({ ok: false, error: "glpi_connection_failed" });
+    }
   } catch (err) {
-    return res.status(500).json({ ok: false, error: "glpi_connection_failed" });
+    next(err);
   }
 });
 
 // POST /admin/glpi/test — teste des credentials fournis directement (Setup Rapide)
-router.post("/glpi/test", authRequired, requireAdmin, async (req, res) => {
-  const { baseUrl, appToken, userToken } = req.body || {};
-  const glpiConfig = {
-    enabled: true,
-    baseUrl: (baseUrl || "").trim(),
-    appToken: (appToken || "").trim(),
-    userToken: (userToken || "").trim()
-  };
-  if (!glpiConfig.baseUrl || !glpiConfig.userToken) {
-    return res.status(400).json({ ok: false, error: "glpi_url_and_user_token_required" });
-  }
+router.post("/glpi/test", authRequired, requireAdmin, async (req, res, next) => {
   try {
-    await testGlpiConnection(glpiConfig);
-    return res.json({ ok: true });
-  } catch (err) {
-    return res.status(500).json({ ok: false, error: String(err.message || "glpi_connection_failed") });
-  }
-});
-
-router.post("/restore", authRequired, requireAdmin, upload.single("file"), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ error: "missing_file" });
-  }
-  try {
-    const parsed = JSON.parse(req.file.buffer.toString("utf8"));
-    if (!parsed || typeof parsed !== "object") {
-      return res.status(400).json({ error: "invalid_backup" });
+    const { baseUrl, appToken, userToken } = req.body || {};
+    const glpiConfig = {
+      enabled: true,
+      baseUrl: (baseUrl || "").trim(),
+      appToken: (appToken || "").trim(),
+      userToken: (userToken || "").trim()
+    };
+    if (!glpiConfig.baseUrl || !glpiConfig.userToken) {
+      return res.status(400).json({ ok: false, error: "glpi_url_and_user_token_required" });
     }
-    parsed.audit_logs = parsed.audit_logs || [];
-    parsed.leads = parsed.leads || [];
-    parsed.users = parsed.users || [];
-    parsed.tenants = parsed.tenants || [];
-    parsed.conversations = parsed.conversations || [];
-    parsed.messages = parsed.messages || [];
-    parsed.tickets = parsed.tickets || [];
-    parsed.kb_documents = parsed.kb_documents || [];
-    parsed.kb_chunks = parsed.kb_chunks || [];
-    parsed.metrics_daily = parsed.metrics_daily || [];
-    parsed.quotes = parsed.quotes || [];
-    parsed.invoices = parsed.invoices || [];
-    parsed.notifications = parsed.notifications || [];
-    parsed.org_settings = parsed.org_settings || [];
-    parsed.invites = parsed.invites || [];
-
-    saveDb(parsed);
-    logEvent({
-      tenantId: req.user.tenant_id,
-      userId: req.user.sub,
-      action: "backup_restored",
-      meta: { filename: req.file.originalname }
-    });
-    return res.json({ ok: true });
+    try {
+      await testGlpiConnection(glpiConfig);
+      return res.json({ ok: true });
+    } catch (err) {
+      return res.status(500).json({ ok: false, error: String(err.message || "glpi_connection_failed") });
+    }
   } catch (err) {
-    return res.status(400).json({ error: "invalid_backup" });
+    next(err);
   }
 });
 
-router.post("/kb/import", authRequired, requireAdmin, upload.single("file"), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ error: "missing_file" });
-  }
+router.post("/restore", authRequired, requireAdmin, upload.single("file"), async (req, res, next) => {
   try {
-    const parsed = JSON.parse(req.file.buffer.toString("utf8"));
-    if (!parsed || typeof parsed !== "object") {
+    if (!req.file) return res.status(400).json({ error: "missing_file" });
+    // En mode PostgreSQL, la restauration via fichier n'est pas supportée
+    await logEvent({ tenantId: req.user.tenant_id, userId: req.user.sub, action: "backup_restore_attempted", meta: {} });
+    return res.status(400).json({ error: "restore_not_available_use_pg_backup" });
+  } catch (err) { next(err); }
+});
+
+router.post("/kb/import", authRequired, requireAdmin, upload.single("file"), async (req, res, next) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "missing_file" });
+    }
+    try {
+      const parsed = JSON.parse(req.file.buffer.toString("utf8"));
+      if (!parsed || typeof parsed !== "object") {
+        return res.status(400).json({ error: "invalid_kb" });
+      }
+      const tenantId = req.user.tenant_id;
+      const parsedDocs = parsed.kb_documents || [];
+      const parsedChunks = parsed.kb_chunks || [];
+      if (parsedDocs.length) {
+        await db("kb_documents").insert(parsedDocs.map(d => ({ ...d, tenant_id: tenantId }))).onConflict("id").ignore();
+      }
+      if (parsedChunks.length) {
+        await db("kb_chunks").insert(parsedChunks.map(c => ({ ...c, tenant_id: tenantId }))).onConflict("id").ignore();
+      }
+      await logEvent({
+        tenantId: req.user.tenant_id,
+        userId: req.user.sub,
+        action: "kb_imported",
+        meta: { filename: req.file.originalname }
+      });
+      return res.json({ ok: true });
+    } catch (err) {
       return res.status(400).json({ error: "invalid_kb" });
     }
-    const tenantId = req.user.tenant_id;
-    withDb((db) => {
-      db.kb_documents = (parsed.kb_documents || []).map((doc) => ({
-        ...doc,
-        tenant_id: tenantId
-      }));
-      db.kb_chunks = (parsed.kb_chunks || []).map((chunk) => ({
-        ...chunk,
-        tenant_id: tenantId
-      }));
-    });
-    logEvent({
-      tenantId: req.user.tenant_id,
-      userId: req.user.sub,
-      action: "kb_imported",
-      meta: { filename: req.file.originalname }
-    });
-    return res.json({ ok: true });
   } catch (err) {
-    return res.status(400).json({ error: "invalid_kb" });
+    next(err);
   }
 });
 
@@ -737,52 +731,56 @@ router.post(
   authRequired,
   requireAdmin,
   upload.single("file"),
-  async (req, res) => {
-    if (!req.file) {
-      return res.status(400).json({ error: "missing_file" });
-    }
-    const raw = req.file.buffer.toString("utf8");
-    const { headers, rows } = parseCsv(raw);
-    const headerIndex = headers.reduce((acc, name, idx) => {
-      acc[name.toLowerCase()] = idx;
-      return acc;
-    }, {});
-    if (
-      headerIndex.title === undefined ||
-      headerIndex.content === undefined
-    ) {
-      return res.status(400).json({ error: "missing_headers" });
-    }
-    const tenantId = req.user.tenant_id;
-    const items = [];
-    for (const row of rows) {
-      const title = row[headerIndex.title] || "";
-      const content = row[headerIndex.content] || "";
-      if (!title.trim() || !content.trim()) {
-        continue;
+  async (req, res, next) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "missing_file" });
       }
-      const sourceType =
-        (headerIndex.source_type !== undefined
-          ? row[headerIndex.source_type]
-          : "") || "procedure";
-      const sourceUrl =
-        headerIndex.source_url !== undefined ? row[headerIndex.source_url] : "";
-      const doc = await ingestDocument({
-        tenantId,
-        title: title.trim(),
-        sourceType: sourceType.trim() || "procedure",
-        sourceUrl: sourceUrl ? sourceUrl.trim() : null,
-        content
+      const raw = req.file.buffer.toString("utf8");
+      const { headers, rows } = parseCsv(raw);
+      const headerIndex = headers.reduce((acc, name, idx) => {
+        acc[name.toLowerCase()] = idx;
+        return acc;
+      }, {});
+      if (
+        headerIndex.title === undefined ||
+        headerIndex.content === undefined
+      ) {
+        return res.status(400).json({ error: "missing_headers" });
+      }
+      const tenantId = req.user.tenant_id;
+      const items = [];
+      for (const row of rows) {
+        const title = row[headerIndex.title] || "";
+        const content = row[headerIndex.content] || "";
+        if (!title.trim() || !content.trim()) {
+          continue;
+        }
+        const sourceType =
+          (headerIndex.source_type !== undefined
+            ? row[headerIndex.source_type]
+            : "") || "procedure";
+        const sourceUrl =
+          headerIndex.source_url !== undefined ? row[headerIndex.source_url] : "";
+        const doc = await ingestDocument({
+          tenantId,
+          title: title.trim(),
+          sourceType: sourceType.trim() || "procedure",
+          sourceUrl: sourceUrl ? sourceUrl.trim() : null,
+          content
+        });
+        items.push(doc);
+      }
+      await logEvent({
+        tenantId: req.user.tenant_id,
+        userId: req.user.sub,
+        action: "kb_imported_csv",
+        meta: { filename: req.file.originalname, count: items.length }
       });
-      items.push(doc);
+      return res.json({ ok: true, count: items.length });
+    } catch (err) {
+      next(err);
     }
-    logEvent({
-      tenantId: req.user.tenant_id,
-      userId: req.user.sub,
-      action: "kb_imported_csv",
-      meta: { filename: req.file.originalname, count: items.length }
-    });
-    return res.json({ ok: true, count: items.length });
   }
 );
 

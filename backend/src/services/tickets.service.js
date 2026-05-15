@@ -1,5 +1,5 @@
 const crypto = require("crypto");
-const { withDb, loadDb } = require("./store.service");
+const { db } = require("../config/db");
 const { createGlpiTicket, isGlpiEnabled, buildTicketUrl } = require("./glpi.service");
 const { notifyTicketCreated } = require("./integrations.service");
 const {
@@ -143,15 +143,9 @@ function normalizeDraft(draft, fallbackMessage) {
   };
 }
 
-function sortByNewest(items) {
-  return items
-    .slice()
-    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-}
-
-function buildConversationSnippet({ tenantId, conversationId }) {
+async function buildConversationSnippet({ tenantId, conversationId }) {
   if (!conversationId) return "";
-  const history = getHistory({ tenantId, conversationId });
+  const history = await getHistory({ tenantId, conversationId });
   if (!history || !history.length) return "";
   const recent = history.slice(-8);
   const lines = recent.map((msg) => {
@@ -162,11 +156,13 @@ function buildConversationSnippet({ tenantId, conversationId }) {
   return `\n\n---\nContexte conversation\n${lines.join("\n")}`;
 }
 
-function buildContextSnippet({ tenantId, conversationId }) {
+async function buildContextSnippet({ tenantId, conversationId }) {
   if (!conversationId) return "";
-  const conversation = findConversation({ tenantId, conversationId });
+  const conversation = await findConversation({ tenantId, conversationId });
   if (!conversation || !conversation.context) return "";
-  const ctx = conversation.context;
+  const ctx = typeof conversation.context === "string"
+    ? JSON.parse(conversation.context)
+    : conversation.context;
   const lines = [];
   if (ctx.user_login) lines.push(`Login AD: ${ctx.user_login}`);
   if (ctx.win_user) lines.push(`User Windows: ${ctx.win_user}`);
@@ -203,30 +199,25 @@ function resolveGlpiConfig({ tenantId }) {
 
 async function createTicket({ tenantId, conversationId, draft }) {
   const normalized = normalizeDraft(draft);
-  const contextSnippet = buildContextSnippet({ tenantId, conversationId });
-  const snippet = buildConversationSnippet({ tenantId, conversationId });
-  const finalDescription = `${normalized.summary}${contextSnippet}${snippet}`.slice(
-    0,
-    4000
-  );
-  const ticket = withDb((db) => {
-    const ticket = {
-      id: crypto.randomUUID(),
-      tenant_id: tenantId,
-      conversation_id: conversationId,
-      external_id: null,
-      external_url: null,
-      title: normalized.title,
-      description: finalDescription,
-      category: normalized.category,
-      priority: normalized.priority,
-      status: "open",
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
-    db.tickets.push(ticket);
-    return ticket;
-  });
+  const contextSnippet = await buildContextSnippet({ tenantId, conversationId });
+  const snippet = await buildConversationSnippet({ tenantId, conversationId });
+  const finalDescription = `${normalized.summary}${contextSnippet}${snippet}`.slice(0, 4000);
+
+  const now = new Date().toISOString();
+  const [ticket] = await db("tickets").insert({
+    id: crypto.randomUUID(),
+    tenant_id: tenantId,
+    conversation_id: conversationId || null,
+    external_id: null,
+    external_url: null,
+    title: normalized.title,
+    description: finalDescription,
+    category: normalized.category,
+    priority: normalized.priority,
+    status: "open",
+    created_at: now,
+    updated_at: now
+  }).returning("*");
 
   const glpiConfig = resolveGlpiConfig({ tenantId });
   if (isGlpiEnabled(glpiConfig)) {
@@ -239,18 +230,15 @@ async function createTicket({ tenantId, conversationId, draft }) {
       });
       if (result && result.id) {
         const url = buildTicketUrl(result.id, glpiConfig);
-        withDb((db) => {
-          const stored = db.tickets.find((t) => t.id === ticket.id);
-          if (stored) {
-            stored.external_id = result.id;
-            stored.external_url = url;
-          }
+        await db("tickets").where({ id: ticket.id }).update({
+          external_id: result.id,
+          external_url: url
         });
         ticket.external_id = result.id;
         ticket.external_url = url;
       }
     } catch (err) {
-      // ignore GLPI errors in local mode
+      // ignore GLPI errors
     }
   }
 
@@ -263,79 +251,71 @@ async function createTicket({ tenantId, conversationId, draft }) {
   return ticket;
 }
 
-function listTickets({ tenantId }) {
-  const db = loadDb();
-  return sortByNewest(db.tickets.filter((t) => t.tenant_id === tenantId));
+async function listTickets({ tenantId }) {
+  return db("tickets")
+    .where({ tenant_id: tenantId })
+    .orderBy("created_at", "desc");
 }
 
-function listTicketsByConversation({ tenantId, conversationId }) {
-  const db = loadDb();
-  return sortByNewest(
-    db.tickets.filter(
-      (t) => t.tenant_id === tenantId && t.conversation_id === conversationId
-    )
-  );
+async function listTicketsByConversation({ tenantId, conversationId }) {
+  return db("tickets")
+    .where({ tenant_id: tenantId, conversation_id: conversationId })
+    .orderBy("created_at", "desc");
 }
 
-function listTicketsByUser({ tenantId, userId }) {
-  const db = loadDb();
-  const convoIds = new Set(
-    db.conversations
-      .filter((c) => c.tenant_id === tenantId && c.user_id === userId)
-      .map((c) => c.id)
-  );
-  return sortByNewest(
-    db.tickets.filter(
-      (t) => t.tenant_id === tenantId && convoIds.has(t.conversation_id)
-    )
-  );
+async function listTicketsByUser({ tenantId, userId }) {
+  const convos = await db("conversations")
+    .where({ tenant_id: tenantId, user_id: userId })
+    .select("id");
+  const convoIds = convos.map((c) => c.id);
+  if (!convoIds.length) return [];
+  return db("tickets")
+    .where({ tenant_id: tenantId })
+    .whereIn("conversation_id", convoIds)
+    .orderBy("created_at", "desc");
 }
 
-function findTicketByConversation({ tenantId, conversationId }) {
-  const db = loadDb();
-  return (
-    db.tickets.find(
-      (t) => t.tenant_id === tenantId && t.conversation_id === conversationId
-    ) || null
-  );
+async function findTicketByConversation({ tenantId, conversationId }) {
+  const row = await db("tickets")
+    .where({ tenant_id: tenantId, conversation_id: conversationId })
+    .first();
+  return row || null;
 }
 
-function updateTicket({ tenantId, ticketId, updates }) {
-  return withDb((db) => {
-    const ticket = db.tickets.find(
-      (t) => t.tenant_id === tenantId && t.id === ticketId
-    );
-    if (!ticket) {
-      return null;
+async function updateTicket({ tenantId, ticketId, updates }) {
+  const ticket = await db("tickets")
+    .where({ tenant_id: tenantId, id: ticketId })
+    .first();
+  if (!ticket) return null;
+
+  const payload = { updated_at: new Date().toISOString() };
+  if (updates.status) payload.status = updates.status;
+  if (updates.priority) payload.priority = updates.priority;
+  if (updates.category) payload.category = updates.category;
+
+  const [updated] = await db("tickets")
+    .where({ tenant_id: tenantId, id: ticketId })
+    .update(payload)
+    .returning("*");
+
+  if (ticket.conversation_id && updates.status) {
+    const status = updates.status;
+    if (status === "resolved" || status === "closed") {
+      await updateConversation({
+        tenantId,
+        conversationId: ticket.conversation_id,
+        updates: { status: "resolved", failure_count: 0 }
+      });
+    } else if (status === "open" || status === "pending") {
+      await updateConversation({
+        tenantId,
+        conversationId: ticket.conversation_id,
+        updates: { status: "escalated" }
+      });
     }
-    if (updates.status) {
-      ticket.status = updates.status;
-    }
-    if (updates.priority) {
-      ticket.priority = updates.priority;
-    }
-    if (updates.category) {
-      ticket.category = updates.category;
-    }
-    ticket.updated_at = new Date().toISOString();
-    if (ticket.conversation_id && updates.status) {
-      const status = updates.status;
-      if (status === "resolved" || status === "closed") {
-        updateConversation({
-          tenantId,
-          conversationId: ticket.conversation_id,
-          updates: { status: "resolved", failure_count: 0 }
-        });
-      } else if (status === "open" || status === "pending") {
-        updateConversation({
-          tenantId,
-          conversationId: ticket.conversation_id,
-          updates: { status: "escalated" }
-        });
-      }
-    }
-    return ticket;
-  });
+  }
+
+  return updated;
 }
 
 module.exports = {
