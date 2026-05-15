@@ -68,7 +68,7 @@ function storeTokens({ tenantId, provider, tokenPayload }) {
   return null;
 }
 
-function buildAuthorizationUrl({ provider, tenantId }) {
+async function buildAuthorizationUrl({ provider, tenantId }) {
   const config = getProviderConfig(provider);
   if (!config) {
     return { error: "provider_not_supported" };
@@ -80,7 +80,7 @@ function buildAuthorizationUrl({ provider, tenantId }) {
   }
 
   const state = crypto.randomBytes(16).toString("hex");
-  setProviderState({ tenantId, provider, state });
+  await setProviderState({ tenantId, provider, state });
   const scope = providerSettings.scopes || "";
   const params = new URLSearchParams({
     client_id: providerSettings.clientId,
