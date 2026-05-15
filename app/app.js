@@ -2599,6 +2599,57 @@ if (kioskMode) {
         });
       }
 
+      function inlineMarkdown(s) {
+        s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+        s = s.replace(/__(.+?)__/g, '<strong>$1</strong>');
+        s = s.replace(/\*([^*\n]+)\*/g, '<em>$1</em>');
+        s = s.replace(/`([^`\n]+)`/g, '<code class="msg-code">$1</code>');
+        return s;
+      }
+
+      function formatMarkdown(raw) {
+        const lines = String(raw || "").split("\n");
+        let html = "";
+        let inOl = false;
+        let inUl = false;
+        let paragraphLines = [];
+
+        const flushParagraph = () => {
+          if (!paragraphLines.length) return;
+          const inner = paragraphLines.map(l => inlineMarkdown(escapeHtml(l))).join("<br>");
+          html += `<p class="msg-p">${inner}</p>`;
+          paragraphLines = [];
+        };
+        const closeList = () => {
+          if (inOl) { html += "</ol>"; inOl = false; }
+          if (inUl) { html += "</ul>"; inUl = false; }
+        };
+
+        for (const line of lines) {
+          const olMatch = line.match(/^(\d+)[.)]\s+([\s\S]*)/);
+          const ulMatch = line.match(/^[-•*]\s+([\s\S]*)/);
+
+          if (olMatch) {
+            flushParagraph();
+            if (!inOl) { closeList(); html += '<ol class="msg-list">'; inOl = true; }
+            html += `<li>${inlineMarkdown(escapeHtml(olMatch[2]))}</li>`;
+          } else if (ulMatch) {
+            flushParagraph();
+            if (!inUl) { closeList(); html += '<ul class="msg-list">'; inUl = true; }
+            html += `<li>${inlineMarkdown(escapeHtml(ulMatch[1]))}</li>`;
+          } else if (line.trim() === "") {
+            flushParagraph();
+            closeList();
+          } else {
+            if (inOl || inUl) { closeList(); }
+            paragraphLines.push(line);
+          }
+        }
+        flushParagraph();
+        closeList();
+        return html || `<p class="msg-p">${inlineMarkdown(escapeHtml(raw || ""))}</p>`;
+      }
+
       function renderMessageHtml(text, query) {
         const imageUrl = getImageUrlFromMessage(text);
         if (imageUrl) {
@@ -2608,21 +2659,17 @@ if (kioskMode) {
             html: `<div class="image-attachment">
               <img src="" alt="Capture" data-private-image="${safeUrl}" data-image-zoom="${safeUrl}" />
               <div class="image-actions">
-                <button class="btn ghost image-zoom-btn" type="button" data-image-zoom="${safeUrl}">
-                  Zoom
-                </button>
-                <button class="btn ghost" type="button" data-image-download="${safeUrl}">
-                  Telecharger
-                </button>
+                <button class="btn ghost image-zoom-btn" type="button" data-image-zoom="${safeUrl}">Zoom</button>
+                <button class="btn ghost" type="button" data-image-download="${safeUrl}">Telecharger</button>
               </div>
               <span class="image-caption">Capture jointe</span>
             </div>`
           };
         }
-        return {
-          isImage: false,
-          html: query ? highlightText(text || "", query) : escapeHtml(text || "")
-        };
+        if (query) {
+          return { isImage: false, html: highlightText(text || "", query) };
+        }
+        return { isImage: false, html: formatMarkdown(text || "") };
       }
 
       async function openImageLightbox(url) {
@@ -6810,7 +6857,6 @@ if (kioskMode) {
             return;
           }
           const data = await safeJson(res);
-          notify(t("feedback.sent"), "info");
           if (beginnerModeEnabled && resolved) {
             setBeginnerStep(t("beginner.step4.resolved"));
           }
@@ -6818,6 +6864,7 @@ if (kioskMode) {
             updateFailureHint(data.failure_count, data.threshold);
           }
           if (resolved) {
+            showResolveSuccess();
             setConversationStatus("resolved");
             setNextStep({
               text: t("conversation.resolvedThanks"),
@@ -6856,6 +6903,24 @@ if (kioskMode) {
         } catch (err) {
           notify(t("feedback.failed"), "error");
         }
+      }
+
+      function showResolveSuccess() {
+        let overlay = document.getElementById("resolveSuccessOverlay");
+        if (!overlay) {
+          overlay = document.createElement("div");
+          overlay.id = "resolveSuccessOverlay";
+          overlay.innerHTML = `
+            <div class="resolve-success-inner">
+              <div class="resolve-success-icon">✅</div>
+              <h2 class="resolve-success-title">Problème résolu !</h2>
+              <p class="resolve-success-sub">Votre retour a bien été enregistré.<br>Merci d'utiliser le support IT.</p>
+              <button class="resolve-success-close btn primary" onclick="document.getElementById('resolveSuccessOverlay').remove()">Fermer →</button>
+            </div>`;
+          document.body.appendChild(overlay);
+        }
+        overlay.classList.add("visible");
+        setTimeout(() => { if (overlay.parentNode) overlay.remove(); }, 5000);
       }
 
       if (resolveYesBtn) {
