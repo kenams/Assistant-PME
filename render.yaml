@@ -8,6 +8,7 @@ services:
   - type: web
     name: assistant-pme
     runtime: node
+    autoDeploy: true
     rootDir: backend
     buildCommand: npm ci
     startCommand: node src/index.js
