@@ -558,6 +558,56 @@ if (kioskMode) {
       let conversationId = null;
       let currentRole = null;
       let currentLang = localStorage.getItem("assistant_lang") || "fr";
+
+      // ── KAH Local Agent ────────────────────────────────────────────────
+      let localAgentInfo = null;
+      const AGENT_URL = "http://localhost:47878";
+
+      async function fetchLocalAgentInfo() {
+        try {
+          const ctrl = new AbortController();
+          const tid = setTimeout(() => ctrl.abort(), 1500);
+          const res = await fetch(AGENT_URL, { signal: ctrl.signal });
+          clearTimeout(tid);
+          if (res.ok) {
+            localAgentInfo = await res.json();
+            applyAgentInfoToContext();
+          }
+        } catch (_) {
+          localAgentInfo = null;
+        }
+      }
+
+      function applyAgentInfoToContext() {
+        if (!localAgentInfo) return;
+        if (contextPcName) {
+          contextPcName.value = localAgentInfo.hostname || "";
+          contextPcName.readOnly = true;
+          contextPcName.style.opacity = "0.6";
+          contextPcName.title = "Détecté automatiquement par l'agent KAH";
+          try { localStorage.setItem("kah_pc_name", contextPcName.value); } catch (_) {}
+        }
+        if (contextOs) {
+          const osRaw = localAgentInfo.os || "";
+          if (osRaw.includes("Windows 11")) contextOs.value = "Windows 11";
+          else if (osRaw.includes("Windows")) contextOs.value = "Windows";
+          else if (osRaw.includes("macOS") || osRaw.includes("Darwin")) contextOs.value = "macOS";
+          else if (osRaw.includes("Linux")) contextOs.value = "Linux";
+        }
+        const badge = document.getElementById("agentStatusBadge");
+        if (badge) {
+          badge.textContent = `🟢 ${localAgentInfo.hostname}`;
+          badge.title = [
+            `Nom PC : ${localAgentInfo.hostname}`,
+            `User Windows : ${localAgentInfo.username}`,
+            `IP LAN : ${localAgentInfo.local_ip}`,
+            `OS : ${localAgentInfo.os}`
+          ].join("\n");
+          badge.style.display = "inline-flex";
+        }
+        if (typeof updateContextSummary === "function") updateContextSummary();
+      }
+      // ──────────────────────────────────────────────────────────────────
       const i18nConfig = window.APP_I18N || {
         supportedLangs: ["fr", "en", "es"],
         translations: { fr: {} }
@@ -2984,8 +3034,8 @@ if (kioskMode) {
 
       function detectOsFromUA() {
         const ua = navigator.userAgent || "";
-        if (/Windows NT 10/.test(ua) && /Windows 11/.test(navigator.userAgentData && navigator.userAgentData.platform || "")) return "Windows 11";
-        if (/Windows NT 1[0-9]/.test(ua)) return "Windows 11";
+        if (/Windows NT 1[1-9]/.test(ua)) return "Windows 11";
+        if (/Windows NT 10/.test(ua)) return "Windows";
         if (/Windows/.test(ua)) return "Windows";
         if (/Mac OS X/.test(ua)) return "macOS";
         if (/Linux/.test(ua)) return "Linux";
@@ -2994,19 +3044,43 @@ if (kioskMode) {
 
       function getContextPayload() {
         const payload = {};
+
+        // Device
         if (contextDevice && contextDevice.value) payload.device = contextDevice.value;
-        const osVal = contextOs && contextOs.value ? contextOs.value : detectOsFromUA();
+
+        // OS — agent > select > userAgent
+        const osVal = (localAgentInfo && localAgentInfo.os)
+          ? (localAgentInfo.os.includes("Windows 11") ? "Windows 11"
+            : localAgentInfo.os.includes("Windows") ? "Windows"
+            : localAgentInfo.os.includes("macOS") || localAgentInfo.os.includes("Darwin") ? "macOS"
+            : localAgentInfo.os.includes("Linux") ? "Linux" : "")
+          : (contextOs && contextOs.value ? contextOs.value : detectOsFromUA());
         if (osVal) payload.os = osVal;
-        if (contextLocation && contextLocation.value) {
-          payload.location = contextLocation.value;
+
+        // PC name — agent hostname > champ manuel > localStorage
+        const pcName = (localAgentInfo && localAgentInfo.hostname)
+          ? localAgentInfo.hostname
+          : (contextPcName && contextPcName.value.trim())
+            ? contextPcName.value.trim()
+            : (function() { try { return localStorage.getItem("kah_pc_name") || ""; } catch(_) { return ""; } })();
+        if (pcName) {
+          payload.pc_name = pcName;
+          try { localStorage.setItem("kah_pc_name", pcName); } catch (_) {}
         }
-        if (contextUrgency && contextUrgency.value) {
-          payload.urgency = contextUrgency.value;
+
+        // Username Windows (si agent disponible)
+        if (localAgentInfo && localAgentInfo.username) {
+          payload.win_user = localAgentInfo.username;
         }
-        if (contextPcName && contextPcName.value.trim()) {
-          payload.pc_name = contextPcName.value.trim();
-          try { localStorage.setItem("kah_pc_name", payload.pc_name); } catch (_) {}
+
+        // IP locale (si agent disponible — complète l'IP publique côté serveur)
+        if (localAgentInfo && localAgentInfo.local_ip) {
+          payload.local_ip = localAgentInfo.local_ip;
         }
+
+        if (contextLocation && contextLocation.value) payload.location = contextLocation.value;
+        if (contextUrgency && contextUrgency.value) payload.urgency = contextUrgency.value;
+
         return Object.keys(payload).length ? payload : null;
       }
 
@@ -3694,6 +3768,7 @@ if (kioskMode) {
           loadQuickIssues();
           setUserPresentation(userPresentationEnabled);
           startUserRefreshTimer();
+          fetchLocalAgentInfo();
         }
         if (kioskMode) {
           setKioskWaiting(false);

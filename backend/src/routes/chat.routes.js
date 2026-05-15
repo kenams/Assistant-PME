@@ -68,7 +68,9 @@ const chatSchema = z.object({
       location: z.string().min(1).optional(),
       urgency: z.string().min(1).optional(),
       contact: z.string().min(1).optional(),
-      pc_name: z.string().min(1).optional()
+      pc_name: z.string().min(1).optional(),
+      win_user: z.string().min(1).optional(),
+      local_ip: z.string().min(1).optional()
     })
     .optional()
 });
@@ -116,10 +118,12 @@ function isSuccessMessage(message) {
 function formatContextBlock(context) {
   if (!context) return "";
   const lines = [];
-  if (context.user_login) lines.push(`Login: ${context.user_login}`);
-  if (context.device) lines.push(`Poste: ${context.device}`);
+  if (context.user_login) lines.push(`Login AD: ${context.user_login}`);
+  if (context.win_user) lines.push(`User Windows: ${context.win_user}`);
+  if (context.device) lines.push(`Type poste: ${context.device}`);
   if (context.pc_name) lines.push(`Nom PC: ${context.pc_name}`);
-  if (context.ip) lines.push(`IP: ${context.ip}`);
+  if (context.local_ip) lines.push(`IP LAN: ${context.local_ip}`);
+  if (context.ip) lines.push(`IP publique: ${context.ip}`);
   if (context.os) lines.push(`OS: ${context.os}`);
   if (context.location) lines.push(`Site: ${context.location}`);
   if (context.urgency) lines.push(`Urgence: ${context.urgency}`);

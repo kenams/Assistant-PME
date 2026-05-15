@@ -168,10 +168,12 @@ function buildContextSnippet({ tenantId, conversationId }) {
   if (!conversation || !conversation.context) return "";
   const ctx = conversation.context;
   const lines = [];
-  if (ctx.user_login) lines.push(`Login: ${ctx.user_login}`);
-  if (ctx.device) lines.push(`Poste: ${ctx.device}`);
+  if (ctx.user_login) lines.push(`Login AD: ${ctx.user_login}`);
+  if (ctx.win_user) lines.push(`User Windows: ${ctx.win_user}`);
+  if (ctx.device) lines.push(`Type poste: ${ctx.device}`);
   if (ctx.pc_name) lines.push(`Nom PC: ${ctx.pc_name}`);
-  if (ctx.ip) lines.push(`IP: ${ctx.ip}`);
+  if (ctx.local_ip) lines.push(`IP LAN: ${ctx.local_ip}`);
+  if (ctx.ip) lines.push(`IP publique: ${ctx.ip}`);
   if (ctx.os) lines.push(`OS: ${ctx.os}`);
   if (ctx.location) lines.push(`Site: ${ctx.location}`);
   if (ctx.urgency) lines.push(`Urgence: ${ctx.urgency}`);

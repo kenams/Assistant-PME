@@ -1,0 +1,15 @@
+{
+  "name": "kah-it-agent",
+  "version": "1.0.0",
+  "description": "KAH IT Agent — expose les infos poste pour le support",
+  "main": "agent.js",
+  "scripts": {
+    "start": "node agent.js",
+    "build": "npx pkg agent.js --target node18-win-x64 --output dist/kah-agent.exe --compress GZip",
+    "build:all": "npx pkg agent.js --targets node18-win-x64,node18-macos-x64,node18-linux-x64 --output dist/kah-agent --compress GZip"
+  },
+  "pkg": {
+    "assets": [],
+    "targets": ["node18-win-x64"]
+  }
+}
