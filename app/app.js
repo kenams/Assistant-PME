@@ -1883,9 +1883,20 @@ if (kioskMode) {
         }
       }
 
+      let _currentUserEmail = null;
+
       function ensureWelcomeMessage() {
         if (!chatWindow || chatWindow.children.length > 0) return;
-        appendMessage("assistant", t("assistant.welcome"));
+        let greeting = t("assistant.welcome");
+        if (_currentUserEmail) {
+          const localPart = _currentUserEmail.split("@")[0] || "";
+          const firstName = localPart.split(/[._\-+]/)[0];
+          const name = firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase();
+          if (name) {
+            greeting = `Bonjour ${name} 👋 Je suis votre assistant IT. Comment puis-je vous aider ?`;
+          }
+        }
+        appendMessage("assistant", greeting);
       }
 
       function setUserTab(tab) {
@@ -3752,6 +3763,7 @@ if (kioskMode) {
           return;
         }
         currentRole = data.role;
+        _currentUserEmail = data.email || null;
         applyRoleVisibility();
         setSessionBadge(data.role, data.email);
         if (document.body.classList.contains("login-only")) {

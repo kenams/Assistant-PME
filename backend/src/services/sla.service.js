@@ -4,6 +4,7 @@ const { computeAnalytics } = require("./analytics.service");
 const { createNotification } = require("./notifications.service");
 const { logEvent } = require("./audit.service");
 const { listTenants } = require("./tenants.service");
+const { notifySlaBreach } = require("./email.service");
 
 function isDuplicateNotification({ tenantId, ticketId, windowMs }) {
   const db = loadDb();
@@ -26,6 +27,7 @@ function sendSlaAlerts({ tenantId, userId, windowHours = 24 }) {
   alerts.forEach((alert) => {
     if (!alert.id) return;
     if (isDuplicateNotification({ tenantId, ticketId: alert.id, windowMs })) return;
+    const slaHours = analytics.sla?.hours || 24;
     createNotification({
       tenantId,
       userId: userId || null,
@@ -37,9 +39,14 @@ function sendSlaAlerts({ tenantId, userId, windowHours = 24 }) {
         status: alert.status,
         age_hours: alert.age_hours,
         severity: alert.type,
-        sla_hours: analytics.sla?.hours || 24
+        sla_hours: slaHours
       }
     });
+    notifySlaBreach({
+      ticket: { id: alert.id, title: alert.title, status: alert.status, priority: alert.type },
+      ageHours: alert.age_hours,
+      slaHours
+    }).catch(() => {});
     sent += 1;
   });
 

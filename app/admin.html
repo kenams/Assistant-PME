@@ -970,6 +970,7 @@
         <div class="admin-panel" id="panel-analytics">
           <div class="panel-title-row">
             <h2 class="panel-title">Analytiques</h2>
+            <span id="analyticsAutoRefreshIndicator" style="display:none;font-size:0.75rem;color:var(--text-muted);margin-right:auto;padding-left:0.75rem">⟳ Actualisation auto</span>
             <button id="miniDashboardRefreshBtn" class="btn ghost">↻ Actualiser</button>
           </div>
 
@@ -1428,6 +1429,19 @@
       const panel = document.getElementById('panel-' + name);
       if (panel) panel.classList.add('active');
       if (btn) btn.classList.add('active');
+
+      // Clear previous panel timers
+      if (analyticsRefreshTimer) { clearInterval(analyticsRefreshTimer); analyticsRefreshTimer = null; }
+      if (ticketsRefreshTimer) { clearInterval(ticketsRefreshTimer); ticketsRefreshTimer = null; }
+
+      if (name === 'analytics') {
+        loadAnalytics();
+        analyticsRefreshTimer = setInterval(() => loadAnalytics(), 60000);
+        const ind = document.getElementById('analyticsAutoRefreshIndicator');
+        if (ind) ind.style.display = 'inline';
+      } else if (name === 'queue') {
+        ticketsRefreshTimer = setInterval(() => { loadTicketQueue(); loadKpis(); }, 30000);
+      }
     }
 
     // ─── Page init ───────────────────────────────────────────
@@ -1699,6 +1713,8 @@
     // ─── Refresh buttons + auto-poll 60s ────────────────────
     let autoRefreshTimer = null;
     let lastRefreshTime = Date.now();
+    let analyticsRefreshTimer = null;
+    let ticketsRefreshTimer = null;
 
     function updateLiveActivityTime() {
       const el = document.getElementById('liveActivityTime');

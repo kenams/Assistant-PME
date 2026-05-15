@@ -1,6 +1,7 @@
 const crypto = require("crypto");
 const { withDb, loadDb } = require("./store.service");
 const { fireWebhook } = require("./webhook.service");
+const emailService = require("./email.service");
 
 function createNotification({ tenantId, userId, type, channel, payload }) {
   const notification = withDb((db) => {
@@ -22,6 +23,13 @@ function createNotification({ tenantId, userId, type, channel, payload }) {
     eventType: `notification.${type}`,
     payload: notification
   }).catch(() => {});
+
+  if (type === "ticket_created" && payload && payload.ticket) {
+    emailService.notifyTicketCreated({
+      ticket: payload.ticket,
+      context: payload.context || null
+    }).catch(() => {});
+  }
 
   return notification;
 }

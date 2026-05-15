@@ -16,6 +16,7 @@ const { createNotification } = require("../services/notifications.service");
 const { buildTicketsPdf } = require("../services/pdf.service");
 const { validateOr400 } = require("../utils/validate");
 const { buildCsv } = require("../utils/csv");
+const { maybeGenerateKbFromTicket } = require("../services/auto-kb.service");
 
 const router = express.Router();
 
@@ -92,11 +93,8 @@ router.post("/", authRequired, async (req, res) => {
     tenantId,
     userId: req.user.sub,
     type: "ticket_created",
-    channel: "email_simulated",
-    payload: {
-      subject: `Nouveau ticket: ${ticket.title}`,
-      body: ticket.description
-    }
+    channel: "email",
+    payload: { ticket, subject: `Nouveau ticket: ${ticket.title}`, body: ticket.description }
   });
 
   return res.status(201).json(ticket);
@@ -189,6 +187,9 @@ router.patch("/:id", authRequired, requireStaff, (req, res) => {
     action: "ticket_updated",
     meta: { ticket_id: ticketId, updates: payload }
   });
+  if (payload.status === "resolved" || payload.status === "closed") {
+    maybeGenerateKbFromTicket({ tenantId, ticket: updated }).catch(() => {});
+  }
   return res.json(updated);
 });
 

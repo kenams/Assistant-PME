@@ -165,5 +165,6 @@ module.exports = {
   withDb,
   getStoreVersion: () => storeVersion,
   listBackups,
-  restoreLatestSnapshot
+  restoreLatestSnapshot,
+  createSnapshot
 };

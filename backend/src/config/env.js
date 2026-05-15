@@ -53,6 +53,16 @@ const env = {
   stripeSecretKey: process.env.STRIPE_SECRET_KEY || "",
   stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET || "",
   appUrl: process.env.APP_URL || "http://localhost:3001",
+  smtpHost: process.env.SMTP_HOST || "",
+  smtpPort: parseInt(process.env.SMTP_PORT || "587", 10),
+  smtpUser: process.env.SMTP_USER || "",
+  smtpPass: process.env.SMTP_PASS || "",
+  smtpFrom: process.env.SMTP_FROM || "",
+  notifyEmails: process.env.NOTIFY_EMAILS || "",
+  backupIntervalHours: parseInt(process.env.BACKUP_INTERVAL_HOURS || "6", 10),
+  staleConvDays: parseInt(process.env.STALE_CONV_DAYS || "7", 10),
+  uploadRetentionDays: parseInt(process.env.UPLOAD_RETENTION_DAYS || "30", 10),
+  autoKbEnabled: (process.env.AUTO_KB_ENABLED || "true").toLowerCase() !== "false",
 };
 
 module.exports = { env };

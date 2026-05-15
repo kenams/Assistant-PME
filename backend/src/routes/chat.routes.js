@@ -302,8 +302,9 @@ router.post("/", authRequired, async (req, res) => {
       tenantId,
       userId,
       type: "ticket_created",
-      channel: "email_simulated",
+      channel: "email",
       payload: {
+        ticket,
         subject: `Nouveau ticket: ${ticket.title}`,
         body: ticket.description
       }
@@ -404,11 +405,8 @@ router.post("/feedback", authRequired, (req, res) => {
           tenantId,
           userId: req.user.sub,
           type: "ticket_created",
-          channel: "email_simulated",
-          payload: {
-            subject: `Nouveau ticket: ${ticket.title}`,
-            body: ticket.description
-          }
+          channel: "email",
+          payload: { ticket, subject: `Nouveau ticket: ${ticket.title}`, body: ticket.description }
         });
       } else {
         createdTicket = existing;
@@ -529,11 +527,8 @@ router.post("/escalate", authRequired, async (req, res) => {
     tenantId,
     userId: req.user.sub,
     type: "ticket_created",
-    channel: "email_simulated",
-    payload: {
-      subject: `Nouveau ticket: ${ticket.title}`,
-      body: ticket.description
-    }
+    channel: "email",
+    payload: { ticket, subject: `Nouveau ticket: ${ticket.title}`, body: ticket.description }
   });
 
   return res.json({ created: true, ticket });

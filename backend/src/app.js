@@ -12,6 +12,7 @@ const { monitoringMiddleware } = require("./middleware/monitoring");
 const { defaultLimiter } = require("./middleware/rate-limit");
 const { startMailboxPolling } = require("./services/mailbox.service");
 const { startSlaAlertScheduler } = require("./services/sla.service");
+const { startAllSchedulers } = require("./services/schedulers.service");
 
 const healthRoutes = require("./routes/health.routes");
 const authRoutes = require("./routes/auth.routes");
@@ -37,6 +38,7 @@ ensureSeeded();
 if (env.nodeEnv !== "test") {
   startMailboxPolling();
   startSlaAlertScheduler();
+  startAllSchedulers();
 }
 
 app.use(pinoHttp({ logger }));
@@ -54,6 +56,8 @@ app.use(
           "'self'",
           "http://localhost:3001",
           "http://127.0.0.1:3001",
+          "http://localhost:47878",
+          "http://127.0.0.1:47878",
           "https://api.stripe.com",
           "https://api.openai.com"
         ],
