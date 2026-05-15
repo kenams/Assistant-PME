@@ -207,9 +207,11 @@
         border-radius: 12px;
         min-width: 20px;
         text-align: center;
-        animation: badgePop 2s ease infinite;
+        animation: none;
+        transition: transform 0.2s;
       }
-      .sidebar-badge.ok   { background: var(--success); animation: none; }
+      .sidebar-badge:not(.ok) { animation: badgePop 4s ease 0.5s 1; }
+      .sidebar-badge.ok   { background: var(--success); }
       .sidebar-badge.warn { background: var(--warning); color: #000; }
 
       /* ═══════════════════════════════════════════════════════════
@@ -282,24 +284,24 @@
         background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
       }
 
-      /* Barre de progression en bas */
+      /* Barre de progression en bas — pilotée par --kpi-pct (défaut 0) */
       .kpi-card::after {
         content: '';
         position: absolute;
         bottom: 0; left: 0;
         height: 3px;
-        width: 60%;
+        width: var(--kpi-pct, 0%);
         border-radius: 0 2px 0 20px;
         background: currentColor;
-        opacity: 0.25;
-        transition: width 0.6s ease, opacity 0.3s;
+        opacity: 0.35;
+        transition: width 0.8s cubic-bezier(0.4,0,0.2,1), opacity 0.3s;
       }
 
       .kpi-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 16px 48px rgba(0,0,0,0.5);
+        transform: translateY(-3px);
+        box-shadow: 0 12px 40px rgba(0,0,0,0.5);
       }
-      .kpi-card:hover::after { width: 85%; opacity: 0.4; }
+      .kpi-card:hover::after { opacity: 0.55; }
 
       /* Couleurs par type */
       .kpi-card.accent  { border-left: 3px solid var(--accent); color: var(--accent); }
@@ -408,21 +410,26 @@
         grid-template-columns: 6px 1fr auto auto auto;
         gap: 14px;
         align-items: center;
-        padding: 16px 18px;
+        padding: 14px 18px;
         background: var(--card);
         border: 1px solid var(--stroke);
         border-radius: 12px;
         cursor: pointer;
-        transition: border-color 0.18s, background 0.18s, transform 0.18s;
+        transition: border-color 0.15s, background 0.15s, transform 0.15s, box-shadow 0.15s;
         position: relative;
       }
 
       .ticket-row:hover {
-        border-color: var(--stroke2);
-        background: var(--card-hover);
-        transform: translateX(2px);
+        border-color: rgba(79,142,247,0.25);
+        background: rgba(79,142,247,0.04);
+        transform: translateX(3px);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.2), inset 0 0 0 1px rgba(79,142,247,0.08);
       }
-      .ticket-row.expanded { border-color: var(--accent); box-shadow: 0 0 0 1px rgba(79,142,247,0.2); }
+      .ticket-row.expanded {
+        border-color: var(--accent);
+        background: rgba(79,142,247,0.06);
+        box-shadow: 0 0 0 1px rgba(79,142,247,0.2), 0 4px 24px rgba(79,142,247,0.1);
+      }
 
       .ticket-row-priority {
         width: 6px;
@@ -1677,7 +1684,12 @@
       navigator.clipboard.writeText(text).catch(() => {});
     }
 
+    function setKpiPct(card, pct) {
+      if (card) card.style.setProperty('--kpi-pct', Math.min(100, Math.max(0, pct)) + '%');
+    }
+
     function updateKpisFromTickets() {
+      const total = allTickets.length || 1;
       const open = allTickets.filter(t => t.status === 'open').length;
       const critical = allTickets.filter(t => t.priority === 'critical' || t.priority === 'high').length;
       const resolved = allTickets.filter(t => t.status === 'resolved').length;
@@ -1687,6 +1699,9 @@
       if (el('kpiResolved')) el('kpiResolved').textContent = resolved;
       if (el('sidebarOpenCount')) el('sidebarOpenCount').textContent = open;
       el('kpiCritical').parentElement.className = 'kpi-card ' + (critical > 0 ? 'danger' : 'success');
+      setKpiPct(el('kpiOpen')?.closest('.kpi-card'), (open / total) * 100);
+      setKpiPct(el('kpiCritical')?.closest('.kpi-card'), (critical / total) * 100);
+      setKpiPct(el('kpiResolved')?.closest('.kpi-card'), (resolved / total) * 100);
     }
 
     async function loadKpis() {
