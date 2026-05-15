@@ -178,8 +178,8 @@ async function buildContextSnippet({ tenantId, conversationId }) {
   return `\n\n---\n[Contexte technicien]\n${lines.join("\n")}`;
 }
 
-function resolveGlpiConfig({ tenantId }) {
-  const settings = getOrgSettings({ tenantId });
+async function resolveGlpiConfig({ tenantId }) {
+  const settings = await getOrgSettings({ tenantId });
   const hasTenantConfig = Boolean(
     settings.glpi_enabled ||
       settings.glpi_base_url ||
@@ -219,7 +219,7 @@ async function createTicket({ tenantId, conversationId, draft }) {
     updated_at: now
   }).returning("*");
 
-  const glpiConfig = resolveGlpiConfig({ tenantId });
+  const glpiConfig = await resolveGlpiConfig({ tenantId });
   if (isGlpiEnabled(glpiConfig)) {
     try {
       const result = await createGlpiTicket({

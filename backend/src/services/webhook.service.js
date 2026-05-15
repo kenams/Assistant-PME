@@ -2,7 +2,7 @@ const crypto = require("crypto");
 const { getOrgSettings } = require("./org.service");
 
 async function fireWebhook({ tenantId, eventType, payload }) {
-  const settings = getOrgSettings({ tenantId });
+  const settings = await getOrgSettings({ tenantId });
   if (!settings || !settings.webhook_url) {
     return;
   }

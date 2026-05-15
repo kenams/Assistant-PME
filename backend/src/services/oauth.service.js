@@ -73,7 +73,7 @@ function buildAuthorizationUrl({ provider, tenantId }) {
   if (!config) {
     return { error: "provider_not_supported" };
   }
-  const settings = getOrgSettings({ tenantId });
+  const settings = await getOrgSettings({ tenantId });
   const providerSettings = getSettingsForProvider(settings, provider);
   if (!providerSettings || !providerSettings.clientId || !providerSettings.redirectUri) {
     return { error: "missing_oauth_config" };
@@ -107,7 +107,7 @@ async function exchangeCode({ provider, tenantId, code, state }) {
   if (!config) {
     return { error: "provider_not_supported" };
   }
-  const settings = getOrgSettings({ tenantId });
+  const settings = await getOrgSettings({ tenantId });
   const providerSettings = getSettingsForProvider(settings, provider);
   if (!providerSettings || !providerSettings.clientId || !providerSettings.clientSecret) {
     return { error: "missing_oauth_config" };
@@ -155,7 +155,7 @@ async function refreshAccessToken({ provider, tenantId }) {
   if (!config) {
     return { error: "provider_not_supported" };
   }
-  const settings = getOrgSettings({ tenantId });
+  const settings = await getOrgSettings({ tenantId });
   const providerSettings = getSettingsForProvider(settings, provider);
   if (!providerSettings || !providerSettings.clientId || !providerSettings.clientSecret) {
     return { error: "missing_oauth_config" };
@@ -230,7 +230,7 @@ async function refreshAccessToken({ provider, tenantId }) {
 }
 
 async function getValidAccessToken({ provider, tenantId }) {
-  const settings = getOrgSettings({ tenantId });
+  const settings = await getOrgSettings({ tenantId });
   let accessToken = "";
   let expiresAt = "";
   if (provider === "google") {

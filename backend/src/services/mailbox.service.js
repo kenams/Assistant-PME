@@ -8,10 +8,10 @@ const { getValidAccessToken } = require("./oauth.service");
 
 let poller = null;
 
-function buildConfig() {
-  const tenantId = getDefaultTenantId();
+async function buildConfig() {
+  const tenantId = await getDefaultTenantId();
   if (!tenantId) return null;
-  const settings = getOrgSettings({ tenantId });
+  const settings = await getOrgSettings({ tenantId });
   if (!settings.mailbox_enabled) return null;
   const provider = settings.mailbox_provider || "gmail";
   const host =
@@ -194,12 +194,12 @@ function normalizeText(text) {
 }
 
 async function fetchMailboxOnce() {
-  const config = buildConfig();
+  const config = await buildConfig();
   if (!config) {
     return { processed: 0 };
   }
 
-  const settings = getOrgSettings({ tenantId: config.tenantId });
+  const settings = await getOrgSettings({ tenantId: config.tenantId });
   if (settings.mailbox_provider === "gmail" && settings.oauth_google_access_token) {
     return fetchGmailMessages({
       tenantId: config.tenantId,
@@ -307,10 +307,10 @@ function startMailboxPolling() {
   fetchMailboxOnce().catch(() => {});
 }
 
-function testMailboxConnection() {
-  const config = buildConfig();
+async function testMailboxConnection() {
+  const config = await buildConfig();
   if (!config) {
-    return Promise.resolve({ ok: false, error: "not_configured" });
+    return { ok: false, error: "not_configured" };
   }
   return new Promise((resolve) => {
     const imap = createImap(config);

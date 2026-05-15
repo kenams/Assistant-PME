@@ -39,7 +39,7 @@ function buildTeamsPayload(ticket) {
 }
 
 async function notifyTicketCreated({ tenantId, ticket }) {
-  const settings = getOrgSettings({ tenantId });
+  const settings = await getOrgSettings({ tenantId });
   if (!settings.notify_on_ticket_created) {
     return;
   }
