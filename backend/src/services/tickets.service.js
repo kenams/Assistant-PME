@@ -168,13 +168,16 @@ function buildContextSnippet({ tenantId, conversationId }) {
   if (!conversation || !conversation.context) return "";
   const ctx = conversation.context;
   const lines = [];
+  if (ctx.user_login) lines.push(`Login: ${ctx.user_login}`);
   if (ctx.device) lines.push(`Poste: ${ctx.device}`);
+  if (ctx.pc_name) lines.push(`Nom PC: ${ctx.pc_name}`);
+  if (ctx.ip) lines.push(`IP: ${ctx.ip}`);
   if (ctx.os) lines.push(`OS: ${ctx.os}`);
   if (ctx.location) lines.push(`Site: ${ctx.location}`);
   if (ctx.urgency) lines.push(`Urgence: ${ctx.urgency}`);
   if (ctx.contact) lines.push(`Contact: ${ctx.contact}`);
   if (!lines.length) return "";
-  return `\n\n---\nContexte utilisateur\n${lines.join("\n")}`;
+  return `\n\n---\n[Contexte technicien]\n${lines.join("\n")}`;
 }
 
 function resolveGlpiConfig({ tenantId }) {

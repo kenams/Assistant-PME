@@ -67,7 +67,8 @@ const chatSchema = z.object({
       os: z.string().min(1).optional(),
       location: z.string().min(1).optional(),
       urgency: z.string().min(1).optional(),
-      contact: z.string().min(1).optional()
+      contact: z.string().min(1).optional(),
+      pc_name: z.string().min(1).optional()
     })
     .optional()
 });
@@ -115,13 +116,16 @@ function isSuccessMessage(message) {
 function formatContextBlock(context) {
   if (!context) return "";
   const lines = [];
+  if (context.user_login) lines.push(`Login: ${context.user_login}`);
   if (context.device) lines.push(`Poste: ${context.device}`);
+  if (context.pc_name) lines.push(`Nom PC: ${context.pc_name}`);
+  if (context.ip) lines.push(`IP: ${context.ip}`);
   if (context.os) lines.push(`OS: ${context.os}`);
   if (context.location) lines.push(`Site: ${context.location}`);
   if (context.urgency) lines.push(`Urgence: ${context.urgency}`);
   if (context.contact) lines.push(`Contact: ${context.contact}`);
   if (!lines.length) return "";
-  return `Contexte utilisateur\n${lines.join("\n")}`;
+  return `[Contexte technicien]\n${lines.join("\n")}`;
 }
 
 router.post("/", authRequired, async (req, res) => {
@@ -210,7 +214,24 @@ router.post("/", authRequired, async (req, res) => {
     });
   }
 
-  const activeContext = context || conversation.context || null;
+  const clientIp =
+    ((req.headers["x-forwarded-for"] || "").split(",")[0].trim()) ||
+    req.socket.remoteAddress ||
+    req.ip ||
+    "Inconnue";
+  const userLogin = req.user.email || req.user.sub || "Inconnu";
+
+  const baseContext = context || conversation.context || null;
+  const activeContext = baseContext
+    ? { ...baseContext, ip: clientIp, user_login: userLogin }
+    : { ip: clientIp, user_login: userLogin };
+
+  updateConversation({
+    tenantId,
+    conversationId: conversation.id,
+    updates: { context: activeContext }
+  });
+
   const contextBlock = formatContextBlock(activeContext);
   const messageWithContext = contextBlock
     ? `${message}\n\n${contextBlock}`

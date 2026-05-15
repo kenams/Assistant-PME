@@ -178,6 +178,7 @@ if (kioskMode) {
       const contextOs = document.getElementById("contextOs");
       const contextLocation = document.getElementById("contextLocation");
       const contextUrgency = document.getElementById("contextUrgency");
+      const contextPcName = document.getElementById("contextPcName");
       const contextSummary = document.getElementById("contextSummary");
       const checklistReloadBtn = document.getElementById("checklistReloadBtn");
       const checklistExportBtn = document.getElementById("checklistExportBtn");
@@ -1147,6 +1148,17 @@ if (kioskMode) {
       }
 
       if (contextCard) {
+        if (contextPcName) {
+          try {
+            const saved = localStorage.getItem("kah_pc_name");
+            if (saved) contextPcName.value = saved;
+          } catch (_) {}
+          contextPcName.addEventListener("input", updateContextSummary);
+        }
+        if (contextOs && !contextOs.value) {
+          const detectedOs = detectOsFromUA();
+          if (detectedOs) contextOs.value = detectedOs;
+        }
         updateContextSummary();
         [contextDevice, contextOs, contextLocation, contextUrgency].forEach((field) => {
           if (!field) return;
@@ -2970,15 +2982,30 @@ if (kioskMode) {
         }
       }
 
+      function detectOsFromUA() {
+        const ua = navigator.userAgent || "";
+        if (/Windows NT 10/.test(ua) && /Windows 11/.test(navigator.userAgentData && navigator.userAgentData.platform || "")) return "Windows 11";
+        if (/Windows NT 1[0-9]/.test(ua)) return "Windows 11";
+        if (/Windows/.test(ua)) return "Windows";
+        if (/Mac OS X/.test(ua)) return "macOS";
+        if (/Linux/.test(ua)) return "Linux";
+        return "";
+      }
+
       function getContextPayload() {
         const payload = {};
         if (contextDevice && contextDevice.value) payload.device = contextDevice.value;
-        if (contextOs && contextOs.value) payload.os = contextOs.value;
+        const osVal = contextOs && contextOs.value ? contextOs.value : detectOsFromUA();
+        if (osVal) payload.os = osVal;
         if (contextLocation && contextLocation.value) {
           payload.location = contextLocation.value;
         }
         if (contextUrgency && contextUrgency.value) {
           payload.urgency = contextUrgency.value;
+        }
+        if (contextPcName && contextPcName.value.trim()) {
+          payload.pc_name = contextPcName.value.trim();
+          try { localStorage.setItem("kah_pc_name", payload.pc_name); } catch (_) {}
         }
         return Object.keys(payload).length ? payload : null;
       }
