@@ -402,10 +402,10 @@ router.get("/status", authRequired, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-router.post("/webhook/stripe", express.raw({ type: "application/json" }), async (req, res) => {
+router.post("/webhook/stripe", async (req, res) => {
   const sig = req.headers["stripe-signature"];
   try {
-    const event = await handleWebhook({ rawBody: req.body, signature: sig });
+    const event = await handleWebhook({ rawBody: req.rawBody, signature: sig });
     if (!event) return res.status(400).json({ error: "stripe_not_configured" });
 
     const now = new Date().toISOString();
