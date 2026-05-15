@@ -1,6 +1,11 @@
 const knex = require("knex");
 const { env } = require("./env");
 
+if (!env.databaseUrl) {
+  console.error("FATAL: DATABASE_URL is not set. Add it to your environment variables.");
+  process.exit(1);
+}
+
 const isProd = env.nodeEnv === "production" || (env.databaseUrl || "").includes("render.com");
 
 const db = knex({
