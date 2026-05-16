@@ -44,7 +44,7 @@ services:
       - key: APP_URL
         sync: false
       - key: SEED_ADMIN_EMAIL
-        value: kahdigital@gmail.com
+        value: kahdigital42@gmail.com
       - key: SEED_ADMIN_PASSWORD
         sync: false
       - key: SEED_USER_EMAIL
