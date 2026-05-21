@@ -149,10 +149,34 @@ async function deleteDocument({ tenantId, documentId }) {
   const deleted = await db("kb_documents")
     .where({ id: documentId, tenant_id: tenantId })
     .delete();
-  // kb_chunks supprimés par CASCADE en DB, sinon manuellement:
   if (deleted === 0) return false;
   await db("kb_chunks").where({ document_id: documentId }).delete();
   return true;
+}
+
+async function updateDocument({ tenantId, documentId, title, sourceType, content }) {
+  const doc = await db("kb_documents").where({ id: documentId, tenant_id: tenantId }).first();
+  if (!doc) return null;
+  const normalizedContent = (sourceType || doc.source_type) === "procedure"
+    ? normalizeProcedureContent(title || doc.title, content)
+    : content || "";
+  const now = new Date().toISOString();
+  await db("kb_documents").where({ id: documentId, tenant_id: tenantId }).update({
+    title: title || doc.title,
+    source_type: sourceType || doc.source_type
+  });
+  await db("kb_chunks").where({ document_id: documentId }).delete();
+  const chunks = chunkText(normalizedContent, 800);
+  if (chunks.length > 0) {
+    await db("kb_chunks").insert(chunks.map(chunk => ({
+      id: crypto.randomUUID(),
+      tenant_id: tenantId,
+      document_id: documentId,
+      chunk_text: chunk,
+      created_at: now
+    })));
+  }
+  return { id: documentId, title: title || doc.title, source_type: sourceType || doc.source_type, chunk_count: chunks.length };
 }
 
 module.exports = {
@@ -160,5 +184,6 @@ module.exports = {
   searchKb,
   listDocuments,
   deleteDocument,
+  updateDocument,
   ensureProcedureForQuickIssue
 };

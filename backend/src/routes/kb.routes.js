@@ -7,7 +7,8 @@ const {
   ingestDocument,
   searchKb,
   listDocuments,
-  deleteDocument
+  deleteDocument,
+  updateDocument
 } = require("../services/rag.service");
 const { validateOr400 } = require("../utils/validate");
 const { extractTextFromFile } = require("../utils/file-text");
@@ -136,6 +137,29 @@ router.get("/documents", authRequired, async (req, res, next) => {
   } catch (err) {
     next(err);
   }
+});
+
+router.get("/documents/:id", authRequired, async (req, res, next) => {
+  try {
+    const tenantId = req.user.tenant_id;
+    const { db } = require("../config/db");
+    const doc = await db("kb_documents").where({ id: req.params.id, tenant_id: tenantId }).first();
+    if (!doc) return res.status(404).json({ error: "document_not_found" });
+    const chunks = await db("kb_chunks").where({ document_id: doc.id });
+    return res.json({ ...doc, content: chunks.map(c => c.chunk_text).join("\n\n"), chunk_count: chunks.length });
+  } catch (err) { next(err); }
+});
+
+router.put("/documents/:id", authRequired, requireStaff, async (req, res, next) => {
+  try {
+    const tenantId = req.user.tenant_id;
+    const { title, source_type, content } = req.body || {};
+    if (!content || !content.trim()) return res.status(400).json({ error: "missing_content" });
+    const updated = await updateDocument({ tenantId, documentId: req.params.id, title, sourceType: source_type, content });
+    if (!updated) return res.status(404).json({ error: "document_not_found" });
+    await logEvent({ tenantId, userId: req.user.sub, action: "kb_document_updated", meta: { document_id: req.params.id } });
+    return res.json(updated);
+  } catch (err) { next(err); }
 });
 
 router.delete("/documents/:id", authRequired, requireStaff, async (req, res, next) => {

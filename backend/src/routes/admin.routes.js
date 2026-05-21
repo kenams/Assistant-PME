@@ -5,7 +5,7 @@ const { requireAdmin } = require("../middleware/roles");
 const { env } = require("../config/env");
 const { db } = require("../config/db");
 const { listAudit, logEvent } = require("../services/audit.service");
-const { testGlpiConnection, isGlpiEnabled } = require("../services/glpi.service");
+const { testGlpiConnection, isGlpiEnabled, listTickets, getTicket, updateTicketStatus, addFollowup } = require("../services/glpi.service");
 const { getSnapshot } = require("../services/monitoring.service");
 const { getTenantById } = require("../services/users.service");
 const { buildRoiPdf, buildAnalyticsPdf } = require("../services/pdf.service");
@@ -689,6 +689,58 @@ router.post("/restore", authRequired, requireAdmin, upload.single("file"), async
     // En mode PostgreSQL, la restauration via fichier n'est pas supportée
     await logEvent({ tenantId: req.user.tenant_id, userId: req.user.sub, action: "backup_restore_attempted", meta: {} });
     return res.status(400).json({ error: "restore_not_available_use_pg_backup" });
+  } catch (err) { next(err); }
+});
+
+async function resolveGlpiConfig(tenantId) {
+  const settings = await getOrgSettings({ tenantId });
+  return {
+    enabled: Boolean(settings.glpi_enabled),
+    baseUrl: settings.glpi_base_url || "",
+    appToken: settings.glpi_app_token || "",
+    userToken: settings.glpi_user_token || ""
+  };
+}
+
+router.get("/glpi/tickets", authRequired, requireAdmin, async (req, res, next) => {
+  try {
+    const glpiConfig = await resolveGlpiConfig(req.user.tenant_id);
+    if (!isGlpiEnabled(glpiConfig)) return res.status(400).json({ ok: false, error: "glpi_not_configured" });
+    const limit = Math.min(Number(req.query.limit || 50), 200);
+    const status = req.query.status || null;
+    const tickets = await listTickets({ limit, status, configOverride: glpiConfig });
+    return res.json({ items: tickets, total: tickets.length });
+  } catch (err) { next(err); }
+});
+
+router.get("/glpi/tickets/:id", authRequired, requireAdmin, async (req, res, next) => {
+  try {
+    const glpiConfig = await resolveGlpiConfig(req.user.tenant_id);
+    if (!isGlpiEnabled(glpiConfig)) return res.status(400).json({ ok: false, error: "glpi_not_configured" });
+    const ticket = await getTicket(Number(req.params.id), glpiConfig);
+    return res.json(ticket);
+  } catch (err) { next(err); }
+});
+
+router.patch("/glpi/tickets/:id/status", authRequired, requireAdmin, async (req, res, next) => {
+  try {
+    const glpiConfig = await resolveGlpiConfig(req.user.tenant_id);
+    if (!isGlpiEnabled(glpiConfig)) return res.status(400).json({ ok: false, error: "glpi_not_configured" });
+    const { status } = req.body || {};
+    if (!status) return res.status(400).json({ error: "missing_status" });
+    const result = await updateTicketStatus(Number(req.params.id), status, glpiConfig);
+    return res.json(result);
+  } catch (err) { next(err); }
+});
+
+router.post("/glpi/tickets/:id/followup", authRequired, requireAdmin, async (req, res, next) => {
+  try {
+    const glpiConfig = await resolveGlpiConfig(req.user.tenant_id);
+    if (!isGlpiEnabled(glpiConfig)) return res.status(400).json({ ok: false, error: "glpi_not_configured" });
+    const { content } = req.body || {};
+    if (!content || !content.trim()) return res.status(400).json({ error: "missing_content" });
+    const result = await addFollowup(Number(req.params.id), content.trim(), glpiConfig);
+    return res.json(result);
   } catch (err) { next(err); }
 });
 

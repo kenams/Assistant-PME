@@ -867,6 +867,9 @@
         <button class="sidebar-link" data-panel="analytics" onclick="showPanel('analytics',this)">
           <span class="icon">📊</span> Analytiques
         </button>
+        <button class="sidebar-link" data-panel="glpi" onclick="showPanel('glpi',this)">
+          <span class="icon">🔗</span> GLPI Tickets
+        </button>
 
         <div class="sidebar-section-label">Configuration</div>
         <button class="sidebar-link" data-panel="quicksetup" onclick="showPanel('quicksetup',this)">
@@ -1176,10 +1179,45 @@
 
         <!-- ══ BASE DE CONNAISSANCES ══ -->
         <div class="admin-panel" id="panel-kb">
-          <h2 class="panel-title">Base de connaissances</h2>
+          <div class="panel-title-row">
+            <h2 class="panel-title">Base de connaissances</h2>
+            <div class="actions-inline">
+              <button id="kbAddBtn" class="btn primary" style="font-size:0.82rem">+ Ajouter procédure</button>
+              <button id="kbRefreshDocsBtn" class="btn ghost" style="font-size:0.82rem">↻ Actualiser</button>
+            </div>
+          </div>
+
+          <!-- Éditeur KB -->
+          <div class="card" id="kbEditorCard" style="display:none">
+            <div class="card-header">
+              <h3 id="kbEditorTitle">Nouvelle procédure</h3>
+              <button class="btn ghost" onclick="closeKbEditor()">✕ Fermer</button>
+            </div>
+            <div style="padding:16px;display:flex;flex-direction:column;gap:10px">
+              <input id="kbEditTitle" placeholder="Titre de la procédure *" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--stroke);border-radius:8px;padding:9px 12px;color:var(--text);font-family:inherit;font-size:0.88rem" />
+              <select id="kbEditType" class="kb-filter" style="width:100%">
+                <option value="procedure">Procédure IT</option>
+                <option value="faq">FAQ</option>
+                <option value="note">Note interne</option>
+              </select>
+              <textarea id="kbEditContent" rows="8" placeholder="Contenu de la procédure (étapes, symptômes, résolution…) *" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--stroke);border-radius:8px;padding:9px 12px;color:var(--text);font-family:inherit;font-size:0.85rem;resize:vertical"></textarea>
+              <div style="display:flex;gap:8px">
+                <button id="kbSaveBtn" class="btn primary" style="flex:1">💾 Enregistrer</button>
+                <button class="btn ghost" onclick="closeKbEditor()">Annuler</button>
+              </div>
+              <div id="kbEditorStatus" style="font-size:0.82rem;color:var(--text-muted);min-height:18px"></div>
+            </div>
+          </div>
+
+          <!-- Liste des documents KB -->
+          <div class="card" style="padding:0">
+            <div id="kbDocsList" style="display:flex;flex-direction:column">
+              <div style="text-align:center;padding:32px;color:var(--text-muted)">Cliquez sur Actualiser pour voir les procédures</div>
+            </div>
+          </div>
 
           <div class="card" id="kbCsvCard">
-            <div class="card-header"><h3>Importer des procédures (CSV)</h3></div>
+            <div class="card-header"><h3>Import / Export CSV</h3></div>
             <div class="actions-inline">
               <input id="kbCsvImportInput" type="file" accept=".csv,text/csv" />
               <button id="kbExportCsvBtn" class="btn ghost" type="button">Exporter CSV</button>
@@ -1346,6 +1384,40 @@
           <div class="card" style="padding:0">
             <div id="leadsTable" style="display:flex;flex-direction:column">
               <div style="text-align:center;padding:40px;color:var(--text-muted)">Cliquez sur Actualiser pour charger les leads</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ GLPI TICKETS ══ -->
+        <div class="admin-panel" id="panel-glpi">
+          <div class="panel-title-row">
+            <h2 class="panel-title">GLPI — Tickets en direct</h2>
+            <div class="actions-inline">
+              <select id="glpiStatusFilter" class="kb-filter" style="font-size:0.82rem">
+                <option value="">Tous les statuts</option>
+                <option value="new">Nouveau</option>
+                <option value="open">En cours</option>
+                <option value="pending">En attente</option>
+                <option value="resolved">Résolu</option>
+                <option value="closed">Fermé</option>
+              </select>
+              <button id="glpiRefreshBtn" class="btn ghost">↻ Actualiser</button>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 380px;gap:16px;height:calc(100vh - 160px)">
+            <!-- Liste tickets -->
+            <div class="card" style="padding:0;overflow-y:auto">
+              <div id="glpiTicketsList" style="display:flex;flex-direction:column">
+                <div style="text-align:center;padding:40px;color:var(--text-muted)">Cliquez sur Actualiser pour charger les tickets GLPI</div>
+              </div>
+            </div>
+
+            <!-- Détail ticket -->
+            <div class="card" id="glpiTicketDetail" style="display:flex;flex-direction:column;gap:12px">
+              <div style="text-align:center;padding:40px;color:var(--text-muted);font-size:0.88rem">
+                Sélectionnez un ticket pour voir le détail
+              </div>
             </div>
           </div>
         </div>
@@ -2211,6 +2283,251 @@
     let allLeads = [];
     let currentLeadsFilter = 'all';
 
+    // ── KB CRUD PANEL ──────────────────────────────────────────────────────────
+    let kbDocs = [];
+    let kbEditingId = null;
+
+    async function loadKbDocs() {
+      if (!getAdminToken()) return;
+      const list = document.getElementById('kbDocsList');
+      if (list) list.innerHTML = '<div style="text-align:center;padding:32px;color:var(--text-muted)">Chargement…</div>';
+      try {
+        const res = await fetch('/kb/documents', { headers: authHeaders() });
+        if (!res.ok) return;
+        const data = await res.json();
+        kbDocs = data.items || [];
+        renderKbDocs();
+      } catch(e) {
+        if (list) list.innerHTML = '<div style="text-align:center;padding:32px;color:var(--danger)">Erreur de chargement</div>';
+      }
+    }
+
+    function renderKbDocs() {
+      const list = document.getElementById('kbDocsList');
+      if (!list) return;
+      if (!kbDocs.length) {
+        list.innerHTML = '<div style="text-align:center;padding:32px;color:var(--text-muted)">Aucune procédure — ajoutez-en une ou importez un CSV</div>';
+        return;
+      }
+      const TYPE_LABELS = { procedure: '📋 Procédure', faq: '❓ FAQ', note: '📝 Note', file: '📄 Fichier', pdf: '📑 PDF' };
+      list.innerHTML = kbDocs.map(d => `
+        <div class="ticket-row" style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:600;font-size:0.88rem;color:var(--text-strong);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(d.title)}</div>
+            <div style="font-size:0.75rem;color:var(--text-muted);margin-top:2px">${TYPE_LABELS[d.source_type] || d.source_type} · ${d.chunk_count || 0} chunk${d.chunk_count !== 1 ? 's' : ''}</div>
+          </div>
+          <div style="display:flex;gap:6px;flex-shrink:0">
+            <button class="btn ghost" style="font-size:0.75rem;padding:4px 10px" onclick="editKbDoc('${d.id}')">✏️ Modifier</button>
+            <button class="btn ghost" style="font-size:0.75rem;padding:4px 10px;color:var(--danger)" onclick="deleteKbDoc('${d.id}','${escHtml(d.title).replace(/'/g,'\\')}')">🗑️</button>
+          </div>
+        </div>`).join('');
+    }
+
+    function openKbEditor(docId) {
+      kbEditingId = docId || null;
+      const card = document.getElementById('kbEditorCard');
+      const titleEl = document.getElementById('kbEditorTitle');
+      if (!card || !titleEl) return;
+      card.style.display = '';
+      if (docId) {
+        const doc = kbDocs.find(d => d.id === docId);
+        titleEl.textContent = 'Modifier procédure';
+        document.getElementById('kbEditTitle').value = doc ? doc.title : '';
+        document.getElementById('kbEditType').value = doc ? (doc.source_type || 'procedure') : 'procedure';
+        document.getElementById('kbEditContent').value = '';
+        document.getElementById('kbEditorStatus').textContent = 'Chargement du contenu…';
+        fetch(`/kb/documents/${docId}`, { headers: authHeaders() })
+          .then(r => r.json())
+          .then(d => {
+            document.getElementById('kbEditContent').value = d.content || '';
+            document.getElementById('kbEditorStatus').textContent = '';
+          }).catch(() => { document.getElementById('kbEditorStatus').textContent = 'Impossible de charger le contenu'; });
+      } else {
+        titleEl.textContent = 'Nouvelle procédure';
+        document.getElementById('kbEditTitle').value = '';
+        document.getElementById('kbEditType').value = 'procedure';
+        document.getElementById('kbEditContent').value = '';
+        document.getElementById('kbEditorStatus').textContent = '';
+      }
+      card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function closeKbEditor() {
+      kbEditingId = null;
+      const card = document.getElementById('kbEditorCard');
+      if (card) card.style.display = 'none';
+    }
+
+    function editKbDoc(id) { openKbEditor(id); }
+
+    async function saveKbDoc() {
+      const title = document.getElementById('kbEditTitle')?.value?.trim();
+      const source_type = document.getElementById('kbEditType')?.value || 'procedure';
+      const content = document.getElementById('kbEditContent')?.value?.trim();
+      const statusEl = document.getElementById('kbEditorStatus');
+      if (!title || !content) { if (statusEl) statusEl.textContent = 'Titre et contenu requis'; return; }
+      if (statusEl) statusEl.textContent = 'Enregistrement…';
+      try {
+        let res;
+        if (kbEditingId) {
+          res = await fetch(`/kb/documents/${kbEditingId}`, {
+            method: 'PUT',
+            headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title, source_type, content })
+          });
+        } else {
+          res = await fetch('/kb/documents', {
+            method: 'POST',
+            headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title, source_type, content })
+          });
+        }
+        if (res.ok) {
+          if (statusEl) statusEl.textContent = '✅ Enregistré !';
+          setTimeout(() => { closeKbEditor(); loadKbDocs(); }, 800);
+        } else {
+          const d = await res.json().catch(() => ({}));
+          if (statusEl) statusEl.textContent = `Erreur : ${d.error || res.status}`;
+        }
+      } catch(e) {
+        if (statusEl) statusEl.textContent = 'Erreur réseau';
+      }
+    }
+
+    async function deleteKbDoc(id, title) {
+      if (!confirm(`Supprimer la procédure "${title}" ?`)) return;
+      try {
+        const res = await fetch(`/kb/documents/${id}`, { method: 'DELETE', headers: authHeaders() });
+        if (res.ok || res.status === 204) { loadKbDocs(); }
+        else { alert('Erreur lors de la suppression'); }
+      } catch(e) { alert('Erreur réseau'); }
+    }
+    // ───────────────────────────────────────────────────────────────────────────
+
+    // ── GLPI PANEL ─────────────────────────────────────────────────────────────
+    const GLPI_STATUS_COLORS = { 1: '#4f8ef7', 2: '#f59e0b', 3: '#a78bfa', 4: '#94a3b8', 5: '#22c55e', 6: '#64748b' };
+    const GLPI_STATUS_LABELS = { 1: 'Nouveau', 2: 'En cours', 3: 'Planifié', 4: 'En attente', 5: 'Résolu', 6: 'Fermé' };
+    let glpiTickets = [];
+    let glpiSelectedId = null;
+
+    async function loadGlpiTickets() {
+      if (!getAdminToken()) return;
+      const list = document.getElementById('glpiTicketsList');
+      if (list) list.innerHTML = '<div style="text-align:center;padding:32px;color:var(--text-muted)">Chargement…</div>';
+      try {
+        const status = document.getElementById('glpiStatusFilter')?.value || '';
+        const url = '/admin/glpi/tickets?limit=50' + (status ? '&status=' + status : '');
+        const res = await fetch(url, { headers: authHeaders() });
+        if (!res.ok) {
+          const d = await res.json().catch(() => ({}));
+          if (list) list.innerHTML = `<div style="text-align:center;padding:32px;color:var(--danger)">${d.error === 'glpi_not_configured' ? 'GLPI non configuré — activez-le dans Paramètres.' : 'Erreur de chargement'}</div>`;
+          return;
+        }
+        const data = await res.json();
+        glpiTickets = data.items || [];
+        renderGlpiList();
+      } catch(e) {
+        if (list) list.innerHTML = '<div style="text-align:center;padding:32px;color:var(--danger)">Erreur réseau</div>';
+      }
+    }
+
+    function renderGlpiList() {
+      const list = document.getElementById('glpiTicketsList');
+      if (!list) return;
+      if (!glpiTickets.length) {
+        list.innerHTML = '<div style="text-align:center;padding:32px;color:var(--text-muted)">Aucun ticket GLPI trouvé</div>';
+        return;
+      }
+      list.innerHTML = glpiTickets.map(t => {
+        const color = GLPI_STATUS_COLORS[t.status] || '#4f8ef7';
+        const label = t.status_label || GLPI_STATUS_LABELS[t.status] || '?';
+        const date = t.date_creation ? new Date(t.date_creation).toLocaleDateString('fr-FR') : '';
+        return `<div class="ticket-row" style="cursor:pointer;border-left:3px solid ${color}" onclick="loadGlpiDetail(${t.id})">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+            <span style="font-weight:600;font-size:0.88rem;color:var(--text-strong)">#${t.id} — ${escHtml(t.title)}</span>
+            <span style="background:${color}22;color:${color};font-size:0.7rem;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap">${label}</span>
+          </div>
+          <div style="font-size:0.75rem;color:var(--text-muted);margin-top:4px">${date}</div>
+        </div>`;
+      }).join('');
+    }
+
+    async function loadGlpiDetail(id) {
+      glpiSelectedId = id;
+      const detail = document.getElementById('glpiTicketDetail');
+      if (!detail) return;
+      detail.innerHTML = '<div style="text-align:center;padding:32px;color:var(--text-muted)">Chargement…</div>';
+      try {
+        const res = await fetch(`/admin/glpi/tickets/${id}`, { headers: authHeaders() });
+        if (!res.ok) { detail.innerHTML = '<div style="color:var(--danger);padding:16px">Erreur de chargement</div>'; return; }
+        const t = await res.json();
+        const color = GLPI_STATUS_COLORS[t.status] || '#4f8ef7';
+        const followupsHtml = (t.followups || []).map(f => `
+          <div style="background:rgba(255,255,255,0.04);border-radius:8px;padding:10px 12px;margin-bottom:6px">
+            <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:4px">${f.date ? new Date(f.date).toLocaleString('fr-FR') : ''}</div>
+            <div style="font-size:0.85rem">${escHtml(f.content)}</div>
+          </div>`).join('') || '<div style="font-size:0.82rem;color:var(--text-muted)">Aucun suivi</div>';
+        detail.innerHTML = `
+          <div style="padding:4px 0 8px">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+              <span style="font-size:1rem;font-weight:700;color:var(--text-strong)">#${t.id}</span>
+              <span style="background:${color}22;color:${color};font-size:0.7rem;font-weight:700;padding:2px 8px;border-radius:20px">${t.status_label}</span>
+            </div>
+            <div style="font-weight:600;font-size:0.92rem;margin-bottom:10px">${escHtml(t.title)}</div>
+            <div style="font-size:0.82rem;color:var(--text-muted);background:rgba(255,255,255,0.04);padding:10px;border-radius:8px;max-height:100px;overflow-y:auto;margin-bottom:10px">${escHtml(t.content || '').replace(/\n/g,'<br>')}</div>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
+            <select id="glpiStatusChange" class="kb-filter" style="flex:1;font-size:0.8rem">
+              <option value="">Changer statut…</option>
+              <option value="open">En cours</option>
+              <option value="pending">En attente</option>
+              <option value="resolved">Résolu</option>
+              <option value="closed">Fermé</option>
+            </select>
+            <button class="btn primary" style="font-size:0.8rem;padding:6px 12px" onclick="changeGlpiStatus(${t.id})">Appliquer</button>
+          </div>
+          <div style="font-size:0.8rem;font-weight:700;color:var(--accent);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.06em">Suivis (${(t.followups||[]).length})</div>
+          <div style="flex:1;overflow-y:auto;margin-bottom:10px">${followupsHtml}</div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <textarea id="glpiFollowupInput" rows="2" placeholder="Ajouter un suivi GLPI…" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--stroke);border-radius:8px;padding:8px;color:var(--text);font-family:inherit;font-size:0.82rem;resize:vertical"></textarea>
+            <button class="btn primary" style="font-size:0.82rem" onclick="sendGlpiFollowup(${t.id})">📨 Envoyer dans GLPI</button>
+          </div>`;
+      } catch(e) {
+        detail.innerHTML = '<div style="color:var(--danger);padding:16px">Erreur</div>';
+      }
+    }
+
+    async function changeGlpiStatus(ticketId) {
+      const sel = document.getElementById('glpiStatusChange');
+      const status = sel?.value;
+      if (!status) return;
+      try {
+        const res = await fetch(`/admin/glpi/tickets/${ticketId}/status`, {
+          method: 'PATCH',
+          headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status })
+        });
+        if (res.ok) { await loadGlpiTickets(); await loadGlpiDetail(ticketId); }
+        else { alert('Erreur lors du changement de statut'); }
+      } catch(e) { alert('Erreur réseau'); }
+    }
+
+    async function sendGlpiFollowup(ticketId) {
+      const input = document.getElementById('glpiFollowupInput');
+      const content = input?.value?.trim();
+      if (!content) return;
+      try {
+        const res = await fetch(`/admin/glpi/tickets/${ticketId}/followup`, {
+          method: 'POST',
+          headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content })
+        });
+        if (res.ok) { if (input) input.value = ''; await loadGlpiDetail(ticketId); }
+        else { alert('Erreur lors de l\'envoi du suivi'); }
+      } catch(e) { alert('Erreur réseau'); }
+    }
+    // ───────────────────────────────────────────────────────────────────────────
+
     const LEAD_STATUS_LABELS = { new: '🆕 Nouveau', contacted: '📞 Contacté', demo: '🎯 Démo', proposal: '📄 Proposition', won: '🏆 Gagné', lost: '❌ Perdu' };
     const LEAD_STATUS_COLORS = { new: '#4f8ef7', contacted: '#a78bfa', demo: '#f59e0b', proposal: '#f97316', won: '#22c55e', lost: '#ef4444' };
 
@@ -2445,6 +2762,24 @@
           if (btn) { btn.disabled = false; btn.textContent = 'Envoyer l\'invitation'; }
         }
       });
+
+      // KB CRUD
+      const kbAddBtn = document.getElementById('kbAddBtn');
+      if (kbAddBtn) kbAddBtn.addEventListener('click', () => openKbEditor(null));
+      const kbRefreshDocsBtn = document.getElementById('kbRefreshDocsBtn');
+      if (kbRefreshDocsBtn) kbRefreshDocsBtn.addEventListener('click', loadKbDocs);
+      const kbSaveBtn = document.getElementById('kbSaveBtn');
+      if (kbSaveBtn) kbSaveBtn.addEventListener('click', saveKbDoc);
+      const kbPanelBtn = document.querySelector('[data-panel="kb"]');
+      if (kbPanelBtn) kbPanelBtn.addEventListener('click', () => loadKbDocs());
+
+      // GLPI panel
+      const glpiBtn = document.querySelector('[data-panel="glpi"]');
+      if (glpiBtn) glpiBtn.addEventListener('click', () => loadGlpiTickets());
+      const glpiRefreshBtn = document.getElementById('glpiRefreshBtn');
+      if (glpiRefreshBtn) glpiRefreshBtn.addEventListener('click', loadGlpiTickets);
+      const glpiStatusFilter = document.getElementById('glpiStatusFilter');
+      if (glpiStatusFilter) glpiStatusFilter.addEventListener('change', loadGlpiTickets);
 
       // Leads CRM
       const leadsBtn = document.querySelector('[data-panel="leads"]');

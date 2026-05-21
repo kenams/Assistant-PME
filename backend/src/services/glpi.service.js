@@ -157,9 +157,148 @@ async function testGlpiConnection(config) {
   return { ok: true };
 }
 
+const GLPI_STATUS_LABELS = {
+  1: "Nouveau",
+  2: "En cours (assigné)",
+  3: "En cours (planifié)",
+  4: "En attente",
+  5: "Résolu",
+  6: "Fermé"
+};
+
+function mapStatusToGlpi(status) {
+  const map = { new: 1, open: 2, pending: 4, resolved: 5, closed: 6 };
+  return map[status] || null;
+}
+
+async function listTickets({ limit = 20, status, configOverride } = {}) {
+  const config = resolveConfig(configOverride);
+  const sessionToken = await initSession(configOverride);
+  try {
+    let url = buildApiUrl(`/Ticket?sort=id&order=desc&range=0-${limit - 1}&is_deleted=0`, config);
+    if (status) {
+      const glpiStatus = mapStatusToGlpi(status);
+      if (glpiStatus) url += `&criteria[0][field]=12&criteria[0][searchtype]=equals&criteria[0][value]=${glpiStatus}`;
+    }
+    const res = await fetch(url, {
+      headers: getHeaders({ "Session-Token": sessionToken }, config)
+    });
+    if (res.status === 206 || res.ok) {
+      const data = await res.json();
+      return (Array.isArray(data) ? data : []).map(t => ({
+        id: t.id,
+        title: t.name || "",
+        status: t.status,
+        status_label: GLPI_STATUS_LABELS[t.status] || String(t.status),
+        priority: t.priority,
+        date_creation: t.date_creation,
+        date_mod: t.date_mod,
+        closedate: t.closedate,
+        solvedate: t.solvedate
+      }));
+    }
+    return [];
+  } finally {
+    await killSession(sessionToken, configOverride);
+  }
+}
+
+async function getTicket(ticketId, configOverride) {
+  const config = resolveConfig(configOverride);
+  const sessionToken = await initSession(configOverride);
+  try {
+    const [ticketRes, followupsRes] = await Promise.all([
+      fetch(buildApiUrl(`/Ticket/${ticketId}`, config), {
+        headers: getHeaders({ "Session-Token": sessionToken }, config)
+      }),
+      fetch(buildApiUrl(`/Ticket/${ticketId}/TicketFollowup`, config), {
+        headers: getHeaders({ "Session-Token": sessionToken }, config)
+      })
+    ]);
+
+    const ticket = ticketRes.ok ? await ticketRes.json() : null;
+    let followups = [];
+    if (followupsRes.ok || followupsRes.status === 206) {
+      const raw = await followupsRes.json();
+      followups = Array.isArray(raw) ? raw : [];
+    }
+
+    if (!ticket) throw new Error(`glpi_ticket_not_found_${ticketId}`);
+
+    return {
+      id: ticket.id,
+      title: ticket.name || "",
+      content: ticket.content || "",
+      status: ticket.status,
+      status_label: GLPI_STATUS_LABELS[ticket.status] || String(ticket.status),
+      priority: ticket.priority,
+      date_creation: ticket.date_creation,
+      date_mod: ticket.date_mod,
+      closedate: ticket.closedate,
+      solvedate: ticket.solvedate,
+      followups: followups.map(f => ({
+        id: f.id,
+        content: f.content || "",
+        date: f.date,
+        date_mod: f.date_mod,
+        users_id: f.users_id
+      }))
+    };
+  } finally {
+    await killSession(sessionToken, configOverride);
+  }
+}
+
+async function updateTicketStatus(ticketId, status, configOverride) {
+  const config = resolveConfig(configOverride);
+  const glpiStatus = mapStatusToGlpi(status);
+  if (!glpiStatus) throw new Error(`invalid_status: ${status}`);
+  const sessionToken = await initSession(configOverride);
+  try {
+    const res = await fetch(buildApiUrl(`/Ticket/${ticketId}`, config), {
+      method: "PUT",
+      headers: getHeaders({ "Content-Type": "application/json", "Session-Token": sessionToken }, config),
+      body: JSON.stringify({ input: { status: glpiStatus } })
+    });
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`glpi_update_failed_${res.status}: ${text.slice(0, 200)}`);
+    }
+    return { ok: true };
+  } finally {
+    await killSession(sessionToken, configOverride);
+  }
+}
+
+async function addFollowup(ticketId, content, configOverride) {
+  const config = resolveConfig(configOverride);
+  const sessionToken = await initSession(configOverride);
+  try {
+    const res = await fetch(buildApiUrl("/TicketFollowup", config), {
+      method: "POST",
+      headers: getHeaders({ "Content-Type": "application/json", "Session-Token": sessionToken }, config),
+      body: JSON.stringify({ input: { items_id: ticketId, itemtype: "Ticket", content, is_private: 0 } })
+    });
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`glpi_followup_failed_${res.status}: ${text.slice(0, 200)}`);
+    }
+    const data = await res.json();
+    const id = data && (data.id || (Array.isArray(data) && data[0] && data[0].id));
+    return { id: id ? String(id) : null };
+  } finally {
+    await killSession(sessionToken, configOverride);
+  }
+}
+
 module.exports = {
   isGlpiEnabled,
   createGlpiTicket,
   testGlpiConnection,
-  buildTicketUrl
+  buildTicketUrl,
+  listTickets,
+  getTicket,
+  updateTicketStatus,
+  addFollowup,
+  GLPI_STATUS_LABELS
 };
