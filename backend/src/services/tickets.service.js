@@ -138,13 +138,9 @@ function normalizeDraft(draft, fallbackMessage) {
   const category =
     (base.category || inferCategory(summary || title)).toString().trim() ||
     "general";
-  const priority = (base.priority || inferPriority(summary || title)).toString().trim();
-  return {
-    title,
-    summary,
-    category,
-    priority: ["low", "medium", "high"].includes(priority) ? priority : "medium"
-  };
+  const rawPriority = (base.priority || inferPriority(summary || title)).toString().trim();
+  const priority = rawPriority === "critical" ? "high" : (["low", "medium", "high"].includes(rawPriority) ? rawPriority : "medium");
+  return { title, summary, category, priority };
 }
 
 async function buildConversationSnippet({ tenantId, conversationId }) {
