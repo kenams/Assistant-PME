@@ -208,7 +208,7 @@ function buildChecklist({ diagnostics, settings, orgInfo, kbCount }) {
   ];
 }
 
-router.get("/metrics", authRequired, async (req, res, next) => {
+router.get("/metrics", authRequired, requireAdmin, async (req, res, next) => {
   try {
     return res.json(await computeMetrics(req.user.tenant_id));
   } catch (err) { next(err); }

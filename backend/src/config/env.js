@@ -33,9 +33,9 @@ const env = {
   supportIngestToken: process.env.SUPPORT_INGEST_TOKEN || "",
   mailPollIntervalMin: process.env.MAIL_POLL_INTERVAL_MIN || "5",
   rateLimitWindowSec: parseInt(process.env.RATE_LIMIT_WINDOW_SEC || "60", 10),
-  rateLimitMax: parseInt(process.env.RATE_LIMIT_MAX || "120", 10),
+  rateLimitMax: parseInt(process.env.RATE_LIMIT_MAX || "200", 10),
   rateLimitIngestMax: parseInt(process.env.RATE_LIMIT_INGEST_MAX || "30", 10),
-  rateLimitLoginMax: parseInt(process.env.RATE_LIMIT_LOGIN_MAX || "10", 10),
+  rateLimitLoginMax: parseInt(process.env.RATE_LIMIT_LOGIN_MAX || "30", 10),
   corsOrigins: process.env.CORS_ORIGINS || "",
   disableQuickLogin:
     (process.env.DISABLE_QUICK_LOGIN || "").toLowerCase() === "true",

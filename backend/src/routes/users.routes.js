@@ -11,6 +11,8 @@ const {
   acceptInvite
 } = require("../services/invites.service");
 const { logEvent } = require("../services/audit.service");
+const { hashPassword, verifyPassword } = require("../utils/crypto");
+const { db } = require("../config/db");
 
 const router = express.Router();
 
@@ -124,6 +126,30 @@ router.delete("/invite/:id", authRequired, requireAdmin, async (req, res, next) 
       userId: req.user.sub,
       action: "invite_revoked",
       meta: { invite_id: req.params.id }
+    });
+    return res.json({ ok: true });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.put("/me/password", authRequired, async (req, res, next) => {
+  try {
+    const { current_password, new_password } = req.body || {};
+    if (!current_password || !new_password || new_password.length < 6) {
+      return res.status(400).json({ error: "invalid_payload" });
+    }
+    const user = await db("users").where({ id: req.user.sub }).first();
+    if (!user) return res.status(404).json({ error: "user_not_found" });
+    if (!verifyPassword(current_password, user.password_hash)) {
+      return res.status(401).json({ error: "invalid_current_password" });
+    }
+    await db("users").where({ id: req.user.sub }).update({ password_hash: hashPassword(new_password) });
+    await logEvent({
+      tenantId: req.user.tenant_id,
+      userId: req.user.sub,
+      action: "user_password_changed",
+      meta: {}
     });
     return res.json({ ok: true });
   } catch (err) {

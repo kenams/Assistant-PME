@@ -306,4 +306,24 @@ router.get("/mine/export.pdf", authRequired, async (req, res, next) => {
   }
 });
 
+router.get("/:id", authRequired, async (req, res, next) => {
+  try {
+    const tenantId = req.user.tenant_id;
+    const { db } = require("../config/db");
+    const ticket = await db("tickets").where({ id: req.params.id, tenant_id: tenantId }).first();
+    if (!ticket) return res.status(404).json({ error: "ticket_not_found" });
+    if (req.user.role === "user") {
+      const conv = ticket.conversation_id
+        ? await db("conversations").where({ id: ticket.conversation_id, tenant_id: tenantId }).first()
+        : null;
+      if (!conv || conv.user_id !== req.user.sub) {
+        return res.status(403).json({ error: "forbidden" });
+      }
+    }
+    return res.json(ticket);
+  } catch (err) {
+    next(err);
+  }
+});
+
 module.exports = router;

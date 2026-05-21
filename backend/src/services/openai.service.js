@@ -718,31 +718,59 @@ function generateSupportAnswer({ message, kbChunks, language, orgSettings }) {
     const intent = detectIntent(text, lang);
     const steps = intent.steps || DEFAULT_STEPS[lang] || DEFAULT_STEPS.fr;
     const questions = intent.questions || [];
-    if (lang === "en") {
-      answer = [
-        "Here is the procedure to follow:",
-        "",
-        steps.map((s, i) => `${i + 1}. ${s}`).join("\n"),
-        "",
-        ...(questions.length ? [questions[0]] : []),
-        "If the issue persists after these steps, click **Create a ticket** so a technician can assist you."
-      ].filter(Boolean).join("\n");
+
+    // If KB chunks found, build answer from KB content first
+    if (kbNote && kbChunks && kbChunks.length > 0) {
+      const topChunk = kbChunks[0];
+      const kbContent = topChunk.chunk_text || "";
+      if (lang === "en") {
+        answer = [
+          `Here is the internal procedure for your issue (${topChunk.document_title || "knowledge base"}):`,
+          "",
+          kbContent,
+          "",
+          ...(questions.length ? [questions[0]] : []),
+          "If the issue persists after following these steps, click **Create a ticket** so a technician can assist you."
+        ].filter(Boolean).join("\n");
+      } else {
+        answer = [
+          `Voici la procédure interne pour votre problème (${topChunk.document_title || "base de connaissances"}) :`,
+          "",
+          kbContent,
+          "",
+          ...(questions.length ? [questions[0]] : []),
+          "Si le problème persiste après ces étapes, cliquez sur **Créer un ticket** pour qu'un technicien intervienne."
+        ].filter(Boolean).join("\n");
+      }
+      kb_hint = topChunk.document_title || null;
     } else {
-      answer = [
-        "Voici la procédure à suivre :",
-        "",
-        steps.map((s, i) => `${i + 1}. ${s}`).join("\n"),
-        "",
-        ...(questions.length ? [questions[0]] : []),
-        "Si le problème persiste après ces étapes, cliquez sur **Créer un ticket** pour qu'un technicien intervienne."
-      ].filter(Boolean).join("\n");
+      if (lang === "en") {
+        answer = [
+          "Here is the procedure to follow:",
+          "",
+          steps.map((s, i) => `${i + 1}. ${s}`).join("\n"),
+          "",
+          ...(questions.length ? [questions[0]] : []),
+          "If the issue persists after these steps, click **Create a ticket** so a technician can assist you."
+        ].filter(Boolean).join("\n");
+      } else {
+        answer = [
+          "Voici la procédure à suivre :",
+          "",
+          steps.map((s, i) => `${i + 1}. ${s}`).join("\n"),
+          "",
+          ...(questions.length ? [questions[0]] : []),
+          "Si le problème persiste après ces étapes, cliquez sur **Créer un ticket** pour qu'un technicien intervienne."
+        ].filter(Boolean).join("\n");
+      }
+      kb_hint = null;
     }
     category = intent.category || "general";
     priority = "medium";
-    kb_hint = null;
   }
 
-  if (kbNote) {
+  // Append secondary KB hint for hardcoded matches that also have KB chunks
+  if (match && kbNote) {
     const kbLabel = lang === "en"
       ? `📚 *Internal procedure available: ${kb_hint || "see knowledge base"}*`
       : `📚 *Procédure interne disponible : ${kb_hint || "voir base de connaissances"}*`;
@@ -772,7 +800,7 @@ function generateSupportAnswer({ message, kbChunks, language, orgSettings }) {
 
 function buildTicketTitle(message, category, lang) {
   const text = (message || "").trim();
-  const short = text.replace(/[^\w\sàâéèêëîïôùûüç'-]/gi, " ").trim().slice(0, 80);
+  const short = text.replace(/[\x00-\x1F\x7F]/g, " ").trim().slice(0, 80);
   const catLabel = lang === "en"
     ? ({ email: "Email", printer: "Printer", network: "Network", vpn: "VPN", password: "Password/Access", hardware: "Hardware", software: "Software", security: "SECURITY", access: "Access Rights", general: "IT Support" }[category] || "IT Support")
     : ({ email: "Messagerie", printer: "Imprimante", network: "Réseau", vpn: "VPN", password: "Accès/Mot de passe", hardware: "Matériel", software: "Logiciel", security: "SÉCURITÉ", access: "Droits d'accès", general: "Support IT" }[category] || "Support IT");

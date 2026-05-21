@@ -14,7 +14,7 @@ function buildCsv(headers, rows) {
   const lines = rows.map((row) =>
     row.map(escapeCsvValue).join(",")
   );
-  return [headerLine, ...lines].join("\n");
+  return "﻿" + [headerLine, ...lines].join("\n");
 }
 
 function parseCsvLine(line) {
