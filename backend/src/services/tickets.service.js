@@ -65,6 +65,10 @@ function inferCategory(message) {
 function inferPriority(message) {
   const text = normalizeText(message);
   if (
+    text.includes("bsod") ||
+    text.includes("ecran bleu") ||
+    text.includes("blue screen") ||
+    text.includes("kernel") ||
     text.includes("ransomware") ||
     text.includes("pirat") ||
     text.includes("phishing") ||
@@ -197,17 +201,25 @@ async function resolveGlpiConfig({ tenantId }) {
   };
 }
 
-async function createTicket({ tenantId, conversationId, draft }) {
+async function createTicket({ tenantId, conversationId, userId, draft }) {
   const normalized = normalizeDraft(draft);
   const contextSnippet = await buildContextSnippet({ tenantId, conversationId });
   const snippet = await buildConversationSnippet({ tenantId, conversationId });
   const finalDescription = `${normalized.summary}${contextSnippet}${snippet}`.slice(0, 4000);
+
+  // Resolve user_id: explicit param > conversation owner
+  let resolvedUserId = userId || null;
+  if (!resolvedUserId && conversationId) {
+    const conv = await findConversation({ tenantId, conversationId });
+    if (conv && conv.user_id) resolvedUserId = conv.user_id;
+  }
 
   const now = new Date().toISOString();
   const [ticket] = await db("tickets").insert({
     id: crypto.randomUUID(),
     tenant_id: tenantId,
     conversation_id: conversationId || null,
+    user_id: resolvedUserId,
     external_id: null,
     external_url: null,
     title: normalized.title,

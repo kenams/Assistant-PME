@@ -799,8 +799,10 @@ function generateSupportAnswer({ message, kbChunks, language, orgSettings }) {
 }
 
 function buildTicketTitle(message, category, lang) {
-  const text = (message || "").trim();
-  const short = text.replace(/[\x00-\x1F\x7F]/g, " ").trim().slice(0, 80);
+  // Strip context block if appended (everything from \n\n[Contexte or \n\n---)
+  const stripped = (message || "").split(/\n\n(?:\[Contexte|---)/)[0];
+  const text = stripped.trim();
+  const short = text.replace(/[\x00-\x1F\x7F]/g, " ").replace(/\s+/g, " ").trim().slice(0, 80);
   const catLabel = lang === "en"
     ? ({ email: "Email", printer: "Printer", network: "Network", vpn: "VPN", password: "Password/Access", hardware: "Hardware", software: "Software", security: "SECURITY", access: "Access Rights", general: "IT Support" }[category] || "IT Support")
     : ({ email: "Messagerie", printer: "Imprimante", network: "Réseau", vpn: "VPN", password: "Accès/Mot de passe", hardware: "Matériel", software: "Logiciel", security: "SÉCURITÉ", access: "Droits d'accès", general: "Support IT" }[category] || "Support IT");
@@ -808,10 +810,11 @@ function buildTicketTitle(message, category, lang) {
 }
 
 function buildTicketSummary(message, aiAnswer, lang) {
+  const msgOnly = (message || "").split(/\n\n(?:\[Contexte|---)/)[0].trim();
   const firstStepsLine = aiAnswer.split("\n").find(l => /^\d\./.test(l));
   if (lang === "en") {
     return [
-      `Issue reported: ${message.trim()}`,
+      `Issue reported: ${msgOnly}`,
       firstStepsLine ? `L1 procedure attempted: ${firstStepsLine.replace(/^\d\.\s*/, "")}` : "",
       "Escalation to L2 required."
     ].filter(Boolean).join(" — ");
@@ -979,13 +982,17 @@ async function callOpenAI({ message, kbChunks, language, orgSettings, conversati
   return { answer: finalAnswer, needs_ticket, ticket_draft };
 }
 
-async function answerWithLLM({ message, kbChunks, language, orgSettings, conversationHistory, userPastTickets }) {
-  // Auto-detect language from message content — overrides frontend hint
-  const detected = detectMessageLang(message);
+async function answerWithLLM({ message, rawMessage, kbChunks, language, orgSettings, conversationHistory, userPastTickets }) {
+  // rawMessage = original user message without context block appended
+  // message = messageWithContext (includes [Contexte technicien] block for LLM)
+  const socialText = ((rawMessage || message) || "").trim();
+
+  // Auto-detect language from original message only (not context block)
+  const detected = detectMessageLang(socialText);
   const resolvedLang = detected || (language === "en" ? "en" : "fr");
 
   // ── Intercepts sociaux AVANT tout LLM ──────────────────────────────────────
-  const rawText = (message || "").trim();
+  const rawText = socialText;
 
   // 1. Salutation — réponse humaine immédiate, aucune procédure
   if (isGreeting(rawText)) {

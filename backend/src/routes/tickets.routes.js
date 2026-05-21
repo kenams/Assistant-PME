@@ -80,6 +80,7 @@ router.post("/", authRequired, async (req, res, next) => {
     const ticket = await createTicket({
       tenantId,
       conversationId: null,
+      userId: req.user.sub,
       draft: payload
     });
 
@@ -313,11 +314,15 @@ router.get("/:id", authRequired, async (req, res, next) => {
     const ticket = await db("tickets").where({ id: req.params.id, tenant_id: tenantId }).first();
     if (!ticket) return res.status(404).json({ error: "ticket_not_found" });
     if (req.user.role === "user") {
-      const conv = ticket.conversation_id
-        ? await db("conversations").where({ id: ticket.conversation_id, tenant_id: tenantId }).first()
-        : null;
-      if (!conv || conv.user_id !== req.user.sub) {
-        return res.status(403).json({ error: "forbidden" });
+      // Check ownership via user_id (direct), or via conversation owner
+      const isDirectOwner = ticket.user_id && ticket.user_id === req.user.sub;
+      if (!isDirectOwner) {
+        const conv = ticket.conversation_id
+          ? await db("conversations").where({ id: ticket.conversation_id, tenant_id: tenantId }).first()
+          : null;
+        if (!conv || conv.user_id !== req.user.sub) {
+          return res.status(403).json({ error: "forbidden" });
+        }
       }
     }
     return res.json(ticket);

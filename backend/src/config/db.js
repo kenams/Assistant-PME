@@ -14,7 +14,13 @@ const db = knex({
     connectionString: env.databaseUrl,
     ssl: isProd ? { rejectUnauthorized: false } : false
   },
-  pool: { min: 2, max: 10 },
+  pool: {
+    min: 2,
+    max: 10,
+    afterCreate: (conn, done) => {
+      conn.query("SET client_encoding = 'UTF8'", (err) => done(err, conn));
+    }
+  },
   acquireConnectionTimeout: 10000
 });
 

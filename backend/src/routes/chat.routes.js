@@ -251,6 +251,7 @@ router.post("/", authRequired, async (req, res, next) => {
 
     const llm = await answerWithLLM({
       message: messageWithContext,
+      rawMessage: message,
       kbChunks,
       language: language || "fr",
       orgSettings,
@@ -286,6 +287,7 @@ router.post("/", authRequired, async (req, res, next) => {
         (await createTicket({
           tenantId,
           conversationId: conversation.id,
+          userId,
           draft
         }));
       await updateConversation({
@@ -392,6 +394,7 @@ router.post("/feedback", authRequired, async (req, res, next) => {
           const ticket = await createTicket({
             tenantId,
             conversationId: conversation_id,
+            userId: req.user.sub,
             draft
           });
           createdTicket = ticket;
@@ -523,6 +526,7 @@ router.post("/escalate", authRequired, async (req, res, next) => {
     const ticket = await createTicket({
       tenantId,
       conversationId: conversation_id,
+      userId: req.user.sub,
       draft
     });
     await updateConversation({
