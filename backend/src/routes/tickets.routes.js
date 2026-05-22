@@ -310,6 +310,10 @@ router.get("/mine/export.pdf", authRequired, async (req, res, next) => {
 router.get("/:id", authRequired, async (req, res, next) => {
   try {
     const tenantId = req.user.tenant_id;
+    const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRe.test(req.params.id)) {
+      return res.status(404).json({ error: "ticket_not_found" });
+    }
     const { db } = require("../config/db");
     const ticket = await db("tickets").where({ id: req.params.id, tenant_id: tenantId }).first();
     if (!ticket) return res.status(404).json({ error: "ticket_not_found" });

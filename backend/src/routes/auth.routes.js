@@ -109,7 +109,7 @@ router.post("/quick-admin", async (req, res, next) => {
   try {
     if (
       env.disableQuickLogin ||
-      (env.nodeEnv !== "development" && env.nodeEnv !== "test" && !isLocalRequest(req))
+      (env.nodeEnv !== "development" && env.nodeEnv !== "test")
     ) {
       return res.status(403).json({ error: "forbidden" });
     }
@@ -162,7 +162,7 @@ router.get("/quick-admin", async (req, res, next) => {
   try {
     if (
       env.disableQuickLogin ||
-      (env.nodeEnv !== "development" && env.nodeEnv !== "test" && !isLocalRequest(req))
+      (env.nodeEnv !== "development" && env.nodeEnv !== "test")
     ) {
       return res.status(403).json({ error: "forbidden" });
     }
@@ -275,7 +275,7 @@ router.post("/quick-user", async (req, res, next) => {
   try {
     if (
       env.disableQuickLogin ||
-      (env.nodeEnv !== "development" && env.nodeEnv !== "test" && !isLocalRequest(req))
+      (env.nodeEnv !== "development" && env.nodeEnv !== "test")
     ) {
       return res.status(403).json({ error: "forbidden" });
     }
