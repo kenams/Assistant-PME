@@ -82,10 +82,10 @@
         border-bottom: 1px solid var(--stroke);
         gap: 12px;
       }
-      .topbar .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
-      .topbar .brand-logo { width: 28px; height: 28px; filter: brightness(10); opacity: 0.9; }
+      .topbar .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+      .topbar .brand-logo { width: 42px; height: 42px; filter: brightness(10); opacity: 0.9; }
       .topbar #brandName {
-        font-size: 1rem; font-weight: 800; letter-spacing: -0.02em;
+        font-size: 1.25rem; font-weight: 800; letter-spacing: -0.03em;
         background: linear-gradient(135deg, #fff 40%, var(--accent));
         -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
       }
@@ -162,10 +162,10 @@
         min-height: 0;
       }
 
-      /* -- Colonne gauche — 320px -- */
+      /* -- Colonne gauche — 400px -- */
       #quickIssuesWrapper {
-        width: 320px;
-        min-width: 240px;
+        width: 400px;
+        min-width: 280px;
         flex-shrink: 0;
         display: flex;
         flex-direction: column;
@@ -204,7 +204,7 @@
         font-size: 0.95rem; font-weight: 800; color: var(--text-strong);
         letter-spacing: -0.025em;
       }
-      .qi-header-sub { font-size: 0.68rem; color: var(--text-muted); line-height: 1.4; }
+      .qi-header-sub { font-size: 0.73rem; color: var(--text-muted); line-height: 1.4; }
       .qi-ai-badge {
         display: flex; align-items: center; gap: 5px;
         background: rgba(34,197,94,0.07);
@@ -239,12 +239,12 @@
       .qi-search-input::placeholder { color: var(--text-muted); opacity: 0.55; }
 
       /* -- Chips box -- */
-      #myChipsBox { padding: 8px 12px 12px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+      #myChipsBox { padding: 10px 14px 16px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
 
       /* -- Rows = cards -- */
       .qi-row {
-        display: flex; flex-wrap: wrap; gap: 5px;
-        padding: 12px 12px 10px;
+        display: flex; flex-wrap: wrap; gap: 7px;
+        padding: 14px 14px 12px;
         background: rgba(255,255,255,0.015);
         border: 1px solid var(--stroke);
         border-left: 2px solid transparent;
@@ -258,9 +258,9 @@
 
       /* -- Cat label -- */
       .qi-cat {
-        font-size: 0.67rem; font-weight: 800;
-        text-transform: uppercase; letter-spacing: 0.08em;
-        flex-basis: 100%; padding-bottom: 7px;
+        font-size: 0.7rem; font-weight: 800;
+        text-transform: uppercase; letter-spacing: 0.07em;
+        flex-basis: 100%; padding-bottom: 9px;
         display: flex; align-items: center; gap: 5px;
       }
       .qi-count {
@@ -293,9 +293,9 @@
 
       /* -- Chips — qchip -- */
       .qchip {
-        display: inline-flex; align-items: center; gap: 4px;
-        padding: 5px 11px; border-radius: 20px;
-        font-size: 0.78rem; font-weight: 600;
+        display: inline-flex; align-items: center; gap: 5px;
+        padding: 7px 14px; border-radius: 20px;
+        font-size: 0.83rem; font-weight: 600;
         border: 1px solid var(--stroke2); background: rgba(255,255,255,0.025);
         color: var(--text-muted); cursor: pointer;
         transition: all var(--transition); white-space: nowrap; font-family: inherit;
@@ -940,8 +940,8 @@
         </div>
         <div id="topbarAiBadge" style="display:none;align-items:center;gap:5px;background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.2);border-radius:20px;padding:3px 10px;font-size:0.68rem;font-weight:700;color:#4ade80;letter-spacing:0.04em"><span style="width:6px;height:6px;background:#4ade80;border-radius:50%;animation:qiPulse 2s ease infinite"></span>IA</div>
         <button id="showSupportBtn" class="btn ghost" type="button">Support</button>
-        <button id="showTicketsBtn" class="btn ghost" type="button" style="border-color:rgba(79,142,247,0.3);color:var(--accent)">🎫 Mes tickets</button>
-        <button id="logoutBtn" class="btn ghost" style="opacity:0.5;font-size:0.82rem">Quitter</button>
+        <button id="showTicketsBtn" class="btn ghost" type="button" style="border-color:rgba(79,142,247,0.3);color:var(--accent)">🎫 <span data-fr="Mes tickets" data-en="My tickets">Mes tickets</span></button>
+        <button id="logoutBtn" class="btn ghost" style="opacity:0.5;font-size:0.82rem"><span data-fr="Quitter" data-en="Sign out">Quitter</span></button>
       </div>
     </header>
     <div id="statusBanner" class="status-banner hidden"></div>
@@ -1036,7 +1036,7 @@
 
           <!-- Tabs mobile (visibles seulement < 700px) -->
           <div id="mobileTabs" style="display:none">
-            <button class="mobile-tab active" id="mobileTabLeft" type="button">🔧 Problèmes</button>
+            <button class="mobile-tab active" id="mobileTabLeft" type="button">🔧 <span data-fr="Problèmes" data-en="Issues">Problèmes</span></button>
             <button class="mobile-tab" id="mobileTabRight" type="button">💬 Chat</button>
           </div>
 
@@ -1104,105 +1104,105 @@
           <div class="quick-issues" id="quickIssuesWrapper">
             <div class="qi-header">
               <div class="qi-header-left">
-                <div class="qi-header-title" id="quickIssuesTitle">🔧 Problèmes fréquents</div>
+                <div class="qi-header-title" id="quickIssuesTitle"><span data-fr="🔧 Problèmes fréquents" data-en="🔧 Common Issues">🔧 Problèmes fréquents</span></div>
                 <div class="qi-header-sub"><span data-fr="Cliquez pour démarrer une résolution guidée immédiate" data-en="Click to start a guided resolution">Cliquez pour démarrer une résolution guidée immédiate</span></div>
               </div>
               <div class="qi-ai-badge"><span class="qi-ai-dot"></span><span data-fr="IA active" data-en="AI active">IA active</span></div>
             </div>
             <div class="qi-search-wrap">
               <span class="qi-search-icon">🔍</span>
-              <input class="qi-search-input" id="quickIssueSearchInput" type="search" placeholder="Rechercher un problème…" autocomplete="off" />
+              <input class="qi-search-input" id="quickIssueSearchInput" type="search" placeholder="Rechercher un problème…" data-placeholder-fr="Rechercher un problème…" data-placeholder-en="Search for an issue…" autocomplete="off" />
               <button id="quickIssueSearchBtn" class="btn ghost" type="button" style="display:none">Chercher</button>
             </div>
             <div id="myChipsBox">
 
               <div class="qi-row">
-                <span class="qi-cat"><span>📧 Email &amp; Communication</span><span class="qi-count">6</span></span>
-                <button class="qchip" data-send="Mon Outlook ne s'ouvre plus ou plante depuis ce matin."><span>📧 Outlook</span></button>
-                <button class="qchip" data-send="Microsoft Teams ne s'ouvre pas, plante ou ne se connecte pas."><span>👥 Teams</span></button>
-                <button class="qchip" data-send="Je n'arrive plus à envoyer ou recevoir des emails."><span>✉️ Email bloqué</span></button>
-                <button class="qchip" data-send="Mon micro ou ma caméra ne fonctionne pas pendant une réunion Teams/Zoom."><span>🎤 Micro / Caméra</span></button>
-                <button class="qchip" data-send="Zoom ou Webex ne se lance pas ou se déconnecte en réunion."><span>🎥 Zoom / Webex</span></button>
-                <button class="qchip" data-send="Je n'arrive pas à partager mon écran pendant une réunion en ligne."><span>🖥️ Partage d'écran</span></button>
+                <span class="qi-cat"><span data-fr="📧 Email &amp; Communication" data-en="📧 Email &amp; Communication">📧 Email &amp; Communication</span><span class="qi-count">6</span></span>
+                <button class="qchip" data-send="Mon Outlook ne s'ouvre plus ou plante depuis ce matin." data-send-en="My Outlook won't open or keeps crashing."><span data-fr="📧 Outlook" data-en="📧 Outlook">📧 Outlook</span></button>
+                <button class="qchip" data-send="Microsoft Teams ne s'ouvre pas, plante ou ne se connecte pas." data-send-en="Microsoft Teams won't open, crashes or won't connect."><span data-fr="👥 Teams" data-en="👥 Teams">👥 Teams</span></button>
+                <button class="qchip" data-send="Je n'arrive plus à envoyer ou recevoir des emails." data-send-en="I can no longer send or receive emails."><span data-fr="✉️ Email bloqué" data-en="✉️ Email blocked">✉️ Email bloqué</span></button>
+                <button class="qchip" data-send="Mon micro ou ma caméra ne fonctionne pas pendant une réunion Teams/Zoom." data-send-en="My microphone or camera doesn't work during a Teams/Zoom meeting."><span data-fr="🎤 Micro / Caméra" data-en="🎤 Mic / Camera">🎤 Micro / Caméra</span></button>
+                <button class="qchip" data-send="Zoom ou Webex ne se lance pas ou se déconnecte en réunion." data-send-en="Zoom or Webex won't launch or disconnects during meetings."><span data-fr="🎥 Zoom / Webex" data-en="🎥 Zoom / Webex">🎥 Zoom / Webex</span></button>
+                <button class="qchip" data-send="Je n'arrive pas à partager mon écran pendant une réunion en ligne." data-send-en="I can't share my screen during an online meeting."><span data-fr="🖥️ Partage d'écran" data-en="🖥️ Screen sharing">🖥️ Partage d'écran</span></button>
               </div>
 
               <div class="qi-row">
-                <span class="qi-cat"><span>🌐 Réseau &amp; Connexion</span><span class="qi-count">5</span></span>
-                <button class="qchip" data-send="Je n'ai plus d'accès internet sur mon poste."><span>🌐 Internet coupé</span></button>
-                <button class="qchip" data-send="Le WiFi ne se connecte pas ou se coupe régulièrement."><span>📶 WiFi</span></button>
-                <button class="qchip" data-send="Mon VPN ne se connecte pas ou se déconnecte toutes les 30 minutes."><span>🔒 VPN</span></button>
-                <button class="qchip" data-send="Panne réseau générale, je ne peux plus accéder aux serveurs ou partages réseau."><span>🔴 Panne réseau</span></button>
-                <button class="qchip" data-send="Le proxy ou le pare-feu bloque l'accès à certains sites ou applications."><span>🚧 Proxy / Pare-feu</span></button>
+                <span class="qi-cat"><span data-fr="🌐 Réseau &amp; Connexion" data-en="🌐 Network &amp; Connectivity">🌐 Réseau &amp; Connexion</span><span class="qi-count">5</span></span>
+                <button class="qchip" data-send="Je n'ai plus d'accès internet sur mon poste." data-send-en="I have no internet access on my workstation."><span data-fr="🌐 Internet coupé" data-en="🌐 No internet">🌐 Internet coupé</span></button>
+                <button class="qchip" data-send="Le WiFi ne se connecte pas ou se coupe régulièrement." data-send-en="WiFi won't connect or keeps dropping."><span data-fr="📶 WiFi" data-en="📶 WiFi">📶 WiFi</span></button>
+                <button class="qchip" data-send="Mon VPN ne se connecte pas ou se déconnecte toutes les 30 minutes." data-send-en="My VPN won't connect or disconnects every 30 minutes."><span data-fr="🔒 VPN" data-en="🔒 VPN">🔒 VPN</span></button>
+                <button class="qchip" data-send="Panne réseau générale, je ne peux plus accéder aux serveurs ou partages réseau." data-send-en="General network outage, I can't access servers or network shares."><span data-fr="🔴 Panne réseau" data-en="🔴 Network outage">🔴 Panne réseau</span></button>
+                <button class="qchip" data-send="Le proxy ou le pare-feu bloque l'accès à certains sites ou applications." data-send-en="The proxy or firewall is blocking access to some sites or apps."><span data-fr="🚧 Proxy / Pare-feu" data-en="🚧 Proxy / Firewall">🚧 Proxy / Pare-feu</span></button>
               </div>
 
               <div class="qi-row">
-                <span class="qi-cat"><span>👤 Compte &amp; Accès</span><span class="qi-count">5</span></span>
-                <button class="qchip" data-send="J'ai oublié mon mot de passe ou mon compte est verrouillé."><span>🔑 Mot de passe</span></button>
-                <button class="qchip" data-send="Je n'ai pas les droits d'accès à une application ou un dossier réseau."><span>🔓 Accès refusé</span></button>
-                <button class="qchip" data-send="Je ne peux pas me connecter à Office 365 / Microsoft 365."><span>🔵 Office 365</span></button>
-                <button class="qchip" data-send="Mon authentification double facteur (MFA/2FA) ne fonctionne pas."><span>🔐 MFA / 2FA</span></button>
-                <button class="qchip" data-send="Mon certificat de sécurité est expiré ou mon navigateur affiche une erreur de certificat."><span>📜 Certificat SSL</span></button>
+                <span class="qi-cat"><span data-fr="👤 Compte &amp; Accès" data-en="👤 Account &amp; Access">👤 Compte &amp; Accès</span><span class="qi-count">5</span></span>
+                <button class="qchip" data-send="J'ai oublié mon mot de passe ou mon compte est verrouillé." data-send-en="I forgot my password or my account is locked."><span data-fr="🔑 Mot de passe" data-en="🔑 Password">🔑 Mot de passe</span></button>
+                <button class="qchip" data-send="Je n'ai pas les droits d'accès à une application ou un dossier réseau." data-send-en="I don't have access rights to an application or network folder."><span data-fr="🔓 Accès refusé" data-en="🔓 Access denied">🔓 Accès refusé</span></button>
+                <button class="qchip" data-send="Je ne peux pas me connecter à Office 365 / Microsoft 365." data-send-en="I can't log in to Office 365 / Microsoft 365."><span data-fr="🔵 Office 365" data-en="🔵 Office 365">🔵 Office 365</span></button>
+                <button class="qchip" data-send="Mon authentification double facteur (MFA/2FA) ne fonctionne pas." data-send-en="My multi-factor authentication (MFA/2FA) is not working."><span data-fr="🔐 MFA / 2FA" data-en="🔐 MFA / 2FA">🔐 MFA / 2FA</span></button>
+                <button class="qchip" data-send="Mon certificat de sécurité est expiré ou mon navigateur affiche une erreur de certificat." data-send-en="My security certificate has expired or my browser shows a certificate error."><span data-fr="📜 Certificat SSL" data-en="📜 SSL Certificate">📜 Certificat SSL</span></button>
               </div>
 
               <div class="qi-row">
-                <span class="qi-cat"><span>💻 Poste de travail</span><span class="qi-count">8</span></span>
-                <button class="qchip" data-send="Mon PC est très lent, figé ou ne répond plus du tout."><span>💻 PC lent / figé</span></button>
-                <button class="qchip" data-send="Écran bleu (BSOD) avec un code d'erreur sur mon PC."><span>💀 Écran bleu</span></button>
-                <button class="qchip" data-send="Mon écran est noir ou l'affichage est défaillant ou déformé."><span>🖥️ Écran noir</span></button>
-                <button class="qchip" data-send="Une mise à jour Windows bloque, plante ou tourne en boucle."><span>⬆️ Windows Update</span></button>
-                <button class="qchip" data-send="Mon son ou mes haut-parleurs ne fonctionnent plus."><span>🔊 Son</span></button>
-                <button class="qchip" data-send="Mon périphérique USB (clé USB, souris, clavier) n'est pas reconnu."><span>🔌 USB</span></button>
-                <button class="qchip" data-send="La batterie de mon PC portable ne se charge plus ou se décharge très vite."><span>🔋 Batterie</span></button>
-                <button class="qchip" data-send="Mon PC surchauffe ou les ventilateurs tournent à plein régime en permanence."><span>🌡️ Surchauffe</span></button>
+                <span class="qi-cat"><span data-fr="💻 Poste de travail" data-en="💻 Workstation">💻 Poste de travail</span><span class="qi-count">8</span></span>
+                <button class="qchip" data-send="Mon PC est très lent, figé ou ne répond plus du tout." data-send-en="My PC is very slow, frozen or completely unresponsive."><span data-fr="💻 PC lent / figé" data-en="💻 Slow / frozen PC">💻 PC lent / figé</span></button>
+                <button class="qchip" data-send="Écran bleu (BSOD) avec un code d'erreur sur mon PC." data-send-en="Blue screen of death (BSOD) with an error code on my PC."><span data-fr="💀 Écran bleu" data-en="💀 Blue screen">💀 Écran bleu</span></button>
+                <button class="qchip" data-send="Mon écran est noir ou l'affichage est défaillant ou déformé." data-send-en="My screen is black or the display is defective or distorted."><span data-fr="🖥️ Écran noir" data-en="🖥️ Black screen">🖥️ Écran noir</span></button>
+                <button class="qchip" data-send="Une mise à jour Windows bloque, plante ou tourne en boucle." data-send-en="A Windows update is stuck, crashing or looping."><span data-fr="⬆️ Windows Update" data-en="⬆️ Windows Update">⬆️ Windows Update</span></button>
+                <button class="qchip" data-send="Mon son ou mes haut-parleurs ne fonctionnent plus." data-send-en="My sound or speakers no longer work."><span data-fr="🔊 Son" data-en="🔊 Sound">🔊 Son</span></button>
+                <button class="qchip" data-send="Mon périphérique USB (clé USB, souris, clavier) n'est pas reconnu." data-send-en="My USB device (USB drive, mouse, keyboard) is not recognized."><span data-fr="🔌 USB" data-en="🔌 USB">🔌 USB</span></button>
+                <button class="qchip" data-send="La batterie de mon PC portable ne se charge plus ou se décharge très vite." data-send-en="My laptop battery is no longer charging or drains very fast."><span data-fr="🔋 Batterie" data-en="🔋 Battery">🔋 Batterie</span></button>
+                <button class="qchip" data-send="Mon PC surchauffe ou les ventilateurs tournent à plein régime en permanence." data-send-en="My PC is overheating or the fans are running at full speed all the time."><span data-fr="🌡️ Surchauffe" data-en="🌡️ Overheating">🌡️ Surchauffe</span></button>
               </div>
 
               <div class="qi-row">
-                <span class="qi-cat"><span>🖨️ Imprimante &amp; Périphériques</span><span class="qi-count">4</span></span>
-                <button class="qchip" data-send="L'imprimante ne répond plus ou rien ne sort quand j'imprime."><span>🖨️ Imprimante</span></button>
-                <button class="qchip" data-send="Je n'arrive pas à scanner un document depuis le scanner réseau."><span>📄 Scanner</span></button>
-                <button class="qchip" data-send="Mon second écran ne s'affiche pas ou n'est pas reconnu."><span>🖥️ Double écran</span></button>
-                <button class="qchip" data-send="Mon casque ou écouteurs ne sont pas reconnus dans Teams ou sur le PC."><span>🎧 Casque</span></button>
+                <span class="qi-cat"><span data-fr="🖨️ Imprimante &amp; Périphériques" data-en="🖨️ Printer &amp; Peripherals">🖨️ Imprimante &amp; Périphériques</span><span class="qi-count">4</span></span>
+                <button class="qchip" data-send="L'imprimante ne répond plus ou rien ne sort quand j'imprime." data-send-en="The printer is unresponsive or nothing comes out when I print."><span data-fr="🖨️ Imprimante" data-en="🖨️ Printer">🖨️ Imprimante</span></button>
+                <button class="qchip" data-send="Je n'arrive pas à scanner un document depuis le scanner réseau." data-send-en="I can't scan a document from the network scanner."><span data-fr="📄 Scanner" data-en="📄 Scanner">📄 Scanner</span></button>
+                <button class="qchip" data-send="Mon second écran ne s'affiche pas ou n'est pas reconnu." data-send-en="My second monitor is not displaying or not recognized."><span data-fr="🖥️ Double écran" data-en="🖥️ Dual monitor">🖥️ Double écran</span></button>
+                <button class="qchip" data-send="Mon casque ou écouteurs ne sont pas reconnus dans Teams ou sur le PC." data-send-en="My headset or earphones are not recognized in Teams or on the PC."><span data-fr="🎧 Casque" data-en="🎧 Headset">🎧 Casque</span></button>
               </div>
 
               <div class="qi-row">
-                <span class="qi-cat"><span>📁 Fichiers &amp; Applications</span><span class="qi-count">7</span></span>
-                <button class="qchip" data-send="OneDrive ne synchronise plus mes fichiers."><span>☁️ OneDrive</span></button>
-                <button class="qchip" data-send="Je n'arrive pas à accéder aux fichiers SharePoint."><span>📂 SharePoint</span></button>
-                <button class="qchip" data-send="Excel ou Word plante, affiche une erreur ou refuse de s'ouvrir."><span>📊 Excel / Word</span></button>
-                <button class="qchip" data-send="Je ne peux pas ouvrir ou enregistrer un fichier sur le lecteur réseau."><span>💾 Lecteur réseau</span></button>
-                <button class="qchip" data-send="Mon navigateur (Chrome, Edge) est lent, plante ou n'ouvre pas un site."><span>🌍 Navigateur</span></button>
-                <button class="qchip" data-send="Je ne peux pas ouvrir un fichier PDF ou Adobe Reader ne fonctionne pas."><span>📄 PDF / Adobe</span></button>
-                <button class="qchip" data-send="Mon disque est plein ou presque plein, je manque d'espace de stockage."><span>💽 Espace disque</span></button>
+                <span class="qi-cat"><span data-fr="📁 Fichiers &amp; Applications" data-en="📁 Files &amp; Apps">📁 Fichiers &amp; Applications</span><span class="qi-count">7</span></span>
+                <button class="qchip" data-send="OneDrive ne synchronise plus mes fichiers." data-send-en="OneDrive is no longer syncing my files."><span data-fr="☁️ OneDrive" data-en="☁️ OneDrive">☁️ OneDrive</span></button>
+                <button class="qchip" data-send="Je n'arrive pas à accéder aux fichiers SharePoint." data-send-en="I can't access SharePoint files."><span data-fr="📂 SharePoint" data-en="📂 SharePoint">📂 SharePoint</span></button>
+                <button class="qchip" data-send="Excel ou Word plante, affiche une erreur ou refuse de s'ouvrir." data-send-en="Excel or Word crashes, shows an error or won't open."><span data-fr="📊 Excel / Word" data-en="📊 Excel / Word">📊 Excel / Word</span></button>
+                <button class="qchip" data-send="Je ne peux pas ouvrir ou enregistrer un fichier sur le lecteur réseau." data-send-en="I can't open or save a file on the network drive."><span data-fr="💾 Lecteur réseau" data-en="💾 Network drive">💾 Lecteur réseau</span></button>
+                <button class="qchip" data-send="Mon navigateur (Chrome, Edge) est lent, plante ou n'ouvre pas un site." data-send-en="My browser (Chrome, Edge) is slow, crashes or won't open a site."><span data-fr="🌍 Navigateur" data-en="🌍 Browser">🌍 Navigateur</span></button>
+                <button class="qchip" data-send="Je ne peux pas ouvrir un fichier PDF ou Adobe Reader ne fonctionne pas." data-send-en="I can't open a PDF file or Adobe Reader is not working."><span data-fr="📄 PDF / Adobe" data-en="📄 PDF / Adobe">📄 PDF / Adobe</span></button>
+                <button class="qchip" data-send="Mon disque est plein ou presque plein, je manque d'espace de stockage." data-send-en="My disk is full or nearly full, I'm running out of storage."><span data-fr="💽 Espace disque" data-en="💽 Disk space">💽 Espace disque</span></button>
               </div>
 
               <div class="qi-row">
-                <span class="qi-cat"><span>🛡️ Sécurité</span><span class="qi-count">4</span></span>
-                <button class="qchip" data-send="Je pense avoir un virus ou un logiciel malveillant sur mon poste."><span>🦠 Virus / Malware</span></button>
-                <button class="qchip" data-send="J'ai reçu un email de phishing suspect avec un lien ou une pièce jointe dangereuse."><span>🎣 Phishing</span></button>
-                <button class="qchip" data-send="Mes fichiers semblent chiffrés ou inaccessibles, je pense à une attaque ransomware."><span>🚨 Ransomware</span></button>
-                <button class="qchip" data-send="J'ai constaté une connexion ou un accès suspect à mon compte ou poste de travail."><span>👁️ Accès suspect</span></button>
+                <span class="qi-cat"><span data-fr="🛡️ Sécurité" data-en="🛡️ Security">🛡️ Sécurité</span><span class="qi-count">4</span></span>
+                <button class="qchip" data-send="Je pense avoir un virus ou un logiciel malveillant sur mon poste." data-send-en="I think I have a virus or malware on my workstation."><span data-fr="🦠 Virus / Malware" data-en="🦠 Virus / Malware">🦠 Virus / Malware</span></button>
+                <button class="qchip" data-send="J'ai reçu un email de phishing suspect avec un lien ou une pièce jointe dangereuse." data-send-en="I received a suspicious phishing email with a dangerous link or attachment."><span data-fr="🎣 Phishing" data-en="🎣 Phishing">🎣 Phishing</span></button>
+                <button class="qchip" data-send="Mes fichiers semblent chiffrés ou inaccessibles, je pense à une attaque ransomware." data-send-en="My files appear encrypted or inaccessible, I suspect a ransomware attack."><span data-fr="🚨 Ransomware" data-en="🚨 Ransomware">🚨 Ransomware</span></button>
+                <button class="qchip" data-send="J'ai constaté une connexion ou un accès suspect à mon compte ou poste de travail." data-send-en="I noticed a suspicious connection or access to my account or workstation."><span data-fr="👁️ Accès suspect" data-en="👁️ Suspicious access">👁️ Accès suspect</span></button>
               </div>
 
               <div class="qi-row">
-                <span class="qi-cat"><span>📞 Téléphonie &amp; VoIP</span><span class="qi-count">4</span></span>
-                <button class="qchip" data-send="Mon téléphone IP ne sonne plus ou les appels ne passent pas."><span>📞 Téléphone IP</span></button>
-                <button class="qchip" data-send="Je n'entends pas mon interlocuteur ou il ne m'entend pas lors d'un appel."><span>🔇 Audio appel</span></button>
-                <button class="qchip" data-send="Ma messagerie vocale est pleine ou inaccessible."><span>📬 Messagerie vocale</span></button>
-                <button class="qchip" data-send="Le softphone (application téléphonique sur PC) ne se connecte pas ou plante."><span>💬 Softphone</span></button>
+                <span class="qi-cat"><span data-fr="📞 Téléphonie &amp; VoIP" data-en="📞 Telephony &amp; VoIP">📞 Téléphonie &amp; VoIP</span><span class="qi-count">4</span></span>
+                <button class="qchip" data-send="Mon téléphone IP ne sonne plus ou les appels ne passent pas." data-send-en="My IP phone no longer rings or calls won't go through."><span data-fr="📞 Téléphone IP" data-en="📞 IP Phone">📞 Téléphone IP</span></button>
+                <button class="qchip" data-send="Je n'entends pas mon interlocuteur ou il ne m'entend pas lors d'un appel." data-send-en="I can't hear my caller or they can't hear me during a call."><span data-fr="🔇 Audio appel" data-en="🔇 Call audio">🔇 Audio appel</span></button>
+                <button class="qchip" data-send="Ma messagerie vocale est pleine ou inaccessible." data-send-en="My voicemail is full or inaccessible."><span data-fr="📬 Messagerie vocale" data-en="📬 Voicemail">📬 Messagerie vocale</span></button>
+                <button class="qchip" data-send="Le softphone (application téléphonique sur PC) ne se connecte pas ou plante." data-send-en="The softphone (PC phone app) won't connect or keeps crashing."><span data-fr="💬 Softphone" data-en="💬 Softphone">💬 Softphone</span></button>
               </div>
 
               <div class="qi-row">
-                <span class="qi-cat"><span>🖥️ Accès distant</span><span class="qi-count">3</span></span>
-                <button class="qchip" data-send="Je n'arrive pas à me connecter en bureau à distance (RDP) à mon poste ou au serveur."><span>🖥️ Bureau à distance</span></button>
-                <button class="qchip" data-send="TeamViewer ou AnyDesk ne se lance pas ou refuse la connexion."><span>🔗 TeamViewer</span></button>
-                <button class="qchip" data-send="Je travaille en télétravail et je n'arrive pas à accéder aux ressources de l'entreprise."><span>🏠 Télétravail</span></button>
+                <span class="qi-cat"><span data-fr="🖥️ Accès distant" data-en="🖥️ Remote Access">🖥️ Accès distant</span><span class="qi-count">3</span></span>
+                <button class="qchip" data-send="Je n'arrive pas à me connecter en bureau à distance (RDP) à mon poste ou au serveur." data-send-en="I can't connect via remote desktop (RDP) to my PC or the server."><span data-fr="🖥️ Bureau à distance" data-en="🖥️ Remote desktop">🖥️ Bureau à distance</span></button>
+                <button class="qchip" data-send="TeamViewer ou AnyDesk ne se lance pas ou refuse la connexion." data-send-en="TeamViewer or AnyDesk won't launch or refuses the connection."><span data-fr="🔗 TeamViewer" data-en="🔗 TeamViewer">🔗 TeamViewer</span></button>
+                <button class="qchip" data-send="Je travaille en télétravail et je n'arrive pas à accéder aux ressources de l'entreprise." data-send-en="I'm working remotely and can't access the company's resources."><span data-fr="🏠 Télétravail" data-en="🏠 Remote work">🏠 Télétravail</span></button>
               </div>
 
               <div class="qi-row">
-                <span class="qi-cat"><span>💼 Logiciel métier</span><span class="qi-count">3</span></span>
-                <button class="qchip" data-send="Mon logiciel ERP (SAP, Sage, Cegid…) plante, est lent ou affiche une erreur."><span>⚙️ ERP / Sage / SAP</span></button>
-                <button class="qchip" data-send="Mon logiciel CRM (Salesforce, HubSpot…) ne se charge pas ou plante."><span>📈 CRM</span></button>
-                <button class="qchip" data-send="Un logiciel métier spécifique à mon service ne fonctionne plus correctement."><span>🛠️ Autre logiciel</span></button>
+                <span class="qi-cat"><span data-fr="💼 Logiciel métier" data-en="💼 Business Software">💼 Logiciel métier</span><span class="qi-count">3</span></span>
+                <button class="qchip" data-send="Mon logiciel ERP (SAP, Sage, Cegid…) plante, est lent ou affiche une erreur." data-send-en="My ERP software (SAP, Sage, Cegid…) crashes, is slow or shows an error."><span data-fr="⚙️ ERP / Sage / SAP" data-en="⚙️ ERP / Sage / SAP">⚙️ ERP / Sage / SAP</span></button>
+                <button class="qchip" data-send="Mon logiciel CRM (Salesforce, HubSpot…) ne se charge pas ou plante." data-send-en="My CRM software (Salesforce, HubSpot…) won't load or crashes."><span data-fr="📈 CRM" data-en="📈 CRM">📈 CRM</span></button>
+                <button class="qchip" data-send="Un logiciel métier spécifique à mon service ne fonctionne plus correctement." data-send-en="A specific business software for my department is no longer working properly."><span data-fr="🛠️ Autre logiciel" data-en="🛠️ Other software">🛠️ Autre logiciel</span></button>
               </div>
 
             </div>
@@ -1274,12 +1274,12 @@
           <!-- HERO — visible avant le 1er message -->
           <div id="chatHero" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:40px 24px;text-align:center">
             <div style="width:64px;height:64px;background:linear-gradient(135deg,rgba(79,142,247,0.2),rgba(123,111,240,0.2));border:1px solid rgba(79,142,247,0.25);border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:1.8rem">🤖</div>
-            <h2 style="font-size:1.6rem;font-weight:900;background:linear-gradient(120deg,#fff 0%,#a5b4fc 60%,#4f8ef7 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-0.04em;margin:0">Comment puis-je vous aider ?</h2>
-            <p style="color:#7a8499;font-size:0.92rem;max-width:360px;line-height:1.65;margin:0">Sélectionnez un problème à gauche ou décrivez votre situation — l'IA vous guide ou crée un ticket automatiquement.</p>
+            <h2 style="font-size:1.6rem;font-weight:900;background:linear-gradient(120deg,#fff 0%,#a5b4fc 60%,#4f8ef7 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-0.04em;margin:0"><span data-fr="Comment puis-je vous aider ?" data-en="How can I help you?">Comment puis-je vous aider ?</span></h2>
+            <p style="color:#7a8499;font-size:0.92rem;max-width:360px;line-height:1.65;margin:0"><span data-fr="Sélectionnez un problème à gauche ou décrivez votre situation — l'IA vous guide ou crée un ticket automatiquement." data-en="Select an issue on the left or describe your situation — the AI guides you or creates a ticket automatically.">Sélectionnez un problème à gauche ou décrivez votre situation — l'IA vous guide ou crée un ticket automatiquement.</span></p>
             <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center">
-              <span style="padding:7px 16px;background:rgba(79,142,247,0.1);border:1px solid rgba(79,142,247,0.25);border-radius:20px;font-size:0.8rem;font-weight:600;color:#4f8ef7">⚡ Résolution guidée</span>
-              <span style="padding:7px 16px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.25);border-radius:20px;font-size:0.8rem;font-weight:600;color:#22c55e">🎫 Ticket automatique</span>
-              <span style="padding:7px 16px;background:rgba(168,85,247,0.1);border:1px solid rgba(168,85,247,0.25);border-radius:20px;font-size:0.8rem;font-weight:600;color:#a855f7">📡 Suivi temps réel</span>
+              <span style="padding:7px 16px;background:rgba(79,142,247,0.1);border:1px solid rgba(79,142,247,0.25);border-radius:20px;font-size:0.8rem;font-weight:600;color:#4f8ef7" data-fr="⚡ Résolution guidée" data-en="⚡ Guided resolution">⚡ Résolution guidée</span>
+              <span style="padding:7px 16px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.25);border-radius:20px;font-size:0.8rem;font-weight:600;color:#22c55e" data-fr="🎫 Ticket automatique" data-en="🎫 Auto ticket">🎫 Ticket automatique</span>
+              <span style="padding:7px 16px;background:rgba(168,85,247,0.1);border:1px solid rgba(168,85,247,0.25);border-radius:20px;font-size:0.8rem;font-weight:600;color:#a855f7" data-fr="📡 Suivi temps réel" data-en="📡 Real-time tracking">📡 Suivi temps réel</span>
             </div>
           </div>
 
@@ -1305,10 +1305,10 @@
 
           <!-- FEEDBACK — résolu / ticket -->
           <div class="feedback hidden" id="feedbackBox">
-            <div class="feedback-title" id="feedbackTitle">✅ Le problème est-il résolu ?</div>
+            <div class="feedback-title" id="feedbackTitle"><span data-fr="✅ Le problème est-il résolu ?" data-en="✅ Is the issue resolved?">✅ Le problème est-il résolu ?</span></div>
             <div class="feedback-actions">
-              <button id="resolveYesBtn" class="btn success">✓ Oui, c'est résolu</button>
-              <button id="createTicketBtn" class="btn primary" type="button">🎫 Créer un ticket</button>
+              <button id="resolveYesBtn" class="btn success"><span data-fr="✓ Oui, c'est résolu" data-en="✓ Yes, resolved">✓ Oui, c'est résolu</span></button>
+              <button id="createTicketBtn" class="btn primary" type="button">🎫 <span data-fr="Créer un ticket" data-en="Create a ticket">Créer un ticket</span></button>
             </div>
             <div id="feedbackHint" class="note"></div>
             <div class="feedback-details" style="display:none">
@@ -1345,7 +1345,7 @@
               <button id="chatMicBtn" type="button" title="Dicter un message vocal"
                 style="flex-shrink:0;width:42px;height:42px;border-radius:10px;border:1.5px solid var(--stroke2);background:var(--bg3);color:var(--text-muted);font-size:1.15rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s">🎤</button>
               <input id="chatMessageInput" name="message" placeholder="Décrivez votre problème…" data-placeholder-fr="Décrivez votre problème…" data-placeholder-en="Describe your issue…" required />
-              <button class="send-btn" type="submit" title="Envoyer">Envoyer ↑</button>
+              <button class="send-btn" id="chatSubmitBtn" type="submit" title="Envoyer"><span data-fr="Envoyer ↑" data-en="Send ↑">Envoyer ↑</span></button>
             </form>
           </div>
 
@@ -1536,7 +1536,7 @@
     </footer>
 
     <script src="/app/i18n.js?v=20260512" defer></script>
-    <script src="/app/app.js?v=20260522b" defer></script>
+    <script src="/app/app.js?v=20260522c" defer></script>
     <script src="/app/logout.js?v=20260509" defer></script>
     <script>
     // ─── Chat Hero : se cache quand le 1er message arrive ──────────────────────
