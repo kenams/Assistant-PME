@@ -404,16 +404,59 @@
 
       /* -- Input zone -- */
       .chat-input-zone {
-        display: flex; gap: 10px; padding: 12px 18px 14px;
-        background: rgba(11,11,11,0.92); backdrop-filter: blur(20px);
+        display: flex; gap: 8px; padding: 12px 16px 16px;
+        background: rgba(11,11,11,0.96); backdrop-filter: blur(20px);
         border-top: 1px solid var(--stroke); flex-shrink: 0; align-items: flex-end;
+      }
+
+      /* Boutons icônes (📎 et 🎤) — EN DEHORS du form pour que app.js ne les confonde pas avec le submit */
+      #chatImageBtn, #chatMicBtn {
+        flex-shrink: 0;
+        width: 44px; height: 44px; border-radius: 10px;
+        font-size: 0 !important; /* cache le texte que app.js injecte */
+        overflow: hidden;
+        cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        transition: all var(--transition);
+        padding: 0; line-height: 1;
+      }
+      #chatImageBtn {
+        border: 1.5px solid rgba(79,142,247,0.45);
+        background: rgba(79,142,247,0.1);
+      }
+      #chatImageBtn::after { content: '📎'; font-size: 1.2rem; }
+      #chatImageBtn:hover {
+        background: rgba(79,142,247,0.22);
+        border-color: #4f8ef7;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 16px rgba(79,142,247,0.3);
+      }
+      #chatMicBtn {
+        border: 1.5px solid rgba(168,85,247,0.45);
+        background: rgba(168,85,247,0.1);
+      }
+      #chatMicBtn::after { content: '🎤'; font-size: 1.2rem; }
+      #chatMicBtn:hover {
+        background: rgba(168,85,247,0.22);
+        border-color: #a855f7;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 16px rgba(168,85,247,0.3);
+      }
+      #chatMicBtn[data-state="recording"] { background: rgba(239,68,68,0.15) !important; border-color: var(--danger) !important; }
+      #chatMicBtn[data-state="recording"]::after { content: '⏹'; color: var(--danger); }
+      #chatMicBtn[data-state="loading"] { opacity: 0.55; cursor: not-allowed; }
+      #chatMicBtn[data-state="loading"]::after { content: '⏳'; }
+
+      /* Form = flex:1, contient seulement l'input + le bouton submit */
+      #chatForm {
+        display: flex; flex: 1; gap: 8px; align-items: flex-end; min-width: 0;
       }
       #chatMessageInput {
         flex: 1; background: var(--bg3);
         border: 1.5px solid var(--stroke2); border-radius: 12px;
         padding: 12px 16px; color: var(--text); font-family: inherit; font-size: 0.92rem;
-        resize: none; outline: none; min-height: 48px; max-height: 140px; line-height: 1.5;
-        transition: all var(--transition);
+        outline: none; height: 48px; line-height: 1.5; min-width: 0;
+        transition: border-color var(--transition), box-shadow var(--transition);
       }
       #chatMessageInput:focus {
         border-color: var(--cta);
@@ -423,53 +466,19 @@
 
       /* -- Send button -- */
       .send-btn {
-        height: 48px; padding: 0 22px;
+        flex-shrink: 0;
+        height: 48px; min-width: 110px; padding: 0 20px;
         border-radius: 12px; white-space: nowrap;
-        background: var(--cta);
-        border: none; color: #fff;
+        background: var(--cta); border: none; color: #fff;
         font-family: inherit; font-size: 0.9rem; font-weight: 700;
         cursor: pointer; letter-spacing: 0.01em;
-        display: flex; align-items: center; justify-content: center; gap: 6px;
-        transition: all var(--transition); flex-shrink: 0;
+        display: flex; align-items: center; justify-content: center;
+        transition: all var(--transition);
         box-shadow: 0 4px 20px var(--cta-glow);
       }
       .send-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 28px rgba(255,107,53,0.5); background: var(--cta-hover); }
       .send-btn:active { transform: scale(0.97) translateY(0); }
-      .send-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-
-
-      /* -- Chat input bar -- */
-      .chat-input-bar {
-        padding: 12px 20px 16px;
-        border-top: 1px solid var(--stroke);
-        background: linear-gradient(180deg, transparent, rgba(11,11,11,0.95));
-        backdrop-filter: blur(12px);
-        display: flex;
-        align-items: flex-end;
-        gap: 10px;
-      }
-      #chatInput {
-        background: var(--bg3);
-        border: 1.5px solid var(--stroke2);
-        border-radius: 12px;
-        color: var(--text);
-        padding: 12px 16px;
-        font-size: 0.92rem;
-        font-family: inherit;
-        resize: none;
-        min-height: 44px;
-        max-height: 140px;
-        flex: 1;
-        outline: none;
-        transition: border-color var(--transition), box-shadow var(--transition);
-        line-height: 1.5;
-      }
-      #chatInput::placeholder { color: var(--text-muted); opacity: 0.7; }
-      #chatInput:focus {
-        border-color: var(--cta);
-        box-shadow: 0 0 0 3px var(--cta-glow);
-        outline: none;
-      }
+      .send-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
 
       /* -- Feedback box -- */
       #feedbackBox {
@@ -1338,14 +1347,12 @@
 
           <!-- FORMULAIRE DE SAISIE -->
           <div class="chat-input-zone">
-            <form id="chatForm" style="display:contents">
-              <input id="chatImageInput" type="file" accept="image/*" style="display:none" />
-              <button id="chatImageBtn" type="button" title="Joindre une capture d'écran"
-                style="flex-shrink:0;width:42px;height:42px;border-radius:10px;border:1.5px solid var(--stroke2);background:var(--bg3);color:var(--text-muted);font-size:1.15rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s">📎</button>
-              <button id="chatMicBtn" type="button" title="Dicter un message vocal"
-                style="flex-shrink:0;width:42px;height:42px;border-radius:10px;border:1.5px solid var(--stroke2);background:var(--bg3);color:var(--text-muted);font-size:1.15rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s">🎤</button>
+            <input id="chatImageInput" type="file" accept="image/*" style="display:none" />
+            <button id="chatImageBtn" type="button" title="Joindre une capture d'écran" aria-label="Joindre une capture"></button>
+            <button id="chatMicBtn" type="button" title="Dicter un message vocal" aria-label="Dicter un message"></button>
+            <form id="chatForm">
               <input id="chatMessageInput" name="message" placeholder="Décrivez votre problème…" data-placeholder-fr="Décrivez votre problème…" data-placeholder-en="Describe your issue…" required />
-              <button class="send-btn" id="chatSubmitBtn" type="submit" title="Envoyer"><span data-fr="Envoyer ↑" data-en="Send ↑">Envoyer ↑</span></button>
+              <button class="send-btn" id="chatSubmitBtn" type="submit">Envoyer ↑</button>
             </form>
           </div>
 
@@ -1755,9 +1762,7 @@
           };
           recorder.start();
           recording = true;
-          micBtn.style.background = 'var(--danger)';
-          micBtn.style.color = '#fff';
-          micBtn.style.border = '1.5px solid var(--danger)';
+          micBtn.dataset.state = 'recording';
           micBtn.title = 'Arrêter l\'enregistrement';
         }).catch(function() {
           alert('Accès au microphone refusé.');
@@ -1767,10 +1772,7 @@
       function stopRecording() {
         if (recorder && recorder.state !== 'inactive') recorder.stop();
         recording = false;
-        micBtn.style.background = 'var(--bg3)';
-        micBtn.style.color = 'var(--text-muted)';
-        micBtn.style.border = '1.5px solid var(--stroke2)';
-        micBtn.textContent = '⏳';
+        micBtn.dataset.state = 'loading';
         micBtn.disabled = true;
         micBtn.title = 'Transcription…';
       }
@@ -1799,7 +1801,7 @@
         })
         .catch(function() {})
         .finally(function() {
-          micBtn.textContent = '🎤';
+          micBtn.dataset.state = '';
           micBtn.disabled = false;
           micBtn.title = 'Dicter un message vocal';
         });
