@@ -876,16 +876,42 @@ async function callOpenAI({ message, kbChunks, language, orgSettings, conversati
     return greetingReply(lang);
   }
 
+  // Check if conversation includes any image
+  const hasImage = (conversationHistory || []).some(m => m.content && m.content.startsWith("__IMAGE__:"));
+  const imageHint = hasImage
+    ? (lang === "en"
+        ? "\n\n## SCREENSHOT CONTEXT\nThe user has shared a screenshot. Analyze it carefully to identify the error, dialog, or UI element visible, and reference it explicitly in your answer."
+        : "\n\n## CONTEXTE CAPTURE D'ÉCRAN\nL'utilisateur a partagé une capture d'écran. Analysez-la attentivement pour identifier l'erreur, la boîte de dialogue ou l'interface visible, et mentionnez-le explicitement dans votre réponse.")
+    : "";
+
   // Build system prompt with past ticket context appended
   const fullSystem = pastTicketContext
-    ? `${systemPrompt}\n\n## MÉMOIRE UTILISATEUR\n${pastTicketContext}`
-    : systemPrompt;
+    ? `${systemPrompt}${imageHint}\n\n## MÉMOIRE UTILISATEUR\n${pastTicketContext}`
+    : `${systemPrompt}${imageHint}`;
 
-  // Build conversation history messages (last 10 turns, excluding current)
+  // Build conversation history messages (last 10 turns, including images for vision)
   const historyMessages = (conversationHistory || [])
-    .filter(m => (m.role === "user" || m.role === "assistant") && m.content && !m.content.startsWith("__IMAGE__"))
+    .filter(m => (m.role === "user" || m.role === "assistant") && m.content)
     .slice(-10)
-    .map(m => ({ role: m.role, content: m.content }));
+    .map(m => {
+      if (m.content && m.content.startsWith("__IMAGE__:")) {
+        const urlPath = m.content.slice("__IMAGE__:".length).trim();
+        try {
+          const filePath = path.join(process.cwd(), "data", urlPath);
+          const data = fs.readFileSync(filePath);
+          const ext = path.extname(urlPath).toLowerCase().replace(".", "") || "png";
+          const mime = ext === "jpg" || ext === "jpeg" ? "image/jpeg" : `image/${ext}`;
+          return {
+            role: m.role,
+            content: [{ type: "image_url", image_url: { url: `data:${mime};base64,${data.toString("base64")}`, detail: "low" } }]
+          };
+        } catch (_) {
+          return null;
+        }
+      }
+      return { role: m.role, content: m.content };
+    })
+    .filter(Boolean);
 
   // Current user message with KB context
   const userPrompt = lang === "en"

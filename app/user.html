@@ -1339,16 +1339,12 @@
           <!-- FORMULAIRE DE SAISIE -->
           <div class="chat-input-zone">
             <form id="chatForm" style="display:contents">
+              <input id="chatImageInput" type="file" accept="image/*" style="display:none" />
+              <button id="chatImageBtn" type="button" title="Joindre une capture d'écran"
+                style="flex-shrink:0;width:42px;height:42px;border-radius:10px;border:1.5px solid var(--stroke2);background:var(--bg3);color:var(--text-muted);font-size:1.15rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s">📎</button>
               <input id="chatMessageInput" name="message" placeholder="Décrivez votre problème…" data-placeholder-fr="Décrivez votre problème…" data-placeholder-en="Describe your issue…" required />
               <button class="send-btn" type="submit" title="Envoyer">Envoyer ↑</button>
             </form>
-          </div>
-
-          <!-- Pièces jointes (cachées mais actives) -->
-          <div class="chat-attachments" style="display:none">
-            <input id="chatImageInput" class="hidden" type="file" accept="image/*" />
-            <button id="chatImageBtn" class="btn ghost" type="button">Capture</button>
-            <span class="note" id="chatAttachmentHint">Glissez ou collez une image.</span>
           </div>
 
           </div><!-- /chat-panel -->
