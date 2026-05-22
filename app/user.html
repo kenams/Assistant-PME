@@ -421,40 +421,22 @@
       }
       #chatMessageInput::placeholder { color: var(--text-muted); opacity: 0.6; }
 
-      /* -- Send button (generic .send-btn) -- */
+      /* -- Send button -- */
       .send-btn {
-        width: 48px; height: 48px; border-radius: 12px;
+        height: 48px; padding: 0 22px;
+        border-radius: 12px; white-space: nowrap;
         background: var(--cta);
-        border: none; color: #fff; font-size: 1.1rem; cursor: pointer;
-        display: flex; align-items: center; justify-content: center;
+        border: none; color: #fff;
+        font-family: inherit; font-size: 0.9rem; font-weight: 700;
+        cursor: pointer; letter-spacing: 0.01em;
+        display: flex; align-items: center; justify-content: center; gap: 6px;
         transition: all var(--transition); flex-shrink: 0;
-        box-shadow: 0 4px 16px var(--cta-glow);
+        box-shadow: 0 4px 20px var(--cta-glow);
       }
-      .send-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(255,107,53,0.45); background: var(--cta-hover); }
-      .send-btn:active { transform: scale(0.95) translateY(0); }
+      .send-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 28px rgba(255,107,53,0.5); background: var(--cta-hover); }
+      .send-btn:active { transform: scale(0.97) translateY(0); }
+      .send-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
-      /* -- #sendBtn override (imposé) -- */
-      #sendBtn {
-        background: var(--cta) !important;
-        border-color: var(--cta) !important;
-        color: #fff !important;
-        border-radius: 10px !important;
-        padding: 0 20px !important;
-        height: 44px !important;
-        font-weight: 700 !important;
-        font-size: 0.88rem !important;
-        box-shadow: 0 0 20px var(--cta-glow) !important;
-        transition: all var(--transition) !important;
-        flex-shrink: 0; border: 1px solid; cursor: pointer; font-family: inherit;
-        display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-        white-space: nowrap;
-      }
-      #sendBtn:hover {
-        background: var(--cta-hover) !important;
-        box-shadow: 0 0 30px var(--cta-glow), 0 4px 16px rgba(255,107,53,0.3) !important;
-        transform: translateY(-1px) !important;
-      }
-      #sendBtn:active { transform: scale(0.97) translateY(0) !important; }
 
       /* -- Chat input bar -- */
       .chat-input-bar {
@@ -506,7 +488,7 @@
       .chat-ticket .link { display: inline-flex; margin-top: 6px; }
       #ticketPreview { padding: 14px 20px; background: var(--bg3); border-top: 1px solid var(--stroke); flex-shrink: 0; }
       .preview-grid { grid-template-columns: repeat(2, 1fr); }
-      #chatSources { padding: 0 20px; flex-shrink: 0; }
+      #chatSources { display: none; }
 
       /* ===================================
          CHAT HERO — visible avant le 1er msg
@@ -613,33 +595,28 @@
       =================================== */
       @media (min-width: 820px) {
         body {
-          padding: 20px; align-items: center;
-          background:
-            radial-gradient(ellipse 55% 45% at 20% 15%, rgba(91,106,212,0.06) 0%, transparent 55%),
-            radial-gradient(ellipse 45% 45% at 80% 85%, rgba(255,107,53,0.04) 0%, transparent 55%),
-            var(--bg);
+          padding: 0; align-items: stretch;
+          background: var(--bg);
         }
         body > header.topbar {
-          width: 100%; max-width: 1280px;
-          border-radius: 16px 16px 0 0;
-          border: 1px solid var(--stroke2);
+          width: 100%;
+          border-radius: 0;
+          border-left: none; border-right: none; border-top: none;
           border-bottom: 1px solid var(--stroke);
-          background: rgba(11,11,11,0.96); backdrop-filter: blur(24px);
+          background: rgba(11,11,11,0.98); backdrop-filter: blur(24px);
           position: relative; z-index: 2; overflow: visible;
         }
         body > header.topbar::before {
-          content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
-          background: linear-gradient(90deg, transparent 0%, rgba(91,106,212,0.5) 25%, rgba(255,107,53,0.5) 75%, transparent 100%);
-          border-radius: 16px 16px 0 0; pointer-events: none;
+          content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 1px;
+          background: linear-gradient(90deg, transparent 0%, rgba(91,106,212,0.4) 30%, rgba(255,107,53,0.4) 70%, transparent 100%);
+          pointer-events: none;
         }
         body > main {
-          width: 100%; max-width: 1280px; flex: 1; min-height: 0;
-          border-radius: 0 0 16px 16px;
-          border: 1px solid var(--stroke); border-top: none; overflow: hidden;
-          box-shadow: 0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.02) inset;
-          position: relative; z-index: 1;
+          width: 100%; flex: 1; min-height: 0;
+          border-radius: 0;
+          border: none; overflow: hidden;
         }
-        body > #statusBanner { width: 100%; max-width: 1280px; }
+        body > #statusBanner { width: 100%; }
         #myTicketsPanel, #ticketThanks { inset: 60px 0 0 0; }
       }
 
@@ -774,6 +751,13 @@
         margin-top: 3px;
       }
       .bubble.assistant .msg-list li:last-child { margin-bottom: 0; }
+      .bubble.assistant .msg-list li .li-text {
+        flex: 1; min-width: 0;
+        word-break: break-word; overflow-wrap: anywhere;
+      }
+      .chat-msg.bot .bubble, .chat-msg.user .bubble {
+        word-break: break-word; overflow-wrap: anywhere;
+      }
 
       /* ===================================
          OVERLAY SUCCÈS RÉSOLU
@@ -1356,7 +1340,7 @@
           <div class="chat-input-zone">
             <form id="chatForm" style="display:contents">
               <input id="chatMessageInput" name="message" placeholder="Décrivez votre problème…" data-placeholder-fr="Décrivez votre problème…" data-placeholder-en="Describe your issue…" required />
-              <button class="send-btn" type="submit" title="Envoyer">↑</button>
+              <button class="send-btn" type="submit" title="Envoyer">Envoyer ↑</button>
             </form>
           </div>
 
@@ -1554,7 +1538,7 @@
     </footer>
 
     <script src="/app/i18n.js?v=20260512" defer></script>
-    <script src="/app/app.js?v=20260522" defer></script>
+    <script src="/app/app.js?v=20260522b" defer></script>
     <script src="/app/logout.js?v=20260509" defer></script>
     <script>
     // ─── Chat Hero : se cache quand le 1er message arrive ──────────────────────

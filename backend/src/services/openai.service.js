@@ -769,14 +769,7 @@ function generateSupportAnswer({ message, kbChunks, language, orgSettings }) {
     priority = "medium";
   }
 
-  // Append secondary KB hint for hardcoded matches that also have KB chunks
-  if (match && kbNote) {
-    const kbLabel = lang === "en"
-      ? `📚 *Internal procedure available: ${kb_hint || "see knowledge base"}*`
-      : `📚 *Procédure interne disponible : ${kb_hint || "voir base de connaissances"}*`;
-    answer += `\n\n${kbLabel}`;
-  }
-  if (footer) answer += footer;
+  // Footer and kb_hint are metadata — not injected into the user-facing answer
 
   const needs_ticket = needsTicketFor(text) || (match && match.priority === "critical");
 
@@ -977,9 +970,7 @@ async function callOpenAI({ message, kbChunks, language, orgSettings, conversati
   const ticket_draft = needs_ticket
     ? normalizeDraft(parsed.ticket_draft, message)
     : null;
-  const finalAnswer = footer && !answer.includes(footer.trim()) ? `${answer}${footer}` : answer;
-
-  return { answer: finalAnswer, needs_ticket, ticket_draft };
+  return { answer, needs_ticket, ticket_draft };
 }
 
 async function answerWithLLM({ message, rawMessage, kbChunks, language, orgSettings, conversationHistory, userPastTickets }) {

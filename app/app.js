@@ -2706,14 +2706,16 @@ if (kioskMode) {
           if (olMatch) {
             flushParagraph();
             if (!inOl) { closeList(); html += '<ol class="msg-list">'; inOl = true; }
-            html += `<li>${inlineMarkdown(escapeHtml(olMatch[2].trim()))}</li>`;
+            html += `<li><span class="li-text">${inlineMarkdown(escapeHtml(olMatch[2].trim()))}</span></li>`;
           } else if (ulMatch) {
             flushParagraph();
             if (!inUl) { closeList(); html += '<ul class="msg-list">'; inUl = true; }
-            html += `<li>${inlineMarkdown(escapeHtml(ulMatch[1].trim()))}</li>`;
-          } else if (trimmed === "") {
+            html += `<li><span class="li-text">${inlineMarkdown(escapeHtml(ulMatch[1].trim()))}</span></li>`;
+          } else if (trimmed === "" || /^\|[-| ]+\|$/.test(trimmed)) {
             flushParagraph();
             closeList();
+          } else if (/^\|.+\|$/.test(trimmed)) {
+            // markdown table row → skip (not rendered to users)
           } else {
             if (inOl || inUl) { closeList(); }
             paragraphLines.push(trimmed);
