@@ -235,6 +235,20 @@ async function getTenantById(id) {
   return row || null;
 }
 
+const PLAN_USER_LIMITS = { starter: 50, pro: 200, enterprise: null };
+
+async function checkUserLimit(tenantId) {
+  const tenant = await db("tenants").where({ id: tenantId }).first();
+  if (!tenant) return { error: "tenant_not_found" };
+  const plan = tenant.subscription_plan || tenant.plan || "starter";
+  const limit = PLAN_USER_LIMITS[plan] ?? PLAN_USER_LIMITS.starter;
+  if (limit === null) return { ok: true };
+  const [{ count }] = await db("users").where({ tenant_id: tenantId }).count("id as count");
+  const current = parseInt(count, 10);
+  if (current >= limit) return { error: "user_limit_reached", plan, limit, current };
+  return { ok: true };
+}
+
 async function createUser({ tenantId, email, password, role }) {
   const exists = await db("users")
     .where({ tenant_id: tenantId })
@@ -243,6 +257,8 @@ async function createUser({ tenantId, email, password, role }) {
   if (exists) {
     return { error: "email_exists" };
   }
+  const limitCheck = await checkUserLimit(tenantId);
+  if (limitCheck.error) return limitCheck;
   const now = new Date().toISOString();
   const [user] = await db("users").insert({
     id: crypto.randomUUID(),
@@ -271,5 +287,6 @@ module.exports = {
   getTenantById,
   verifyPassword,
   createUser,
-  listUsers
+  listUsers,
+  checkUserLimit
 };

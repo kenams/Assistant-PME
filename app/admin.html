@@ -1049,6 +1049,19 @@
               <div class="chart-title">📈 Volume — 14 derniers jours</div>
               <div id="miniVolumeBars" class="mini-volume" style="display:flex;align-items:flex-end;gap:4px;height:90px;padding-top:8px"></div>
             </div>
+            <div class="chart-card">
+              <div class="chart-title">🗂️ Catégories</div>
+              <div id="miniCategoryBars" class="mini-bars" style="display:flex;flex-direction:column;gap:8px"></div>
+            </div>
+          </div>
+
+          <!-- SLA Alerts -->
+          <div class="card" id="slaAlertsCard" style="display:none">
+            <div class="card-header">
+              <h3>🚨 Alertes SLA</h3>
+              <span id="slaAlertsSummary" style="font-size:0.8rem;color:var(--text-muted)"></span>
+            </div>
+            <div id="slaAlertsList" style="display:flex;flex-direction:column"></div>
           </div>
 
           <!-- Métriques détaillées -->
@@ -1163,6 +1176,21 @@
                   <button id="glpiTestBtn" class="btn ghost" type="button">🔗 Tester la connexion</button>
                   <span id="glpiTestStatus" class="status"></span>
                 </div>
+              </div>
+              <div class="form-section">
+                <strong>Webhooks & Notifications</strong>
+                <label class="toggle">
+                  <input name="notify_on_ticket_created" type="checkbox" />
+                  <span>Notifier à la création d'un ticket</span>
+                </label>
+                <label class="toggle">
+                  <input name="notify_on_ticket_updated" type="checkbox" />
+                  <span>Notifier à la mise à jour d'un ticket</span>
+                </label>
+                <input name="slack_webhook_url" placeholder="Slack Incoming Webhook URL" type="url" />
+                <input name="teams_webhook_url" placeholder="Teams Incoming Webhook URL" type="url" />
+                <input name="webhook_url" placeholder="Webhook générique URL" type="url" />
+                <input name="webhook_secret" placeholder="Secret webhook (HMAC-SHA256)" type="password" />
               </div>
               <div class="form-section">
                 <strong>Active Directory / LDAP</strong>
@@ -2157,6 +2185,7 @@
         }
         renderBars('miniStatusBars', data.tickets_by_status);
         renderBars('miniPriorityBars', data.tickets_by_priority, { critical: '#ef4444', high: '#f97316', medium: '#4f8ef7', low: '#22c55e' });
+        renderBars('miniCategoryBars', data.tickets_by_category);
 
         // Volume sparkline
         const volContainer = el('miniVolumeBars');
@@ -2171,13 +2200,37 @@
           }).join('');
         }
 
+        // SLA alerts
+        const slaAlertsCard = el('slaAlertsCard');
+        const slaAlertsList = el('slaAlertsList');
+        const slaAlertsSummary = el('slaAlertsSummary');
+        if (slaAlertsCard && slaAlertsList && data.sla) {
+          const alerts = data.sla.alerts || [];
+          if (alerts.length > 0) {
+            slaAlertsCard.style.display = '';
+            if (slaAlertsSummary) slaAlertsSummary.textContent = `${data.sla.breached_open_count || 0} en breach · ${data.sla.at_risk_count || 0} à risque (SLA: ${data.sla.hours}h)`;
+            slaAlertsList.innerHTML = alerts.map(a => {
+              const isBreach = a.type === 'breach';
+              const color = isBreach ? 'var(--danger)' : 'var(--warning)';
+              const label = isBreach ? 'BREACH' : 'RISQUE';
+              return `<div style="display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--stroke)">
+                <span style="font-size:0.68rem;font-weight:800;padding:2px 7px;border-radius:8px;background:${color}22;color:${color};border:1px solid ${color}55;flex-shrink:0">${label}</span>
+                <span style="flex:1;font-size:0.84rem;color:var(--text)">${escHtml(a.title || 'Sans titre')}</span>
+                <span style="font-size:0.78rem;font-weight:700;color:${color}">${a.age_hours}h</span>
+              </div>`;
+            }).join('');
+          } else {
+            slaAlertsCard.style.display = 'none';
+          }
+        }
+
         // ROI card
         if (data.roi) {
           const roi = data.roi;
           const roiContainer = el('metricsStats') || el('metricsStatsCard');
           if (roiContainer) {
             roiContainer.innerHTML = `
-              <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;padding:16px">
+              <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;padding:16px">
                 <div style="background:var(--bg3);border-radius:12px;padding:16px;text-align:center">
                   <div style="font-size:1.6rem;font-weight:900;color:var(--accent)">${roi.tickets_evites}</div>
                   <div style="font-size:0.78rem;color:var(--text-muted);margin-top:4px">Tickets évités</div>
@@ -2194,6 +2247,14 @@
                   <div style="font-size:1.6rem;font-weight:900;color:#f97316">${metrics.utilisateurs_actifs || 0}</div>
                   <div style="font-size:0.78rem;color:var(--text-muted);margin-top:4px">Utilisateurs actifs</div>
                 </div>
+                ${data.feedback?.resolved_rate > 0 ? `<div style="background:var(--bg3);border-radius:12px;padding:16px;text-align:center">
+                  <div style="font-size:1.6rem;font-weight:900;color:#22c55e">${data.feedback.resolved_rate}%</div>
+                  <div style="font-size:0.78rem;color:var(--text-muted);margin-top:4px">Feedback résolu</div>
+                </div>` : ''}
+                ${roi.savings_estimate > 0 ? `<div style="background:var(--bg3);border-radius:12px;padding:16px;text-align:center">
+                  <div style="font-size:1.6rem;font-weight:900;color:#f59e0b">${roi.savings_estimate}€</div>
+                  <div style="font-size:0.78rem;color:var(--text-muted);margin-top:4px">Économies estimées</div>
+                </div>` : ''}
               </div>`;
           }
         }
@@ -2756,6 +2817,81 @@
       const recentRefreshBtn = document.getElementById('recentTicketsRefreshBtn');
       if (recentRefreshBtn) recentRefreshBtn.addEventListener('click', loadAnalytics);
 
+      // Settings panel — load & save org settings
+      async function loadOrgSettings() {
+        try {
+          const res = await fetch('/org/settings', { headers: authHeaders() });
+          if (!res.ok) return;
+          const s = await res.json();
+          const form = document.getElementById('orgSettingsForm');
+          if (!form) return;
+          const textFields = ['support_email','support_phone','logo_url','reminder_hours',
+            'glpi_base_url','glpi_app_token','glpi_user_token',
+            'ad_url','ad_domain','ad_base_dn','ad_bind_user','ad_bind_password',
+            'slack_webhook_url','teams_webhook_url','webhook_url','webhook_secret'];
+          textFields.forEach(name => {
+            const el = form.querySelector(`[name="${name}"]`);
+            if (el && s[name] != null) el.value = s[name];
+          });
+          const checkboxFields = ['glpi_enabled','ad_enabled','notify_on_ticket_created','notify_on_ticket_updated'];
+          checkboxFields.forEach(name => {
+            const el = form.querySelector(`[name="${name}"]`);
+            if (el) el.checked = Boolean(s[name]);
+          });
+        } catch(e) { console.error('loadOrgSettings:', e); }
+      }
+      const settingsBtn = document.querySelector('[data-panel="settings"]');
+      if (settingsBtn) settingsBtn.addEventListener('click', () => loadOrgSettings());
+      const orgSettingsReloadBtn = document.getElementById('orgSettingsReloadBtn');
+      if (orgSettingsReloadBtn) orgSettingsReloadBtn.addEventListener('click', loadOrgSettings);
+      const orgSettingsForm = document.getElementById('orgSettingsForm');
+      if (orgSettingsForm) orgSettingsForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const fd = new FormData(orgSettingsForm);
+        const payload = {};
+        ['support_email','support_phone','logo_url','reminder_hours',
+         'glpi_base_url','glpi_app_token','glpi_user_token',
+         'ad_url','ad_domain','ad_base_dn','ad_bind_user','ad_bind_password',
+         'slack_webhook_url','teams_webhook_url','webhook_url','webhook_secret'].forEach(k => {
+          const v = fd.get(k);
+          if (v !== null) payload[k] = v;
+        });
+        payload.glpi_enabled = orgSettingsForm.querySelector('[name="glpi_enabled"]')?.checked || false;
+        payload.ad_enabled = orgSettingsForm.querySelector('[name="ad_enabled"]')?.checked || false;
+        payload.notify_on_ticket_created = orgSettingsForm.querySelector('[name="notify_on_ticket_created"]')?.checked || false;
+        payload.notify_on_ticket_updated = orgSettingsForm.querySelector('[name="notify_on_ticket_updated"]')?.checked || false;
+        if (payload.reminder_hours) payload.reminder_hours = Number(payload.reminder_hours);
+        const st = document.getElementById('orgSettingsStatus');
+        const btn = orgSettingsForm.querySelector('button[type="submit"]');
+        if (btn) btn.disabled = true;
+        if (st) st.textContent = 'Sauvegarde…';
+        try {
+          const res = await fetch('/org/settings', { method: 'PUT', headers: authHeaders(), body: JSON.stringify(payload) });
+          if (!res.ok) throw new Error(res.status);
+          if (st) { st.textContent = '✅ Sauvegardé'; st.className = 'status ok'; setTimeout(() => { st.textContent = ''; st.className = 'status'; }, 3000); }
+        } catch(e) {
+          if (st) { st.textContent = `❌ Erreur: ${e.message}`; st.className = 'status error'; }
+        } finally { if (btn) btn.disabled = false; }
+      });
+      // Wire settings-panel glpiTestBtn
+      const glpiTestBtn = document.getElementById('glpiTestBtn');
+      if (glpiTestBtn) glpiTestBtn.addEventListener('click', async () => {
+        const form = document.getElementById('orgSettingsForm');
+        const url = form?.querySelector('[name="glpi_base_url"]')?.value.trim();
+        const app = form?.querySelector('[name="glpi_app_token"]')?.value.trim();
+        const user = form?.querySelector('[name="glpi_user_token"]')?.value.trim();
+        const st = document.getElementById('glpiTestStatus');
+        if (!url || !user) { if (st) st.textContent = '⚠ URL et User-Token requis'; return; }
+        glpiTestBtn.disabled = true;
+        if (st) st.textContent = 'Test…';
+        try {
+          const res = await fetch('/admin/glpi/test', { method: 'POST', headers: authHeaders(), body: JSON.stringify({ baseUrl: url, appToken: app, userToken: user, enabled: true }) });
+          const d = await res.json();
+          if (st) st.textContent = res.ok && d.ok ? '✅ GLPI OK' : `❌ ${d.error || res.status}`;
+        } catch(e) { if (st) st.textContent = `❌ ${e.message}`; }
+        finally { glpiTestBtn.disabled = false; }
+      });
+
       // Users
       const usersBtn = document.querySelector('[data-panel="users"]');
       if (usersBtn) usersBtn.addEventListener('click', () => loadUsers());
@@ -2779,7 +2915,10 @@
         try {
           const res = await fetch('/users/invite', { method: 'POST', headers: authHeaders(), body: JSON.stringify(payload) });
           const data = await res.json();
-          if (!res.ok) throw new Error(data.error || 'invite_failed');
+          if (!res.ok) {
+            if (data.error === 'user_limit_reached') throw new Error(`Limite atteinte : ${data.current}/${data.limit} utilisateurs (plan ${data.plan}). Passez à un plan supérieur.`);
+            throw new Error(data.error || 'invite_failed');
+          }
           if (statusEl) { statusEl.textContent = '✅ Invitation créée — token: ' + (data.token || data.invite?.token || ''); statusEl.className = 'status success'; }
           inviteForm.reset();
           await loadInvites();

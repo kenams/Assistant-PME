@@ -59,4 +59,42 @@ async function notifyTicketCreated({ tenantId, ticket }) {
   await Promise.allSettled(tasks);
 }
 
-module.exports = { notifyTicketCreated };
+async function notifyTicketUpdated({ tenantId, ticket, changes }) {
+  const settings = await getOrgSettings({ tenantId });
+  if (!settings.notify_on_ticket_updated) {
+    return;
+  }
+
+  const changesText = Object.entries(changes || {})
+    .map(([k, v]) => `${k}: ${v}`)
+    .join(", ");
+
+  const tasks = [];
+  if (settings.slack_webhook_url) {
+    tasks.push(postJson(settings.slack_webhook_url, {
+      text: `Ticket mis à jour: *${ticket.title}*\n${changesText ? `Modifications: ${changesText}` : ""}\nStatut: ${ticket.status} | Priorité: ${ticket.priority}`
+    }));
+  }
+  if (settings.teams_webhook_url) {
+    tasks.push(postJson(settings.teams_webhook_url, {
+      "@type": "MessageCard",
+      "@context": "http://schema.org/extensions",
+      summary: "Ticket mis à jour",
+      themeColor: "F59E0B",
+      sections: [{
+        activityTitle: `Ticket mis à jour: ${ticket.title}`,
+        facts: [
+          { name: "Statut", value: ticket.status || "-" },
+          { name: "Priorité", value: ticket.priority || "-" },
+          ...(changesText ? [{ name: "Modifications", value: changesText }] : [])
+        ],
+        markdown: true
+      }]
+    }));
+  }
+
+  if (!tasks.length) return;
+  await Promise.allSettled(tasks);
+}
+
+module.exports = { notifyTicketCreated, notifyTicketUpdated };

@@ -24,6 +24,7 @@ function defaultSettings(tenantId) {
     quick_issue_threshold: 4,
     signature: "",
     notify_on_ticket_created: false,
+    notify_on_ticket_updated: false,
     webhook_url: "",
     webhook_secret: "",
     slack_webhook_url: "",

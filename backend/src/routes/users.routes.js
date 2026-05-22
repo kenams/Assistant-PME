@@ -3,7 +3,7 @@ const { z } = require("zod");
 const { authRequired } = require("../middleware/auth");
 const { requireAdmin } = require("../middleware/roles");
 const { validateOr400 } = require("../utils/validate");
-const { createUser, listUsers } = require("../services/users.service");
+const { createUser, listUsers, checkUserLimit } = require("../services/users.service");
 const {
   createInvite,
   listInvites,
@@ -60,6 +60,9 @@ router.post("/", authRequired, requireAdmin, async (req, res, next) => {
     if (result.error === "email_exists") {
       return res.status(409).json({ error: "email_exists" });
     }
+    if (result.error === "user_limit_reached") {
+      return res.status(403).json({ error: "user_limit_reached", plan: result.plan, limit: result.limit, current: result.current });
+    }
 
     await logEvent({
       tenantId,
@@ -90,6 +93,10 @@ router.post("/invite", authRequired, requireAdmin, async (req, res, next) => {
       return;
     }
     const tenantId = req.user.tenant_id;
+    const limitCheck = await checkUserLimit(tenantId);
+    if (limitCheck.error === "user_limit_reached") {
+      return res.status(403).json({ error: "user_limit_reached", plan: limitCheck.plan, limit: limitCheck.limit, current: limitCheck.current });
+    }
     const result = await createInvite({
       tenantId,
       email: payload.email,
@@ -191,6 +198,9 @@ router.post("/invite/accept", async (req, res, next) => {
     }
     if (result.error === "email_exists") {
       return res.status(409).json({ error: "email_exists" });
+    }
+    if (result.error === "user_limit_reached") {
+      return res.status(403).json({ error: "user_limit_reached", plan: result.plan, limit: result.limit, current: result.current });
     }
     return res.status(201).json({ ok: true, email: result.user.email });
   } catch (err) {

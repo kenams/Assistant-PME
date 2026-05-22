@@ -17,6 +17,7 @@ const { buildTicketsPdf } = require("../services/pdf.service");
 const { validateOr400 } = require("../utils/validate");
 const { buildCsv } = require("../utils/csv");
 const { maybeGenerateKbFromTicket } = require("../services/auto-kb.service");
+const { notifyTicketUpdated } = require("../services/integrations.service");
 
 const router = express.Router();
 
@@ -212,6 +213,7 @@ router.patch("/:id", authRequired, requireStaff, async (req, res, next) => {
     if (payload.status === "resolved" || payload.status === "closed") {
       maybeGenerateKbFromTicket({ tenantId, ticket: updated }).catch(() => {});
     }
+    notifyTicketUpdated({ tenantId, ticket: updated, changes: payload }).catch(() => {});
     return res.json(updated);
   } catch (err) {
     next(err);

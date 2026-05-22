@@ -33,6 +33,7 @@ const settingsSchema = z.object({
   escalation_threshold: z.number().int().min(1).max(5).optional(),
   signature: z.string().min(1).optional().or(z.literal("")),
   notify_on_ticket_created: z.boolean().optional(),
+  notify_on_ticket_updated: z.boolean().optional(),
   webhook_url: z.string().url().optional().or(z.literal("")),
   webhook_secret: z.string().min(6).optional().or(z.literal("")),
   slack_webhook_url: z.string().url().optional().or(z.literal("")),
