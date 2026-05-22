@@ -1,6 +1,7 @@
 const crypto = require("crypto");
 const { db } = require("../config/db");
 const { hashPassword } = require("../utils/crypto");
+const { seedDefaultKB } = require("./kb-seed.service");
 
 function normalizeTenantCode(value) {
   return String(value || "")
@@ -99,6 +100,13 @@ async function createTenant({ name, plan, adminEmail, adminPassword, code }) {
     password_hash: hashPassword(adminPassword),
     role: "admin",
     created_at: now
+  });
+
+  // Seed default IT knowledge base asynchronously (non-blocking)
+  setImmediate(() => {
+    seedDefaultKB(tenantId).catch(err =>
+      console.warn("[tenants] KB seed failed for", tenantId, err.message)
+    );
   });
 
   return { tenant_id: tenantId, admin_id: userId };

@@ -13,6 +13,49 @@ function normalizeForDetect(text) {
     .toLowerCase();
 }
 
+// Corrects common French typos/abbreviations before sending to AI
+function normalizeUserInput(text) {
+  if (!text || typeof text !== "string") return text;
+  let t = text.trim();
+
+  // Fix missing apostrophes in common contractions
+  t = t.replace(/\bjai\b/gi, "j'ai");
+  t = t.replace(/\bjav\b/gi, "j'ai");
+  t = t.replace(/\bnai\b/gi, "n'ai");
+  t = t.replace(/\bcest\b/gi, "c'est");
+  t = t.replace(/\bca\b/gi, "ça");
+  t = t.replace(/\bja\b/gi, "ça");
+  t = t.replace(/\bny arrive\b/gi, "n'y arrive");
+  t = t.replace(/\bnarrive\b/gi, "n'arrive");
+  t = t.replace(/\bnouvre\b/gi, "n'ouvre");
+  t = t.replace(/\bne fonctionne\b/gi, "ne fonctionne");
+  t = t.replace(/\bjuste\b/gi, "juste");
+
+  // Common abbreviations → full words
+  t = t.replace(/\bpb\b/gi, "problème");
+  t = t.replace(/\bpbs\b/gi, "problèmes");
+  t = t.replace(/\bmsg\b/gi, "message");
+  t = t.replace(/\bmdp\b/gi, "mot de passe");
+  t = t.replace(/\bpwd\b/gi, "password");
+  t = t.replace(/\bpw\b/gi, "password");
+  t = t.replace(/\brdp\b/gi, "bureau à distance");
+  t = t.replace(/\bts\b/gi, "Teams");
+  t = t.replace(/\bol\b/gi, "Outlook");
+  t = t.replace(/\bodrive\b/gi, "OneDrive");
+  t = t.replace(/\bsp\b(?=\s|$)/gi, "SharePoint");
+  t = t.replace(/\bw10\b/gi, "Windows 10");
+  t = t.replace(/\bw11\b/gi, "Windows 11");
+  t = t.replace(/\bmaj\b(?!\s*[A-Z])/g, "mise à jour");
+
+  // Missing spaces after punctuation
+  t = t.replace(/([.!?,;:])([A-Za-zÀ-ÿ])/g, "$1 $2");
+
+  // Normalize multiple spaces
+  t = t.replace(/\s{2,}/g, " ").trim();
+
+  return t;
+}
+
 const KB = [
   {
     detect: (t) => /outlook|message.*bloque|boite.*reception|mail.*plante|email.*crash|ost.*corrompu/i.test(normalizeForDetect(t)),
@@ -828,7 +871,9 @@ function loadSystemPrompt(lang) {
       const promptPath = path.join(__dirname, "..", "prompts", file);
       cachedPrompts[key] = fs.readFileSync(promptPath, "utf8");
     } catch {
-      cachedPrompts[key] = "You are a professional IT support assistant. Always use polite address. Answer in JSON with fields: answer, needs_ticket, ticket_draft.";
+      cachedPrompts[key] = lang === "en"
+        ? "You are Lenny, a warm and professional IT support specialist. Respond naturally like a helpful colleague, never like a robot. Always start with a reassuring phrase. Max 4 steps. End with one simple question. Answer in strict JSON with fields: answer, needs_ticket, ticket_draft, suggested_steps, kb_hint."
+        : "Tu es Lenny, un assistant IT chaleureux et professionnel. Réponds naturellement comme un collègue serviable, jamais comme un robot. Commence toujours par une phrase rassurante. Maximum 4 étapes. Termine par une seule question simple. Réponds en JSON strict avec les champs: answer, needs_ticket, ticket_draft, suggested_steps, kb_hint.";
     }
   }
   return cachedPrompts[key];
@@ -953,7 +998,7 @@ async function callOpenAI({ message, kbChunks, language, orgSettings, conversati
       ...historyMessages,
       { role: "user", content: userPrompt }
     ],
-    temperature: 0.3,
+    temperature: 0.7,
     response_format: { type: "json_object" }
   };
 
@@ -1003,7 +1048,13 @@ async function callOpenAI({ message, kbChunks, language, orgSettings, conversati
 async function answerWithLLM({ message, rawMessage, kbChunks, language, orgSettings, conversationHistory, userPastTickets }) {
   // rawMessage = original user message without context block appended
   // message = messageWithContext (includes [Contexte technicien] block for LLM)
-  const socialText = ((rawMessage || message) || "").trim();
+  // Normalize user input before any processing (typos, abbreviations, missing apostrophes)
+  const normalizedRaw = normalizeUserInput(rawMessage || message);
+  const normalizedMessage = rawMessage ? message.replace(rawMessage, normalizedRaw) : normalizedRaw;
+  rawMessage = normalizedRaw;
+  message = normalizedMessage;
+
+  const socialText = normalizedRaw.trim();
 
   // Auto-detect language from original message only (not context block)
   const detected = detectMessageLang(socialText);
