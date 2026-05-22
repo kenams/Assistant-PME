@@ -207,6 +207,102 @@ async function run() {
     else warn("Stripe webhook sig invalide", "Got HTTP " + whRes.status);
   } catch (e) {}
 
+  // ══ LANGUE FR / EN ══════════════════════════════════════════════════════
+
+  // Chat en français → réponse en français
+  r = await req("POST", "/chat", { message: "Mon imprimante ne repond pas depuis ce matin, que faire ?", language: "fr" }, userToken);
+  if (r.status === 200 && r.data && r.data.answer) {
+    const frWords = /imprimante|vérif|redémarr|Vérif|Redémarr|bonjour|essayez|assurez/i.test(r.data.answer);
+    const enWords = /printer|check|restart|please|make sure/i.test(r.data.answer);
+    if (frWords) pass("Chat FR -> réponse en français");
+    else fail("Chat FR -> réponse en français", "Réponse: " + (r.data.answer||"").slice(0,120));
+  } else fail("Chat FR -> réponse en français", "HTTP " + r.status);
+
+  // Chat en anglais → réponse en anglais
+  r = await req("POST", "/chat", { message: "My printer is not working, what should I do?", language: "en" }, userToken);
+  if (r.status === 200 && r.data && r.data.answer) {
+    const enWords = /printer|check|restart|please|make sure|try|click|open/i.test(r.data.answer);
+    const frWordsDom = /imprimante|vérif|redémarr|assurez|essayez|cliquez/i.test(r.data.answer);
+    if (enWords && !frWordsDom) pass("Chat EN -> réponse en anglais");
+    else if (enWords) warn("Chat EN -> réponse partiellement FR/EN", (r.data.answer||"").slice(0,120));
+    else fail("Chat EN -> réponse en anglais", "Réponse: " + (r.data.answer||"").slice(0,120));
+  } else fail("Chat EN -> réponse en anglais", "HTTP " + r.status);
+
+  // Auto-détection: message EN avec language:fr → backend doit détecter EN
+  r = await req("POST", "/chat", { message: "I cannot open my Outlook email, it crashes every time.", language: "fr" }, userToken);
+  if (r.status === 200 && r.data && r.data.answer) {
+    const enWords = /outlook|open|try|check|restart|click|email|crash|works/i.test(r.data.answer);
+    const frDom = /vérif|redémarr|assurez|cliquez|essayez|message d'erreur/i.test(r.data.answer);
+    if (enWords && !frDom) pass("Auto-détection: message EN (lang:fr) -> réponse EN");
+    else warn("Auto-détection langue", "Réponse: " + (r.data.answer||"").slice(0,120));
+  } else fail("Auto-détection langue", "HTTP " + r.status);
+
+  // Auto-détection: message FR avec language:en → backend doit détecter FR
+  r = await req("POST", "/chat", { message: "Je n'arrive plus à me connecter à Outlook depuis ce matin.", language: "en" }, userToken);
+  if (r.status === 200 && r.data && r.data.answer) {
+    const frWords = /outlook|vérif|essayez|redémarr|votre|poste|connexion/i.test(r.data.answer);
+    const enDom = /\bcheck\b|\btry\b|\brestart\b|\byour\b|\bopen\b/i.test(r.data.answer);
+    if (frWords && !enDom) pass("Auto-détection: message FR (lang:en) -> réponse FR");
+    else warn("Auto-détection langue inverse", "Réponse: " + (r.data.answer||"").slice(0,120));
+  } else fail("Auto-détection langue inverse", "HTTP " + r.status);
+
+  // JSON answer ne doit pas contenir de champs undefined ou null
+  r = await req("POST", "/chat", { message: "Outlook ne s ouvre pas", language: "fr" }, userToken);
+  if (r.status === 200 && r.data) {
+    const hasAnswer = typeof r.data.answer === "string" && r.data.answer.length > 0;
+    const hasNeeds = typeof r.data.needs_ticket === "boolean";
+    if (hasAnswer && hasNeeds) pass("Chat JSON: champs answer + needs_ticket présents");
+    else fail("Chat JSON: champs manquants", JSON.stringify(r.data).slice(0,200));
+  } else fail("Chat JSON réponse", "HTTP " + r.status);
+
+  // Réponse EN ne doit PAS contenir de procédure interne en français
+  r = await req("POST", "/chat", { message: "My Teams application keeps crashing since this morning.", language: "en" }, userToken);
+  if (r.status === 200 && r.data && r.data.answer) {
+    const frPhrases = /Vérifiez que|Redémarrez le|Fermez l|cliquez sur|Tapez la|Appuyez sur Win\+R/i.test(r.data.answer);
+    if (!frPhrases) pass("Chat EN: procédures internes bien en anglais");
+    else warn("Chat EN: procédure interne contient du français", (r.data.answer||"").slice(0,200));
+  } else fail("Chat EN: procédure anglaise", "HTTP " + r.status);
+
+  // suggested_steps présents et cohérents avec la langue
+  r = await req("POST", "/chat", { message: "I cannot connect to the VPN, it keeps disconnecting.", language: "en" }, userToken);
+  if (r.status === 200 && r.data) {
+    const steps = r.data.suggested_steps;
+    if (Array.isArray(steps) && steps.length > 0) {
+      const allEn = steps.every(s => !/[àâéèêëîïôùûüçœæ]/i.test(s));
+      if (allEn) pass("suggested_steps EN: aucun caractère français");
+      else warn("suggested_steps EN: mélange FR/EN", JSON.stringify(steps).slice(0,200));
+    } else pass("Chat EN: réponse sans suggested_steps (ok si inline)");
+  } else fail("suggested_steps EN", "HTTP " + r.status);
+
+  // /admin/analytics route fonctionne et retourne les bons champs
+  r = await req("GET", "/admin/analytics", null, adminToken);
+  if (r.status === 200 && r.data) {
+    const hasSla = r.data.sla && typeof r.data.sla.hours === "number";
+    const hasRoi = r.data.roi && typeof r.data.roi.tickets_evites === "number";
+    const hasVol = Array.isArray(r.data.volume_last_14_days);
+    if (hasSla && hasRoi && hasVol) pass("Analytics: sla + roi + volume présents");
+    else fail("Analytics: champs manquants", JSON.stringify(r.data).slice(0,200));
+  } else fail("GET /admin/analytics", "HTTP " + r.status);
+
+  // User limit: on ne peut pas créer > plan limit (on vérifie juste que la route retourne les bons champs)
+  r = await req("POST", "/users", { email: "testlimit_" + Date.now() + "@test.com", password: "test1234" }, adminToken);
+  if (r.status === 201 || r.status === 403 || r.status === 409) {
+    if (r.status === 403 && r.data && r.data.error === "user_limit_reached") pass("User limit: 403 user_limit_reached retourné");
+    else if (r.status === 201) pass("User limit: création ok (sous la limite)");
+    else if (r.status === 409) pass("User limit: email déjà existant 409");
+    else fail("User limit: réponse inattendue", "HTTP " + r.status + " " + JSON.stringify(r.data));
+  } else fail("POST /users", "HTTP " + r.status);
+
+  // org/settings accessible
+  r = await req("GET", "/org/settings", null, adminToken);
+  if (r.status === 200 && r.data) {
+    const hasWebhook = "webhook_url" in r.data;
+    const hasSlack = "slack_webhook_url" in r.data;
+    const hasNotify = "notify_on_ticket_created" in r.data && "notify_on_ticket_updated" in r.data;
+    if (hasWebhook && hasSlack && hasNotify) pass("org/settings: webhook + slack + notifications présents");
+    else fail("org/settings: champs manquants", JSON.stringify(Object.keys(r.data)).slice(0,200));
+  } else fail("GET /org/settings", "HTTP " + r.status);
+
   // PERFORMANCE
   const start = Date.now();
   const concurrentReqs = [];

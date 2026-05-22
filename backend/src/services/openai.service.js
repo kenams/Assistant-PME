@@ -719,20 +719,20 @@ function generateSupportAnswer({ message, kbChunks, language, orgSettings }) {
     const steps = intent.steps || DEFAULT_STEPS[lang] || DEFAULT_STEPS.fr;
     const questions = intent.questions || [];
 
-    // If KB chunks found, build answer from KB content first
+    // If KB chunks found, use translated structured steps (avoids raw French KB content in EN)
     if (kbNote && kbChunks && kbChunks.length > 0) {
       const topChunk = kbChunks[0];
-      const kbContent = topChunk.chunk_text || "";
       if (lang === "en") {
         answer = [
-          `Here is the internal procedure for your issue (${topChunk.document_title || "knowledge base"}):`,
+          "Here is the procedure to follow for your issue:",
           "",
-          kbContent,
+          steps.map((s, i) => `${i + 1}. ${s}`).join("\n"),
           "",
           ...(questions.length ? [questions[0]] : []),
           "If the issue persists after following these steps, click **Create a ticket** so a technician can assist you."
         ].filter(Boolean).join("\n");
       } else {
+        const kbContent = topChunk.chunk_text || "";
         answer = [
           `Voici la procédure interne pour votre problème (${topChunk.document_title || "base de connaissances"}) :`,
           "",
@@ -916,8 +916,9 @@ async function callOpenAI({ message, kbChunks, language, orgSettings, conversati
   // Current user message with KB context
   const userPrompt = lang === "en"
     ? [
-        kbNote ? `Internal knowledge:\n${kbNote}` : "",
+        kbNote ? `INTERNAL KNOWLEDGE (may be written in French — you MUST translate everything to English, do NOT copy-paste French text):\n${kbNote}` : "",
         "IMPORTANT RULES FOR YOUR ANSWER:",
+        "- Respond ONLY in English — never mix French words in your answer.",
         "- Start with a short reassuring phrase (e.g. 'No worries, let's fix this!')",
         "- Use ONLY plain language — no jargon. Explain WHERE to click and WHAT they will see.",
         "- Maximum 4 steps. Each step: location on screen + action + expected result.",
