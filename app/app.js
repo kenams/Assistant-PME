@@ -2346,7 +2346,9 @@ if (kioskMode) {
               external_id: data.ticket.external_id || null,
               external_url: data.ticket.external_url || null
             };
-            showTicketThanks("created");
+            // Auto-escalation: show soft notification, not full-screen overlay
+            // (avoids the loop when re-clicking a quick issue chip)
+            notify(t("ticket.autoCreated") || "🎫 Ticket créé — un technicien va intervenir.", "success");
             latestTicketStatus = data.ticket.status || "open";
             setConversationStatus("escalated");
             setNextStep({
@@ -7050,41 +7052,40 @@ if (kioskMode) {
             return;
           }
           hideTicketPreview();
+          setCreateTicketState("pending");
           try {
-            const feedback = await sendFeedback(false);
-            if (feedback && feedback.ticket_created && feedback.ticket) {
+            const ticket = await fetchWithAuth("/chat/escalate", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                conversation_id: conversationId,
+                reason: t("ticket.userEscalationReason") || "Demande manuelle utilisateur"
+              })
+            });
+            if (ticket && (ticket.ticket || ticket.created !== undefined)) {
+              const t_data = ticket.ticket || ticket;
               setCreateTicketState("created");
-              setTicketBadgeState("created", feedback.ticket);
+              setTicketBadgeState("created", t_data);
               pendingTicketDraft = {
-                title: feedback.ticket.title,
-                summary: feedback.ticket.description,
-                category: feedback.ticket.category,
-                priority: feedback.ticket.priority,
-                external_id: feedback.ticket.external_id || null,
-                external_url: feedback.ticket.external_url || null
+                title: t_data.title,
+                summary: t_data.description,
+                category: t_data.category,
+                priority: t_data.priority,
+                external_id: t_data.external_id || null,
+                external_url: t_data.external_url || null
               };
               showTicketThanks("created");
-              latestTicketStatus = feedback.ticket.status || "open";
+              latestTicketStatus = t_data.status || "open";
               setConversationStatus("escalated");
               loadConversationTickets(conversationId);
-              if (getViewRole() === "user") {
-                loadMyTickets();
-              } else {
-                loadTickets();
-              }
-              if (beginnerModeEnabled) {
-                setBeginnerStep(t("beginner.step4.ticket"));
-              }
+              if (getViewRole() === "user") loadMyTickets(); else loadTickets();
+              if (beginnerModeEnabled) setBeginnerStep(t("beginner.step4.ticket"));
             } else {
-              const draft = await loadTicketDraft();
-              if (draft) {
-                pendingTicketDraft = draft;
-                showTicketPreview(draft);
-              } else {
-                notify(t("ticket.autoEscalationNote"), "info");
-              }
+              setCreateTicketState("idle");
+              notify(t("ticket.autoEscalationNote"), "info");
             }
           } catch (err) {
+            setCreateTicketState("idle");
             notify(t("feedback.failed"), "error");
           }
         });
