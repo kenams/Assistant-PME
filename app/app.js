@@ -2681,7 +2681,7 @@ if (kioskMode) {
       }
 
       function formatMarkdown(raw) {
-        const lines = String(raw || "").split("\n");
+        const lines = String(raw || "").replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n");
         let html = "";
         let inOl = false;
         let inUl = false;
@@ -2689,7 +2689,7 @@ if (kioskMode) {
 
         const flushParagraph = () => {
           if (!paragraphLines.length) return;
-          const inner = paragraphLines.map(l => inlineMarkdown(escapeHtml(l))).join("<br>");
+          const inner = paragraphLines.map(l => inlineMarkdown(escapeHtml(l))).join(" ");
           html += `<p class="msg-p">${inner}</p>`;
           paragraphLines = [];
         };
@@ -2699,23 +2699,24 @@ if (kioskMode) {
         };
 
         for (const line of lines) {
+          const trimmed = line.trim();
           const olMatch = line.match(/^(\d+)[.)]\s+([\s\S]*)/);
-          const ulMatch = line.match(/^[-•*]\s+([\s\S]*)/);
+          const ulMatch = line.match(/^[-•*✓]\s+([\s\S]*)/);
 
           if (olMatch) {
             flushParagraph();
             if (!inOl) { closeList(); html += '<ol class="msg-list">'; inOl = true; }
-            html += `<li>${inlineMarkdown(escapeHtml(olMatch[2]))}</li>`;
+            html += `<li>${inlineMarkdown(escapeHtml(olMatch[2].trim()))}</li>`;
           } else if (ulMatch) {
             flushParagraph();
             if (!inUl) { closeList(); html += '<ul class="msg-list">'; inUl = true; }
-            html += `<li>${inlineMarkdown(escapeHtml(ulMatch[1]))}</li>`;
-          } else if (line.trim() === "") {
+            html += `<li>${inlineMarkdown(escapeHtml(ulMatch[1].trim()))}</li>`;
+          } else if (trimmed === "") {
             flushParagraph();
             closeList();
           } else {
             if (inOl || inUl) { closeList(); }
-            paragraphLines.push(line);
+            paragraphLines.push(trimmed);
           }
         }
         flushParagraph();
@@ -2957,14 +2958,15 @@ if (kioskMode) {
         const fragment = document.createDocumentFragment();
         items.forEach((msg) => {
           const role = msg.role === "assistant" ? "assistant" : "user";
+          const wrap = document.createElement("div");
+          wrap.className = `chat-msg ${role === "assistant" ? "bot" : "user"}`;
           const bubble = document.createElement("div");
           bubble.className = `bubble ${role}`;
           const rendered = renderMessageHtml(msg.content || "", q);
           bubble.innerHTML = rendered.html;
-          if (rendered.isImage) {
-            bubble.classList.add("image");
-          }
-          fragment.appendChild(bubble);
+          if (rendered.isImage) bubble.classList.add("image");
+          wrap.appendChild(bubble);
+          fragment.appendChild(wrap);
         });
         chatWindow.appendChild(fragment);
         hydratePrivateImages(chatWindow);
@@ -4737,18 +4739,17 @@ if (kioskMode) {
       function appendMessage(role, text) {
         if (!chatWindow) return;
         const shouldScroll = isNearBottom(chatWindow) || role === "user";
+        const wrap = document.createElement("div");
+        wrap.className = `chat-msg ${role === "assistant" ? "bot" : "user"}`;
         const bubble = document.createElement("div");
         bubble.className = `bubble ${role}`;
         const rendered = renderMessageHtml(text || "", "");
         bubble.innerHTML = rendered.html;
-        if (rendered.isImage) {
-          bubble.classList.add("image");
-        }
-        chatWindow.appendChild(bubble);
+        if (rendered.isImage) bubble.classList.add("image");
+        wrap.appendChild(bubble);
+        chatWindow.appendChild(wrap);
         hydratePrivateImages(bubble);
-        if (shouldScroll) {
-          chatWindow.scrollTop = chatWindow.scrollHeight;
-        }
+        if (shouldScroll) chatWindow.scrollTop = chatWindow.scrollHeight;
         updateSummaryLastMessage(text || "");
       }
 
@@ -4757,13 +4758,13 @@ if (kioskMode) {
         if (!chatWindow || typingBubble) return;
         const shouldScroll = isNearBottom(chatWindow);
         typingBubble = document.createElement("div");
-        typingBubble.className = "bubble assistant typing";
-        typingBubble.innerHTML =
-          '<span class="typing-dots"><span></span><span></span><span></span></span>';
+        typingBubble.className = "chat-msg bot";
+        const inner = document.createElement("div");
+        inner.className = "typing-indicator";
+        inner.innerHTML = '<span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>';
+        typingBubble.appendChild(inner);
         chatWindow.appendChild(typingBubble);
-        if (shouldScroll) {
-          chatWindow.scrollTop = chatWindow.scrollHeight;
-        }
+        if (shouldScroll) chatWindow.scrollTop = chatWindow.scrollHeight;
       }
 
       function hideTyping() {
