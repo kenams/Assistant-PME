@@ -462,7 +462,7 @@ router.post("/change-password", authRequired, async (req, res, next) => {
     const payload = validateOr400(changePasswordSchema, res, req.body);
     if (!payload) return;
 
-    const user = await findUserById(req.user.id);
+    const user = await findUserById(req.user.sub);
     if (!user) return res.status(404).json({ error: "user_not_found" });
 
     if (!verifyPassword(payload.current_password, user.password_hash)) {
