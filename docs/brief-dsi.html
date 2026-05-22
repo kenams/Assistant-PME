@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Brief DSI — Assistant IA PME</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0A0A0A;
+    --bg2: #111;
+    --card: #161616;
+    --stroke: rgba(255,255,255,0.07);
+    --stroke2: rgba(255,255,255,0.12);
+    --text: #EDEDED;
+    --muted: #888;
+    --dim: #444;
+    --accent: #5B6AD4;
+    --green: #22C55E;
+    --orange: #F59E0B;
+    --danger: #EF4444;
+    --purple: #A78BFA;
+  }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+
+  .page { max-width: 900px; margin: 0 auto; padding: 40px 24px 80px; }
+
+  /* ── Hero ── */
+  .hero { text-align: center; padding: 60px 0 50px; border-bottom: 1px solid var(--stroke); margin-bottom: 48px; }
+  .hero-badge { display: inline-block; background: rgba(91,106,212,0.15); border: 1px solid rgba(91,106,212,0.3); color: var(--accent); font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; padding: 5px 14px; border-radius: 20px; margin-bottom: 20px; }
+  .hero h1 { font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 900; line-height: 1.15; margin-bottom: 16px; background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.6) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .hero-sub { font-size: 1.1rem; color: var(--muted); max-width: 600px; margin: 0 auto 28px; }
+  .hero-stats { display: flex; justify-content: center; gap: 32px; flex-wrap: wrap; margin-top: 28px; }
+  .stat { text-align: center; }
+  .stat-n { font-size: 2rem; font-weight: 900; color: var(--accent); }
+  .stat-l { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; margin-top: 2px; }
+
+  /* ── Sections ── */
+  section { margin-bottom: 48px; }
+  .section-label { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em; color: var(--accent); margin-bottom: 14px; }
+  h2 { font-size: 1.5rem; font-weight: 800; margin-bottom: 18px; }
+  h3 { font-size: 1rem; font-weight: 700; margin-bottom: 8px; }
+
+  /* ── Cards ── */
+  .card { background: var(--card); border: 1px solid var(--stroke); border-radius: 14px; padding: 22px 24px; }
+  .card + .card { margin-top: 12px; }
+  .card-accent { border-color: rgba(91,106,212,0.3); background: rgba(91,106,212,0.05); }
+  .card-green { border-color: rgba(34,197,94,0.25); background: rgba(34,197,94,0.04); }
+  .card-orange { border-color: rgba(245,158,11,0.25); background: rgba(245,158,11,0.04); }
+  .card-red { border-color: rgba(239,68,68,0.25); background: rgba(239,68,68,0.04); }
+
+  /* ── Grid ── */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media(max-width:600px) { .grid2, .grid3 { grid-template-columns: 1fr; } }
+
+  /* ── Pitch box ── */
+  .pitch-box { background: linear-gradient(135deg, rgba(91,106,212,0.12), rgba(167,139,250,0.08)); border: 1px solid rgba(91,106,212,0.35); border-radius: 16px; padding: 28px 30px; position: relative; overflow: hidden; }
+  .pitch-box::before { content: ''; position: absolute; top: -60px; right: -60px; width: 180px; height: 180px; background: radial-gradient(circle, rgba(91,106,212,0.2) 0%, transparent 70%); }
+  .pitch-box p { font-size: 1.05rem; line-height: 1.8; color: var(--text); font-style: italic; }
+  .pitch-box strong { color: #fff; font-style: normal; }
+
+  /* ── Data flow ── */
+  .flow { display: flex; align-items: center; gap: 0; }
+  .flow-box { flex: 1; background: var(--bg2); border: 1px solid var(--stroke2); border-radius: 10px; padding: 14px 16px; }
+  .flow-arrow { font-size: 1.4rem; color: var(--dim); padding: 0 8px; flex-shrink: 0; }
+  .flow-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+  .flow-items { list-style: none; font-size: 0.8rem; color: var(--muted); display: flex; flex-direction: column; gap: 4px; }
+  .flow-items li::before { content: '• '; color: var(--dim); }
+
+  /* ── Table ── */
+  table { width: 100%; border-collapse: collapse; font-size: 0.87rem; }
+  th { text-align: left; padding: 10px 14px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); border-bottom: 1px solid var(--stroke2); }
+  td { padding: 11px 14px; border-bottom: 1px solid var(--stroke); color: var(--muted); vertical-align: top; }
+  td:first-child { color: var(--text); font-weight: 600; }
+  tr:last-child td { border-bottom: none; }
+
+  /* ── Objections ── */
+  .objection { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border-radius: 12px; overflow: hidden; border: 1px solid var(--stroke2); margin-bottom: 10px; }
+  .obj-q { background: rgba(239,68,68,0.06); padding: 14px 18px; border-right: 1px solid var(--stroke2); }
+  .obj-a { background: rgba(34,197,94,0.05); padding: 14px 18px; }
+  .obj-q-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--danger); margin-bottom: 5px; }
+  .obj-a-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--green); margin-bottom: 5px; }
+  .obj-text { font-size: 0.83rem; color: var(--text); line-height: 1.55; }
+  @media(max-width:600px) { .objection { grid-template-columns: 1fr; } .obj-q { border-right: none; border-bottom: 1px solid var(--stroke2); } }
+
+  /* ── Pricing ── */
+  .plan { border-radius: 12px; padding: 20px; text-align: center; }
+  .plan-name { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+  .plan-price { font-size: 2.2rem; font-weight: 900; line-height: 1; margin-bottom: 4px; }
+  .plan-sub { font-size: 0.75rem; color: var(--muted); margin-bottom: 14px; }
+  .plan-features { list-style: none; font-size: 0.78rem; color: var(--muted); text-align: left; display: flex; flex-direction: column; gap: 5px; }
+  .plan-features li::before { content: '✓ '; color: var(--green); }
+
+  /* ── Feature list ── */
+  .feature-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .feature-list li { display: flex; align-items: flex-start; gap: 10px; font-size: 0.88rem; }
+  .feature-list li span:first-child { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+
+  /* ── Chips ── */
+  .chip { display: inline-block; background: rgba(255,255,255,0.05); border: 1px solid var(--stroke2); border-radius: 20px; padding: 4px 12px; font-size: 0.75rem; color: var(--muted); margin: 3px; }
+  .chip-green { background: rgba(34,197,94,0.1); border-color: rgba(34,197,94,0.3); color: #4ade80; }
+  .chip-accent { background: rgba(91,106,212,0.12); border-color: rgba(91,106,212,0.3); color: #818cf8; }
+
+  /* ── Checklist ── */
+  .checklist { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .checklist li { font-size: 0.87rem; display: flex; gap: 10px; align-items: flex-start; }
+  .checklist li::before { content: '✅'; flex-shrink: 0; }
+
+  /* ── Tag ── */
+  .tag-good { color: var(--green); font-weight: 700; }
+  .tag-warn { color: var(--orange); font-weight: 700; }
+  .tag-bad { color: var(--danger); font-weight: 700; }
+
+  /* ── Print ── */
+  @media print {
+    body { background: #fff; color: #111; }
+    .card, .pitch-box, .plan, .flow-box { background: #f9f9f9; border-color: #ddd; }
+    .hero h1 { -webkit-text-fill-color: #111; }
+  }
+
+  /* ── Divider ── */
+  hr { border: none; border-top: 1px solid var(--stroke); margin: 40px 0; }
+
+  /* ── Quote ── */
+  blockquote { border-left: 3px solid var(--accent); padding-left: 16px; margin: 14px 0; color: var(--muted); font-size: 0.9rem; font-style: italic; }
+
+  .print-btn { position: fixed; bottom: 24px; right: 24px; background: var(--accent); color: #fff; border: none; border-radius: 10px; padding: 10px 18px; font-size: 0.82rem; font-weight: 700; cursor: pointer; font-family: inherit; z-index: 99; }
+  .print-btn:hover { background: #4A59C3; }
+  @media print { .print-btn { display: none; } }
+</style>
+</head>
+<body>
+
+<button class="print-btn" onclick="window.print()">🖨️ Imprimer / PDF</button>
+
+<div class="page">
+
+  <!-- ═══ HERO ═══ -->
+  <div class="hero">
+    <div class="hero-badge">Usage interne — Brief DSI</div>
+    <h1>Assistant IA d'entreprise<br>pour PME &amp; équipes terrain</h1>
+    <p class="hero-sub">Plateforme SaaS multi-tenant — gestion des connaissances, support utilisateurs, automatisation des tâches répétitives.</p>
+    <div class="hero-stats">
+      <div class="stat"><div class="stat-n">44</div><div class="stat-l">Tests automatisés</div></div>
+      <div class="stat"><div class="stat-n">0</div><div class="stat-l">Echec / Warning</div></div>
+      <div class="stat"><div class="stat-n">299€</div><div class="stat-l">à partir de / mois</div></div>
+      <div class="stat"><div class="stat-n">RGPD</div><div class="stat-l">Conforme</div></div>
+    </div>
+  </div>
+
+
+  <!-- ═══ 1. PITCH ═══ -->
+  <section>
+    <div class="section-label">Pitch 30 secondes</div>
+    <div class="pitch-box">
+      <p>
+        Nous avons développé un <strong>assistant IA professionnel</strong> destiné aux PME et aux équipes métier.<br><br>
+        Il permet aux collaborateurs d'<strong>obtenir rapidement des informations</strong>, de rédiger du contenu, d'analyser des documents, d'utiliser la <strong>saisie vocale</strong> et d'automatiser certaines tâches répétitives.<br><br>
+        L'assistant s'adapte aux besoins de chaque organisation et peut s'<strong>intégrer aux outils existants</strong> sans modifier les processus en place.<br><br>
+        L'objectif est simple : <strong>faire gagner du temps aux utilisateurs tout en gardant la maîtrise totale des données et des accès.</strong>
+      </p>
+    </div>
+  </section>
+
+
+  <!-- ═══ 2. NE PAS DIRE / DIRE ═══ -->
+  <section>
+    <div class="section-label">Comment parler devant un DSI</div>
+    <div class="grid2">
+      <div class="card card-red">
+        <h3 style="color:var(--danger)">❌ Ne pas dire</h3>
+        <ul class="feature-list" style="margin-top:10px">
+          <li><span>—</span><span>"On utilise ChatGPT"</span></li>
+          <li><span>—</span><span>"C'est un chatbot IA"</span></li>
+          <li><span>—</span><span>"On utilise Whisper d'OpenAI"</span></li>
+          <li><span>—</span><span>"Un outil pour changer des switches"</span></li>
+          <li><span>—</span><span>"Un générateur de tickets GLPI"</span></li>
+        </ul>
+      </div>
+      <div class="card card-green">
+        <h3 style="color:var(--green)">✅ Dire à la place</h3>
+        <ul class="feature-list" style="margin-top:10px">
+          <li><span>✓</span><span>"Un assistant métier personnalisable"</span></li>
+          <li><span>✓</span><span>"Interface unique pour accéder aux connaissances"</span></li>
+          <li><span>✓</span><span>"Les utilisateurs parlent à l'assistant au lieu d'écrire"</span></li>
+          <li><span>✓</span><span>"Automatisation des tâches administratives répétitives"</span></li>
+          <li><span>✓</span><span>"Gain de productivité terrain mesurable"</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══ 3. GAINS MESURABLES ═══ -->
+  <section>
+    <div class="section-label">Bénéfices métier — chiffres à citer</div>
+    <div class="card">
+      <table>
+        <thead>
+          <tr>
+            <th>Processus</th>
+            <th class="tag-bad">Avant</th>
+            <th class="tag-good">Après</th>
+            <th>Gain</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Compte-rendu d'intervention terrain</td><td class="tag-bad">15 min</td><td class="tag-good">2 min</td><td>−87%</td></tr>
+          <tr><td>Réponse à une réclamation client</td><td class="tag-bad">20 min</td><td class="tag-good">5 min</td><td>−75%</td></tr>
+          <tr><td>Recherche d'une procédure interne</td><td class="tag-bad">10 min</td><td class="tag-good">10 sec</td><td>−98%</td></tr>
+          <tr><td>Création d'un ticket de support</td><td class="tag-bad">5 min</td><td class="tag-good">automatique</td><td>−100%</td></tr>
+          <tr><td>Rapport hebdomadaire</td><td class="tag-bad">2 h</td><td class="tag-good">10 min</td><td>−92%</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card" style="margin-top:12px;text-align:center;padding:18px 24px">
+      <span style="font-size:0.85rem;color:var(--muted)">Imaginez ce traitement sur </span>
+      <strong style="color:var(--text)">50 techniciens</strong>
+      <span style="font-size:0.85rem;color:var(--muted)">, </span>
+      <strong style="color:var(--text)">200 interventions / semaine</strong>
+      <span style="font-size:0.85rem;color:var(--muted)"> et </span>
+      <strong style="color:var(--text)">plusieurs milliers d'emails / mois.</strong>
+      <span style="font-size:0.85rem;color:var(--muted)"> → Le DSI calcule le ROI seul.</span>
+    </div>
+  </section>
+
+
+  <!-- ═══ 4. SÉCURITÉ — ARGUMENT PRINCIPAL ═══ -->
+  <section>
+    <div class="section-label">Sécurité &amp; confidentialité — l'argument qui rassure</div>
+    <h2>Ce que nous avons construit, pas seulement promis</h2>
+
+    <div class="card card-green" style="margin-bottom:12px">
+      <h3 style="color:var(--green)">🔒 Mode confidentiel (activable par organisation)</h3>
+      <p style="font-size:0.87rem;color:var(--muted);margin-top:6px;line-height:1.7">
+        Avant tout envoi à l'API OpenAI, un <strong style="color:var(--text)">anonymiseur automatique</strong> remplace les données personnelles par des codes neutres.
+        Les données originales restent intactes dans votre base de données — seule la version anonymisée est transmise pour traitement.
+      </p>
+      <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
+        <span class="chip chip-green">jean.dupont@rh.fr → [EMAIL]</span>
+        <span class="chip chip-green">06 12 34 56 78 → [TEL]</span>
+        <span class="chip chip-green">192.168.1.50 → [IP]</span>
+        <span class="chip chip-green">FR76 1234... → [IBAN]</span>
+        <span class="chip chip-green">1 82 04 75 123 456 78 → [NIR]</span>
+      </div>
+    </div>
+
+    <div class="flow" style="margin:16px 0;flex-wrap:wrap;gap:8px">
+      <div class="flow-box">
+        <div class="flow-label" style="color:var(--green)">✅ Reste sur votre serveur</div>
+        <ul class="flow-items">
+          <li>Comptes utilisateurs &amp; mots de passe (hachés bcrypt)</li>
+          <li>Tickets de support &amp; historique complet</li>
+          <li>Base de connaissances (fichiers uploadés)</li>
+          <li>Configuration organisation</li>
+          <li>Métriques &amp; logs d'audit</li>
+          <li>Tokens d'intégration (GLPI, Slack…)</li>
+        </ul>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box" style="max-width:260px">
+        <div class="flow-label" style="color:var(--orange)">⚡ Envoyé à OpenAI API</div>
+        <ul class="flow-items">
+          <li>Message de l'utilisateur (anonymisé si mode confidentiel)</li>
+          <li>Extrait KB — max 360 caractères</li>
+          <li>Photo/screenshot si jointe</li>
+          <li>Audio vocal (Whisper)</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="grid3" style="margin-top:12px">
+      <div class="card">
+        <div style="font-size:1.4rem;margin-bottom:8px">🤝</div>
+        <h3>Contrat OpenAI API</h3>
+        <p style="font-size:0.8rem;color:var(--muted);margin-top:6px">Aucun entraînement de modèle sur vos données. DPA signable disponible. Rétention : 0 jour.</p>
+      </div>
+      <div class="card">
+        <div style="font-size:1.4rem;margin-bottom:8px">🇪🇺</div>
+        <h3>Option Azure OpenAI</h3>
+        <p style="font-size:0.8rem;color:var(--muted);margin-top:6px">Hébergement IA en France/Irlande. Contrat RGPD Microsoft inclus. Données hors US.</p>
+      </div>
+      <div class="card">
+        <div style="font-size:1.4rem;margin-bottom:8px">📋</div>
+        <h3>Certifications sous-traitants</h3>
+        <p style="font-size:0.8rem;color:var(--muted);margin-top:6px">OpenAI : SOC2 Type II + ISO 27001. Stripe : PCI-DSS Level 1. Render : SOC2 Type II.</p>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══ 5. SOUS-TRAITANTS RGPD ═══ -->
+  <section>
+    <div class="section-label">Résumé DPO — Sous-traitants impliqués</div>
+    <div class="card">
+      <table>
+        <thead>
+          <tr><th>Sous-traitant</th><th>Rôle</th><th>Données traitées</th><th>Localisation</th><th>Garanties</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Render.com</td><td>Hébergement serveur + BDD</td><td>Toutes (complètes)</td><td>US-East (Oregon)</td><td>SOC2 Type II</td></tr>
+          <tr><td>OpenAI API</td><td>Inférence IA uniquement</td><td>Message + KB (anonymisables)</td><td>US / Azure EU optionnel</td><td>SOC2, ISO 27001, DPA dispo</td></tr>
+          <tr><td>Stripe</td><td>Paiements SaaS</td><td>Données de facturation</td><td>EU (Dublin)</td><td>PCI-DSS Level 1</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card card-green" style="margin-top:10px;text-align:center;padding:14px">
+      <strong style="color:var(--green)">Aucune donnée métier n'est vendue, partagée ou utilisée à des fins commerciales.</strong>
+    </div>
+  </section>
+
+
+  <!-- ═══ 6. FONCTIONNALITÉS ═══ -->
+  <section>
+    <div class="section-label">Fonctionnalités — ce qui est en production aujourd'hui</div>
+    <div class="grid2">
+      <div class="card">
+        <h3>👤 Côté utilisateur</h3>
+        <ul class="feature-list" style="margin-top:12px">
+          <li><span>💬</span><span>Chat IA avec historique de conversation</span></li>
+          <li><span>🎤</span><span>Saisie vocale (Whisper) — parler au lieu d'écrire</span></li>
+          <li><span>📎</span><span>Upload de captures d'écran analysées par IA</span></li>
+          <li><span>🎫</span><span>Création de ticket automatique ou manuelle</span></li>
+          <li><span>🔍</span><span>Recherche dans la base de connaissances</span></li>
+          <li><span>🌐</span><span>Interface FR / EN avec détection automatique</span></li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>⚙️ Côté administrateur</h3>
+        <ul class="feature-list" style="margin-top:12px">
+          <li><span>🏢</span><span>Multi-tenant — une instance, plusieurs organisations</span></li>
+          <li><span>📚</span><span>Base de connaissances uploadable (PDF, Word, txt)</span></li>
+          <li><span>📊</span><span>Analytics : SLA, ROI, volume, catégories</span></li>
+          <li><span>🔒</span><span>Mode confidentiel + anonymiseur PII</span></li>
+          <li><span>🔗</span><span>Intégrations : GLPI, Slack, Teams, webhooks</span></li>
+          <li><span>👥</span><span>Gestion utilisateurs avec limites par plan</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <h3>🏗️ Stack technique</h3>
+      <div style="margin-top:10px">
+        <span class="chip chip-accent">Node.js / Express</span>
+        <span class="chip chip-accent">PostgreSQL</span>
+        <span class="chip chip-accent">OpenAI GPT-4o-mini</span>
+        <span class="chip chip-accent">OpenAI Whisper</span>
+        <span class="chip chip-accent">Stripe</span>
+        <span class="chip chip-accent">JWT Auth</span>
+        <span class="chip chip-accent">RAG (recherche vectorielle)</span>
+        <span class="chip chip-accent">Render.com</span>
+        <span class="chip">GitHub Actions CI/CD</span>
+        <span class="chip">Rate limiting</span>
+        <span class="chip">Helmet (headers sécurité)</span>
+        <span class="chip">Audit logs complets</span>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══ 7. TARIFS ═══ -->
+  <section>
+    <div class="section-label">Tarifs</div>
+    <div class="grid3">
+      <div class="plan card">
+        <div class="plan-name" style="color:var(--muted)">Starter</div>
+        <div class="plan-price">299€</div>
+        <div class="plan-sub">par mois</div>
+        <ul class="plan-features">
+          <li>Jusqu'à 50 utilisateurs</li>
+          <li>500 tickets / mois</li>
+          <li>IA support (GPT-4o mini)</li>
+          <li>Base de connaissances</li>
+          <li>Support email</li>
+        </ul>
+      </div>
+      <div class="plan card card-accent" style="border-color:var(--accent)">
+        <div class="plan-name" style="color:var(--accent)">🔥 Pro — Recommandé</div>
+        <div class="plan-price" style="color:var(--accent)">599€</div>
+        <div class="plan-sub">par mois</div>
+        <ul class="plan-features">
+          <li>Jusqu'à 200 utilisateurs</li>
+          <li>Tickets illimités</li>
+          <li>IA avancée (GPT-4o)</li>
+          <li>Intégration GLPI complète</li>
+          <li>Analytics avancées</li>
+          <li>Slack / Teams / Webhooks</li>
+          <li>Mode confidentiel PII</li>
+        </ul>
+      </div>
+      <div class="plan card">
+        <div class="plan-name" style="color:var(--purple)">⭐ Enterprise</div>
+        <div class="plan-price" style="color:var(--purple)">999€</div>
+        <div class="plan-sub">par mois</div>
+        <ul class="plan-features">
+          <li>Utilisateurs illimités</li>
+          <li>IA dédiée &amp; personnalisée</li>
+          <li>Azure OpenAI EU optionnel</li>
+          <li>SLA garanti 99,9%</li>
+          <li>Onboarding dédié</li>
+          <li>Support prioritaire 24/7</li>
+          <li>DPA signé fourni</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <strong>Pour ETI / grands comptes :</strong>
+      <span style="color:var(--muted);font-size:0.87rem"> POC 5 000–15 000€ · Déploiement 15 000–50 000€ · Maintenance 500–2 000€/mois</span>
+    </div>
+  </section>
+
+
+  <!-- ═══ 8. OBJECTIONS ═══ -->
+  <section>
+    <div class="section-label">Objections fréquentes — réponses préparées</div>
+
+    <div class="objection">
+      <div class="obj-q">
+        <div class="obj-q-label">❓ Objection DSI</div>
+        <div class="obj-text">«Et si l'IA se trompe ?»</div>
+      </div>
+      <div class="obj-a">
+        <div class="obj-a-label">✅ Réponse</div>
+        <div class="obj-text">L'IA ne décide jamais seule. Elle prépare, l'humain valide. Chaque réponse peut être escaladée en ticket avec revue humaine.</div>
+      </div>
+    </div>
+
+    <div class="objection">
+      <div class="obj-q">
+        <div class="obj-q-label">❓ Objection DSI</div>
+        <div class="obj-text">«Nos données vont chez OpenAI, on ne peut pas accepter ça.»</div>
+      </div>
+      <div class="obj-a">
+        <div class="obj-a-label">✅ Réponse</div>
+        <div class="obj-text">Seul le message de l'utilisateur est transmis — jamais les comptes, tickets ou fichiers. Le mode confidentiel anonymise automatiquement tous les PII avant envoi. Option Azure OpenAI disponible pour hébergement EU.</div>
+      </div>
+    </div>
+
+    <div class="objection">
+      <div class="obj-q">
+        <div class="obj-q-label">❓ Objection DSI</div>
+        <div class="obj-text">«On a déjà ChatGPT, pourquoi payer plus ?»</div>
+      </div>
+      <div class="obj-a">
+        <div class="obj-a-label">✅ Réponse</div>
+        <div class="obj-text">ChatGPT est généraliste. Notre valeur : gestion des utilisateurs, KB interne de l'entreprise, intégrations métier, historique, logs d'audit, multi-tenant, RGPD — tout ce que ChatGPT ne fait pas.</div>
+      </div>
+    </div>
+
+    <div class="objection">
+      <div class="obj-q">
+        <div class="obj-q-label">❓ Objection DSI</div>
+        <div class="obj-text">«On ne veut pas changer nos outils existants.»</div>
+      </div>
+      <div class="obj-a">
+        <div class="obj-a-label">✅ Réponse</div>
+        <div class="obj-text">Nous ne remplaçons pas vos outils — nous nous y connectons. GLPI, Slack, Teams, Outlook, SharePoint. L'assistant s'intègre sans modifier les processus en place.</div>
+      </div>
+    </div>
+
+    <div class="objection">
+      <div class="obj-q">
+        <div class="obj-q-label">❓ Objection DSI</div>
+        <div class="obj-text">«Vos données sont aux USA, c'est un problème RGPD.»</div>
+      </div>
+      <div class="obj-a">
+        <div class="obj-a-label">✅ Réponse</div>
+        <div class="obj-text">Option Azure OpenAI disponible : hébergement EU (France Central / West Europe). Contrat RGPD Microsoft inclus. Pour l'hébergement serveur, Render EU disponible. DPA fourni sur demande.</div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══ 9. SECTEURS CIBLES ═══ -->
+  <section>
+    <div class="section-label">Secteurs à cibler en priorité</div>
+    <div class="grid3">
+      <div class="card"><strong>🔧 Maintenance industrielle</strong><p style="font-size:0.8rem;color:var(--muted);margin-top:6px">Comptes-rendus terrain, historique interventions, recherche procédures.</p></div>
+      <div class="card"><strong>🏗️ BTP</strong><p style="font-size:0.8rem;color:var(--muted);margin-top:6px">Rapports chantier, gestion incidents, coordination équipes.</p></div>
+      <div class="card"><strong>🔒 Sécurité privée</strong><p style="font-size:0.8rem;color:var(--muted);margin-top:6px">Rapports de ronde, signalement incidents, procédures.</p></div>
+      <div class="card"><strong>🧹 Nettoyage industriel</strong><p style="font-size:0.8rem;color:var(--muted);margin-top:6px">Plannings, comptes-rendus, conformité produits.</p></div>
+      <div class="card"><strong>🏠 Services à domicile</strong><p style="font-size:0.8rem;color:var(--muted);margin-top:6px">Interventions, facturation, réclamations clients.</p></div>
+      <div class="card"><strong>💻 DSI / Support IT</strong><p style="font-size:0.8rem;color:var(--muted);margin-top:6px">Tickets, base de connaissances, escalade N1/N2.</p></div>
+    </div>
+  </section>
+
+
+  <!-- ═══ 10. PROCHAINES ÉTAPES ═══ -->
+  <section>
+    <div class="section-label">Après la réunion — prochaines étapes</div>
+    <div class="card">
+      <ul class="checklist">
+        <li>Proposer un POC de 30 jours sur un périmètre limité (1 équipe, 10-20 utilisateurs)</li>
+        <li>Fournir le DPA OpenAI signé au DPO si demandé</li>
+        <li>Configurer une instance dédiée avec leur logo et leur KB interne</li>
+        <li>Démontrer le mode confidentiel activé en live sur leur instance</li>
+        <li>Proposer migration Azure OpenAI EU si blocage RGPD persistant</li>
+        <li>Établir un devis formalisé dans les 48h suivant la réunion</li>
+      </ul>
+    </div>
+  </section>
+
+
+  <hr />
+  <div style="text-align:center;font-size:0.75rem;color:var(--dim);padding:20px 0">
+    Document interne — KAH Digital — Confidentiel &amp; Usage personnel uniquement
+  </div>
+
+</div>
+
+</body>
+</html>
