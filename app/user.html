@@ -177,6 +177,29 @@
         scrollbar-color: rgba(255,255,255,0.06) transparent;
       }
 
+      /* -- Resize handle -- */
+      #panelResizeHandle {
+        width: 5px; flex-shrink: 0; cursor: col-resize;
+        background: var(--stroke); position: relative;
+        transition: background 0.18s;
+        user-select: none; -webkit-user-select: none;
+      }
+      #panelResizeHandle::after {
+        content: '';
+        position: absolute; top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        width: 3px; height: 40px; border-radius: 4px;
+        background: rgba(255,255,255,0.12);
+        transition: background 0.18s, height 0.18s;
+      }
+      #panelResizeHandle:hover, #panelResizeHandle.dragging {
+        background: var(--accent);
+      }
+      #panelResizeHandle:hover::after, #panelResizeHandle.dragging::after {
+        background: rgba(255,255,255,0.55); height: 56px;
+      }
+      @media (max-width: 700px) { #panelResizeHandle { display: none; } }
+
       /* -- Colonne droite -- */
       .chat-panel {
         flex: 1;
@@ -1243,6 +1266,9 @@
             </div>
           </div>
 
+          <!-- RESIZE HANDLE -->
+          <div id="panelResizeHandle" title="Drag to resize · Double-click to reset"></div>
+
           <!-- ╔══════════════════════════════════════╗ -->
           <!-- ║   PANEL CHAT (colonne droite)         ║ -->
           <!-- ╚══════════════════════════════════════╝ -->
@@ -1548,6 +1574,54 @@
     <script src="/app/app.js?v=20260522c" defer></script>
     <script src="/app/logout.js?v=20260509" defer></script>
     <script>
+    // ─── Panel resize handle ────────────────────────────────────────────────────
+    (function() {
+      document.addEventListener('DOMContentLoaded', function() {
+        var handle = document.getElementById('panelResizeHandle');
+        var panel  = document.getElementById('quickIssuesWrapper');
+        if (!handle || !panel) return;
+
+        var MIN_W = 200, MAX_W = 620;
+
+        // Restore saved width
+        var saved = parseInt(localStorage.getItem('qi_panel_width'), 10);
+        if (saved && saved >= MIN_W && saved <= MAX_W) {
+          panel.style.width = saved + 'px';
+        }
+
+        handle.addEventListener('mousedown', function(e) {
+          if (e.button !== 0) return;
+          e.preventDefault();
+          var startX = e.clientX;
+          var startW = panel.offsetWidth;
+          handle.classList.add('dragging');
+          document.body.style.cursor = 'col-resize';
+          document.body.style.userSelect = 'none';
+
+          function onMove(e) {
+            var newW = Math.min(Math.max(startW + (e.clientX - startX), MIN_W), MAX_W);
+            panel.style.width = newW + 'px';
+          }
+          function onUp() {
+            document.removeEventListener('mousemove', onMove);
+            document.removeEventListener('mouseup', onUp);
+            handle.classList.remove('dragging');
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+            localStorage.setItem('qi_panel_width', panel.offsetWidth);
+          }
+          document.addEventListener('mousemove', onMove);
+          document.addEventListener('mouseup', onUp);
+        });
+
+        // Double-click resets to default
+        handle.addEventListener('dblclick', function() {
+          panel.style.width = '400px';
+          localStorage.setItem('qi_panel_width', 400);
+        });
+      });
+    })();
+
     // ─── Auto-resize textarea ───────────────────────────────────────────────────
     (function() {
       document.addEventListener('DOMContentLoaded', function() {
