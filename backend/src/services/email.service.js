@@ -197,6 +197,123 @@ async function notifySlaBreach({ ticket, ageHours, slaHours }) {
   });
 }
 
+async function sendWelcomeEmail({ email, tempPassword, tenantName, loginUrl }) {
+  const appUrl = env.appUrl || "http://localhost:3001";
+  const url = loginUrl || `${appUrl}/app/login/`;
+
+  const html = `<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8"><title>Bienvenue sur Assistant IT</title></head>
+<body style="font-family:Arial,sans-serif;background:#f3f4f6;margin:0;padding:24px;">
+  <div style="max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.08);">
+    <div style="background:#6366f1;padding:24px 32px;">
+      <h1 style="color:#fff;margin:0;font-size:22px;">Bienvenue sur Assistant IT !</h1>
+      <p style="color:rgba(255,255,255,.8);margin:8px 0 0;font-size:14px;">Votre compte est prêt.</p>
+    </div>
+    <div style="padding:32px;">
+      <p style="color:#374151;margin:0 0 24px;">Bonjour,</p>
+      <p style="color:#374151;margin:0 0 24px;">Votre abonnement a bien été activé. Voici vos identifiants de connexion :</p>
+      <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:20px;margin-bottom:24px;">
+        <table style="width:100%;border-collapse:collapse;">
+          <tr>
+            <td style="padding:8px 0;color:#6b7280;width:120px;font-size:14px;">Org.</td>
+            <td style="padding:8px 0;font-weight:600;font-size:14px;">${escapeHtml(tenantName || email)}</td>
+          </tr>
+          <tr>
+            <td style="padding:8px 0;color:#6b7280;font-size:14px;">Email</td>
+            <td style="padding:8px 0;font-weight:600;font-family:monospace;font-size:14px;">${escapeHtml(email)}</td>
+          </tr>
+          <tr>
+            <td style="padding:8px 0;color:#6b7280;font-size:14px;">Mot de passe</td>
+            <td style="padding:8px 0;font-weight:600;font-family:monospace;font-size:14px;">${escapeHtml(tempPassword)}</td>
+          </tr>
+        </table>
+      </div>
+      <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:6px;padding:12px 16px;margin-bottom:24px;">
+        <p style="margin:0;color:#92400e;font-size:13px;"><strong>Important :</strong> Changez votre mot de passe dès la première connexion.</p>
+      </div>
+      <a href="${url}" style="display:inline-block;background:#6366f1;color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:700;font-size:15px;">Accéder à l'application →</a>
+    </div>
+    <div style="background:#f9fafb;padding:16px 32px;border-top:1px solid #e5e7eb;">
+      <p style="margin:0;color:#9ca3af;font-size:12px;">Assistant IA Support Informatique — paiement confirmé</p>
+    </div>
+  </div>
+</body>
+</html>`;
+
+  return sendEmail({
+    to: email,
+    subject: "Bienvenue sur Assistant IT — vos identifiants de connexion",
+    html
+  });
+}
+
+async function sendInviteEmail({ email, inviteUrl, inviterEmail, tenantName, role }) {
+  const appUrl = env.appUrl || "http://localhost:3001";
+  const fullUrl = inviteUrl.startsWith("http") ? inviteUrl : `${appUrl}${inviteUrl}`;
+  const roleLabel = { admin: "Administrateur", agent: "Agent support", user: "Utilisateur" }[role] || role || "Utilisateur";
+
+  const html = `<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8"><title>Invitation — Assistant IT</title></head>
+<body style="font-family:Arial,sans-serif;background:#f3f4f6;margin:0;padding:24px;">
+  <div style="max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.08);">
+    <div style="background:#1e40af;padding:24px 32px;">
+      <h1 style="color:#fff;margin:0;font-size:20px;">Invitation à rejoindre Assistant IT</h1>
+    </div>
+    <div style="padding:32px;">
+      <p style="color:#374151;margin:0 0 16px;">Bonjour,</p>
+      <p style="color:#374151;margin:0 0 24px;">
+        ${inviterEmail ? `<strong>${escapeHtml(inviterEmail)}</strong> vous invite à rejoindre l'espace <strong>${escapeHtml(tenantName || "")}</strong> en tant que <strong>${escapeHtml(roleLabel)}</strong>.` : `Vous avez été invité à rejoindre <strong>${escapeHtml(tenantName || "l'application")}</strong> en tant que <strong>${escapeHtml(roleLabel)}</strong>.`}
+      </p>
+      <p style="color:#374151;margin:0 0 24px;">Cliquez sur le bouton ci-dessous pour créer votre compte. Ce lien est valable 72 heures.</p>
+      <a href="${fullUrl}" style="display:inline-block;background:#1e40af;color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:700;font-size:15px;">Accepter l'invitation →</a>
+      <p style="margin:24px 0 0;color:#9ca3af;font-size:12px;word-break:break-all;">Ou copiez ce lien : ${fullUrl}</p>
+    </div>
+    <div style="background:#f9fafb;padding:16px 32px;border-top:1px solid #e5e7eb;">
+      <p style="margin:0;color:#9ca3af;font-size:12px;">Assistant IA Support Informatique — invitation automatique</p>
+    </div>
+  </div>
+</body>
+</html>`;
+
+  return sendEmail({
+    to: email,
+    subject: `Invitation à rejoindre ${tenantName || "Assistant IT"}`,
+    html
+  });
+}
+
+async function sendPasswordResetEmail({ email, resetUrl }) {
+  const html = `<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8"><title>Réinitialisation du mot de passe</title></head>
+<body style="font-family:Arial,sans-serif;background:#f3f4f6;margin:0;padding:24px;">
+  <div style="max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.08);">
+    <div style="background:#374151;padding:24px 32px;">
+      <h1 style="color:#fff;margin:0;font-size:20px;">Réinitialisation du mot de passe</h1>
+    </div>
+    <div style="padding:32px;">
+      <p style="color:#374151;margin:0 0 16px;">Bonjour,</p>
+      <p style="color:#374151;margin:0 0 24px;">Vous avez demandé la réinitialisation de votre mot de passe. Cliquez sur le bouton ci-dessous pour définir un nouveau mot de passe. Ce lien est valable <strong>1 heure</strong>.</p>
+      <a href="${resetUrl}" style="display:inline-block;background:#374151;color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:700;font-size:15px;">Réinitialiser mon mot de passe →</a>
+      <p style="margin:24px 0 0;color:#9ca3af;font-size:12px;">Si vous n'avez pas fait cette demande, ignorez cet email. Votre mot de passe ne sera pas modifié.</p>
+      <p style="margin:8px 0 0;color:#9ca3af;font-size:12px;word-break:break-all;">Lien : ${resetUrl}</p>
+    </div>
+    <div style="background:#f9fafb;padding:16px 32px;border-top:1px solid #e5e7eb;">
+      <p style="margin:0;color:#9ca3af;font-size:12px;">Assistant IA Support Informatique — sécurité compte</p>
+    </div>
+  </div>
+</body>
+</html>`;
+
+  return sendEmail({
+    to: email,
+    subject: "Réinitialisation de votre mot de passe — Assistant IT",
+    html
+  });
+}
+
 function escapeHtml(str) {
   return (str || "")
     .replace(/&/g, "&amp;")
@@ -210,5 +327,8 @@ module.exports = {
   sendEmail,
   notifyTicketCreated,
   notifySlaBreach,
+  sendWelcomeEmail,
+  sendInviteEmail,
+  sendPasswordResetEmail,
   isConfigured
 };

@@ -1,4 +1,6 @@
+const crypto = require("crypto");
 const { env } = require("../config/env");
+const { db } = require("../config/db");
 
 let _stripe = null;
 function getStripe() {
@@ -77,4 +79,72 @@ function isConfigured() {
   return Boolean(env.stripeSecretKey);
 }
 
-module.exports = { createCheckoutSession, createPortalSession, handleWebhook, isConfigured, PLANS };
+// ── Checkout public (pré-inscription landing page) ────────────────────────────
+async function createPublicCheckoutSession({ plan, email, tenantName }) {
+  const stripe = getStripe();
+  if (!stripe) return null;
+
+  const planConfig = PLANS[plan] || PLANS.starter;
+  const lineItem = planConfig.price_id
+    ? { price: planConfig.price_id, quantity: 1 }
+    : {
+        price_data: {
+          currency: "eur",
+          product_data: { name: `Assistant IT — Plan ${planConfig.name}` },
+          unit_amount: planConfig.amount,
+          recurring: { interval: "month" },
+        },
+        quantity: 1,
+      };
+
+  const appUrl = env.appUrl || "http://localhost:3001";
+  const session = await stripe.checkout.sessions.create({
+    mode: "subscription",
+    payment_method_types: ["card"],
+    line_items: [lineItem],
+    customer_email: email || undefined,
+    metadata: { tenant_name: tenantName || email, plan },
+    success_url: `${appUrl}/success.html?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${appUrl}/#pricing`,
+  });
+
+  return { url: session.url, session_id: session.id };
+}
+
+// ── Récupérer credentials post-paiement ──────────────────────────────────────
+async function retrieveSessionCredentials(sessionId) {
+  const stripe = getStripe();
+  if (!stripe) return null;
+
+  // Chercher dans onboarding_tokens (webhook déjà traité)
+  const token = await db("onboarding_tokens").where({ session_id: sessionId }).first();
+  if (token) {
+    const appUrl = env.appUrl || "http://localhost:3001";
+    return {
+      email: token.email,
+      tenant_name: token.tenant_name,
+      temp_password: token.temp_password,
+      login_url: `${appUrl}/app/login/`,
+    };
+  }
+
+  // Webhook pas encore traité — vérifier que la session existe
+  try {
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    if (session && session.payment_status === "paid") {
+      return { pending: true };
+    }
+  } catch (_) {}
+
+  return { pending: true };
+}
+
+module.exports = {
+  createCheckoutSession,
+  createPublicCheckoutSession,
+  createPortalSession,
+  handleWebhook,
+  retrieveSessionCredentials,
+  isConfigured,
+  PLANS,
+};

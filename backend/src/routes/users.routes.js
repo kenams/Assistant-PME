@@ -13,6 +13,7 @@ const {
 const { logEvent } = require("../services/audit.service");
 const { hashPassword, verifyPassword } = require("../utils/crypto");
 const { db } = require("../config/db");
+const { sendInviteEmail } = require("../services/email.service");
 
 const router = express.Router();
 
@@ -108,6 +109,18 @@ router.post("/invite", authRequired, requireAdmin, async (req, res, next) => {
     });
 
     const inviteUrl = `/app/?invite=${result.invite.token}`;
+
+    // Envoyer email d'invitation
+    const tenant = await db("tenants").where({ id: tenantId }).first();
+    const inviter = await db("users").where({ id: req.user.sub }).select("email").first();
+    sendInviteEmail({
+      email: payload.email,
+      inviteUrl,
+      inviterEmail: inviter ? inviter.email : undefined,
+      tenantName: tenant ? tenant.name : undefined,
+      role: payload.role || "user",
+    }).catch(() => {});
+
     return res.status(201).json({ invite: result.invite, invite_url: inviteUrl });
   } catch (err) {
     next(err);

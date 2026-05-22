@@ -3,29 +3,29 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>SupportAI — Copilote IA pour GLPI</title>
-    <meta name="description" content="Réduisez 60% du temps de traitement des tickets IT grâce à l'IA. Connecté à GLPI, prêt en 5 minutes." />
+    <title>Assistant IA Support IT — PME | KAH Digital</title>
+    <meta name="description" content="Réduisez de 70% le temps de traitement des tickets IT. Assistant IA disponible 24h/24, connecté à GLPI, opérationnel en 15 minutes." />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" />
     <style>
       :root {
-        --bg: #0d0f14;
-        --bg2: #13161d;
-        --bg3: #1a1e28;
-        --card: #1a1e28;
-        --stroke: rgba(255,255,255,0.07);
-        --stroke2: rgba(255,255,255,0.12);
-        --text: #e8ecf4;
+        --bg: #0f1117;
+        --bg2: #14171f;
+        --bg3: #1a1e2a;
+        --card: #1a1e2a;
+        --stroke: rgba(255,255,255,0.06);
+        --stroke2: rgba(255,255,255,0.11);
+        --text: #e2e6f3;
         --text-strong: #ffffff;
-        --text-muted: #7a8499;
-        --accent: #4f8ef7;
-        --accent-glow: rgba(79,142,247,0.2);
-        --accent2: #22d3b0;
-        --accent3: #f5a623;
+        --text-muted: #6b7796;
+        --accent: #6366f1;
+        --accent2: #8b5cf6;
+        --accent-glow: rgba(99,102,241,0.22);
         --success: #22c55e;
+        --warning: #f59e0b;
         --danger: #ef4444;
         --radius: 12px;
-        --radius-lg: 16px;
-        --shadow: 0 4px 32px rgba(0,0,0,0.5);
+        --radius-lg: 18px;
+        --shadow: 0 4px 40px rgba(0,0,0,0.55);
       }
       * { box-sizing: border-box; margin: 0; padding: 0; }
       html { font-size: 16px; scroll-behavior: smooth; }
@@ -33,386 +33,310 @@
         font-family: 'Inter', system-ui, sans-serif;
         background: var(--bg);
         color: var(--text);
-        line-height: 1.6;
+        line-height: 1.65;
         overflow-x: hidden;
       }
-      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar { width: 5px; }
       ::-webkit-scrollbar-track { background: transparent; }
       ::-webkit-scrollbar-thumb { background: var(--stroke2); border-radius: 4px; }
-
       a { color: inherit; text-decoration: none; }
 
       /* ── NAV ── */
       nav {
-        position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+        position: fixed; top: 0; left: 0; right: 0; z-index: 200;
         display: flex; align-items: center; justify-content: space-between;
         padding: 0 5vw; height: 64px;
-        background: rgba(13,15,20,0.85);
-        backdrop-filter: blur(20px);
+        background: rgba(15,17,23,0.88);
+        backdrop-filter: blur(24px);
         border-bottom: 1px solid var(--stroke);
       }
       .nav-brand {
         display: flex; align-items: center; gap: 10px;
-        font-weight: 800; font-size: 1.1rem; letter-spacing: -0.02em;
+        font-weight: 800; font-size: 1.05rem; letter-spacing: -0.02em;
         color: var(--text-strong);
       }
       .nav-brand-icon {
         width: 32px; height: 32px;
-        background: var(--accent);
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
         border-radius: 8px;
         display: flex; align-items: center; justify-content: center;
-        font-size: 1rem;
-        flex-shrink: 0;
+        font-size: 1rem; flex-shrink: 0;
       }
       .nav-links { display: flex; align-items: center; gap: 28px; }
-      .nav-links a {
-        color: var(--text-muted); font-size: 0.88rem; font-weight: 500;
-        transition: color 0.15s;
-      }
+      .nav-links a { color: var(--text-muted); font-size: 0.87rem; font-weight: 500; transition: color 0.15s; }
       .nav-links a:hover { color: var(--text); }
       .nav-cta { display: flex; align-items: center; gap: 10px; }
       .btn {
         display: inline-flex; align-items: center; justify-content: center; gap: 6px;
         padding: 9px 20px; border-radius: 8px;
-        font-family: inherit; font-size: 0.88rem; font-weight: 600;
+        font-family: inherit; font-size: 0.87rem; font-weight: 600;
         cursor: pointer; border: 1px solid var(--stroke2);
         background: var(--card); color: var(--text);
         transition: all 0.15s; text-decoration: none;
       }
-      .btn:hover { background: #242838; color: var(--text-strong); }
+      .btn:hover { background: #222638; color: var(--text-strong); }
       .btn.primary {
-        background: var(--accent); border-color: var(--accent); color: #fff;
-        box-shadow: 0 0 20px var(--accent-glow);
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        border-color: transparent; color: #fff;
+        box-shadow: 0 0 24px var(--accent-glow);
       }
-      .btn.primary:hover { background: #3a7aef; border-color: #3a7aef; box-shadow: 0 0 28px rgba(79,142,247,0.35); }
-      .btn.large { padding: 13px 28px; font-size: 0.98rem; border-radius: 10px; }
-      .btn.ghost { background: transparent; color: var(--text-muted); }
+      .btn.primary:hover { opacity: 0.92; box-shadow: 0 0 32px rgba(99,102,241,0.35); }
+      .btn.large { padding: 14px 30px; font-size: 0.97rem; border-radius: 10px; }
+      .btn.ghost { background: transparent; color: var(--text-muted); border-color: var(--stroke2); }
       .btn.ghost:hover { background: var(--card); color: var(--text); }
 
       /* ── HERO ── */
       .hero {
-        padding: 160px 5vw 100px;
-        text-align: center;
-        position: relative;
-        overflow: hidden;
+        padding: 160px 5vw 80px;
+        text-align: center; position: relative; overflow: hidden;
       }
       .hero::before {
         content: '';
         position: absolute; inset: 0;
         background:
-          radial-gradient(ellipse 60% 50% at 50% 0%, rgba(79,142,247,0.12) 0%, transparent 60%),
-          radial-gradient(ellipse 40% 30% at 80% 60%, rgba(34,211,176,0.06) 0%, transparent 50%);
+          radial-gradient(ellipse 70% 55% at 50% 0%, rgba(99,102,241,0.13) 0%, transparent 65%),
+          radial-gradient(ellipse 40% 30% at 80% 70%, rgba(139,92,246,0.06) 0%, transparent 50%);
         pointer-events: none;
       }
       .hero-badge {
-        display: inline-flex; align-items: center; gap: 6px;
+        display: inline-flex; align-items: center; gap: 8px;
         padding: 5px 14px;
-        background: rgba(79,142,247,0.1);
-        border: 1px solid rgba(79,142,247,0.25);
-        border-radius: 20px;
-        color: var(--accent); font-size: 0.8rem; font-weight: 700;
-        letter-spacing: 0.08em; text-transform: uppercase;
-        margin-bottom: 24px;
+        background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.25);
+        border-radius: 20px; color: var(--accent);
+        font-size: 0.78rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+        margin-bottom: 28px;
       }
       .hero-badge .dot {
-        width: 6px; height: 6px; border-radius: 50%;
-        background: var(--accent);
+        width: 6px; height: 6px; border-radius: 50%; background: var(--accent);
         animation: pulse 2s infinite;
       }
-      @keyframes pulse {
-        0%,100% { opacity: 1; }
-        50% { opacity: 0.4; }
-      }
+      @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
       .hero h1 {
         font-size: clamp(2.4rem, 6vw, 4rem);
-        font-weight: 900;
-        color: var(--text-strong);
-        letter-spacing: -0.04em;
-        line-height: 1.1;
-        max-width: 800px;
-        margin: 0 auto 20px;
+        font-weight: 900; color: var(--text-strong);
+        letter-spacing: -0.04em; line-height: 1.1;
+        max-width: 820px; margin: 0 auto 20px;
       }
-      .hero h1 span { color: var(--accent); }
+      .hero h1 span {
+        background: linear-gradient(90deg, var(--accent), var(--accent2));
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
       .hero-sub {
-        font-size: 1.15rem;
-        color: var(--text-muted);
-        max-width: 560px;
-        margin: 0 auto 40px;
-        line-height: 1.6;
+        font-size: 1.12rem; color: var(--text-muted);
+        max-width: 560px; margin: 0 auto 40px; line-height: 1.65;
       }
       .hero-actions {
         display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
-        margin-bottom: 60px;
+        margin-bottom: 64px;
       }
-      .hero-stats {
-        display: flex; justify-content: center; gap: 40px; flex-wrap: wrap;
+
+      /* ── STATS ── */
+      .stats-strip {
+        display: flex; justify-content: center; gap: 48px; flex-wrap: wrap;
+        padding: 48px 5vw;
+        border-top: 1px solid var(--stroke);
+        border-bottom: 1px solid var(--stroke);
+        background: var(--bg2);
       }
       .stat { text-align: center; }
       .stat-value {
-        font-size: 1.8rem; font-weight: 900;
-        color: var(--text-strong); letter-spacing: -0.04em;
-        display: block;
+        font-size: 2rem; font-weight: 900; color: var(--text-strong);
+        letter-spacing: -0.04em; display: block;
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        background-clip: text;
       }
-      .stat-label { font-size: 0.78rem; color: var(--text-muted); font-weight: 500; margin-top: 2px; }
+      .stat-label { font-size: 0.78rem; color: var(--text-muted); font-weight: 500; margin-top: 4px; }
 
-      /* ── DEMO PREVIEW ── */
-      .demo-preview {
-        margin: 0 5vw;
-        border: 1px solid var(--stroke2);
-        border-radius: var(--radius-lg);
-        overflow: hidden;
-        background: var(--bg3);
-        box-shadow: var(--shadow), 0 0 60px rgba(79,142,247,0.08);
-      }
-      .demo-preview-bar {
-        display: flex; align-items: center; gap: 8px;
-        padding: 12px 16px;
-        background: var(--bg2);
-        border-bottom: 1px solid var(--stroke);
-      }
-      .demo-dot { width: 10px; height: 10px; border-radius: 50%; }
-      .demo-dot:nth-child(1) { background: #ef4444; }
-      .demo-dot:nth-child(2) { background: #f59e0b; }
-      .demo-dot:nth-child(3) { background: #22c55e; }
-      .demo-url {
-        flex: 1; text-align: center;
-        background: var(--bg3); border: 1px solid var(--stroke);
-        border-radius: 6px; padding: 4px 14px;
-        font-size: 0.78rem; color: var(--text-muted);
-        max-width: 300px; margin: 0 auto;
-      }
-      .demo-content {
-        display: grid; grid-template-columns: 220px 1fr;
-        min-height: 380px;
-      }
-      .demo-sidebar {
-        background: var(--bg2);
-        border-right: 1px solid var(--stroke);
-        padding: 16px;
-        display: flex; flex-direction: column; gap: 4px;
-      }
-      .demo-nav-item {
-        padding: 8px 12px; border-radius: 8px;
-        font-size: 0.82rem; color: var(--text-muted);
-        display: flex; align-items: center; gap: 8px;
-        cursor: default;
-      }
-      .demo-nav-item.active {
-        background: rgba(79,142,247,0.12);
-        color: var(--accent); font-weight: 600;
-      }
-      .demo-nav-icon { font-size: 0.9rem; }
-      .demo-main { padding: 20px; display: flex; flex-direction: column; gap: 12px; }
-      .demo-header-row {
-        display: flex; align-items: center; justify-content: space-between;
-      }
-      .demo-title { font-size: 1rem; font-weight: 700; color: var(--text-strong); }
-      .demo-badge {
-        font-size: 0.72rem; font-weight: 700; padding: 3px 8px;
-        border-radius: 20px; text-transform: uppercase; letter-spacing: 0.06em;
-      }
-      .demo-badge.ai { background: rgba(79,142,247,0.15); color: var(--accent); }
-      .demo-badge.new { background: rgba(34,197,94,0.15); color: var(--success); }
-      .demo-ticket {
-        background: var(--bg2); border: 1px solid var(--stroke);
-        border-radius: var(--radius); padding: 14px 16px;
-        display: grid; grid-template-columns: 1fr auto;
-        gap: 8px; align-items: start;
-      }
-      .demo-ticket-title { font-size: 0.88rem; font-weight: 600; color: var(--text-strong); margin-bottom: 4px; }
-      .demo-ticket-meta { font-size: 0.75rem; color: var(--text-muted); }
-      .demo-ticket-tags { display: flex; gap: 4px; margin-top: 6px; }
-      .demo-tag {
-        font-size: 0.7rem; font-weight: 600; padding: 2px 7px;
-        border-radius: 4px;
-      }
-      .demo-tag.open { background: rgba(79,142,247,0.15); color: var(--accent); }
-      .demo-tag.urgent { background: rgba(239,68,68,0.15); color: var(--danger); }
-      .demo-tag.ai-tag { background: rgba(34,211,176,0.15); color: var(--accent2); }
-      .demo-ai-box {
-        background: rgba(79,142,247,0.06);
-        border: 1px solid rgba(79,142,247,0.2);
-        border-radius: var(--radius); padding: 12px 14px;
-        font-size: 0.82rem; color: var(--text);
-      }
-      .demo-ai-label {
-        font-size: 0.7rem; font-weight: 700; color: var(--accent);
-        text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px;
-      }
-      .demo-kpis {
-        display: flex; gap: 8px;
-      }
-      .demo-kpi {
-        flex: 1; background: var(--bg2); border: 1px solid var(--stroke);
-        border-radius: var(--radius); padding: 10px 12px; text-align: center;
-      }
-      .demo-kpi-v { font-size: 1.3rem; font-weight: 800; color: var(--text-strong); display: block; }
-      .demo-kpi-l { font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
-
-      /* ── FEATURES ── */
+      /* ── SECTIONS ── */
       section { padding: 100px 5vw; }
       .section-label {
-        font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em;
+        font-size: 0.73rem; font-weight: 700; letter-spacing: 0.1em;
         text-transform: uppercase; color: var(--accent);
         text-align: center; margin-bottom: 14px;
       }
       .section-title {
         font-size: clamp(1.8rem, 4vw, 2.6rem);
         font-weight: 800; letter-spacing: -0.03em;
-        color: var(--text-strong); text-align: center;
-        margin-bottom: 14px;
+        color: var(--text-strong); text-align: center; margin-bottom: 14px;
       }
       .section-sub {
-        font-size: 1rem; color: var(--text-muted);
-        text-align: center; max-width: 520px;
-        margin: 0 auto 60px;
+        font-size: 0.97rem; color: var(--text-muted);
+        text-align: center; max-width: 520px; margin: 0 auto 60px;
       }
+
+      /* ── FEATURES ── */
       .features-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        gap: 20px;
-        max-width: 1100px; margin: 0 auto;
+        display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 18px; max-width: 1100px; margin: 0 auto;
       }
       .feature-card {
         background: var(--card); border: 1px solid var(--stroke);
         border-radius: var(--radius-lg); padding: 28px;
         transition: border-color 0.2s, transform 0.15s;
       }
-      .feature-card:hover { border-color: var(--stroke2); transform: translateY(-2px); }
+      .feature-card:hover { border-color: rgba(99,102,241,0.3); transform: translateY(-2px); }
       .feature-icon {
         width: 44px; height: 44px; border-radius: 10px;
         display: flex; align-items: center; justify-content: center;
-        font-size: 1.3rem; margin-bottom: 16px;
+        font-size: 1.2rem; margin-bottom: 16px;
       }
-      .feature-icon.blue { background: rgba(79,142,247,0.12); }
-      .feature-icon.teal { background: rgba(34,211,176,0.12); }
-      .feature-icon.orange { background: rgba(245,166,35,0.12); }
-      .feature-icon.green { background: rgba(34,197,94,0.12); }
-      .feature-icon.purple { background: rgba(168,85,247,0.12); }
-      .feature-icon.red { background: rgba(239,68,68,0.12); }
-      .feature-card h3 {
-        font-size: 1rem; font-weight: 700;
-        color: var(--text-strong); margin-bottom: 8px;
-      }
-      .feature-card p { font-size: 0.88rem; color: var(--text-muted); line-height: 1.6; }
-
-      /* ── HOW IT WORKS ── */
-      #how { background: var(--bg2); }
-      .steps-grid {
-        display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-        gap: 24px; max-width: 900px; margin: 0 auto;
-      }
-      .step {
-        text-align: center; padding: 32px 24px;
-        background: var(--card); border: 1px solid var(--stroke);
-        border-radius: var(--radius-lg);
-      }
-      .step-num {
-        width: 44px; height: 44px; border-radius: 50%;
-        background: var(--accent); color: #fff;
-        display: flex; align-items: center; justify-content: center;
-        font-size: 1.1rem; font-weight: 800;
-        margin: 0 auto 16px;
-        box-shadow: 0 0 20px var(--accent-glow);
-      }
-      .step h3 { font-size: 0.95rem; font-weight: 700; color: var(--text-strong); margin-bottom: 8px; }
-      .step p { font-size: 0.84rem; color: var(--text-muted); }
+      .fi-indigo { background: rgba(99,102,241,0.12); }
+      .fi-violet { background: rgba(139,92,246,0.12); }
+      .fi-teal { background: rgba(20,184,166,0.12); }
+      .fi-green { background: rgba(34,197,94,0.12); }
+      .fi-orange { background: rgba(249,115,22,0.12); }
+      .fi-pink { background: rgba(236,72,153,0.12); }
+      .feature-card h3 { font-size: 0.97rem; font-weight: 700; color: var(--text-strong); margin-bottom: 8px; }
+      .feature-card p { font-size: 0.86rem; color: var(--text-muted); line-height: 1.6; }
 
       /* ── PRICING ── */
+      #pricing { background: var(--bg2); }
       .pricing-grid {
-        display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-        gap: 20px; max-width: 900px; margin: 0 auto;
+        display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+        gap: 20px; max-width: 920px; margin: 0 auto;
       }
       .plan {
-        background: var(--card); border: 1px solid var(--stroke);
+        background: var(--bg3); border: 1px solid var(--stroke2);
         border-radius: var(--radius-lg); padding: 32px;
         display: flex; flex-direction: column; gap: 20px;
-        position: relative; transition: border-color 0.2s;
+        position: relative; transition: border-color 0.2s, box-shadow 0.2s;
       }
-      .plan:hover { border-color: var(--stroke2); }
+      .plan:hover { border-color: rgba(99,102,241,0.3); }
       .plan.featured {
         border-color: var(--accent);
-        background: linear-gradient(135deg, var(--card) 0%, rgba(79,142,247,0.04) 100%);
-        box-shadow: 0 0 40px rgba(79,142,247,0.1);
+        background: linear-gradient(160deg, #1a1e2a 0%, rgba(99,102,241,0.06) 100%);
+        box-shadow: 0 0 48px rgba(99,102,241,0.12);
       }
       .plan-badge {
-        position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
-        background: var(--accent); color: #fff;
-        font-size: 0.72rem; font-weight: 700; padding: 3px 12px;
-        border-radius: 20px; letter-spacing: 0.05em;
+        position: absolute; top: -13px; left: 50%; transform: translateX(-50%);
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        color: #fff; font-size: 0.7rem; font-weight: 700;
+        padding: 3px 14px; border-radius: 20px; letter-spacing: 0.05em;
         white-space: nowrap;
       }
-      .plan-name { font-size: 0.82rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
-      .plan-price {
-        display: flex; align-items: flex-end; gap: 4px;
-      }
-      .plan-amount { font-size: 2.6rem; font-weight: 900; color: var(--text-strong); letter-spacing: -0.05em; line-height: 1; }
-      .plan-period { font-size: 0.82rem; color: var(--text-muted); padding-bottom: 4px; }
-      .plan-desc { font-size: 0.84rem; color: var(--text-muted); }
+      .plan-name { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
+      .plan-price { display: flex; align-items: flex-end; gap: 4px; }
+      .plan-amount { font-size: 2.8rem; font-weight: 900; color: var(--text-strong); letter-spacing: -0.05em; line-height: 1; }
+      .plan-period { font-size: 0.8rem; color: var(--text-muted); padding-bottom: 5px; }
+      .plan-desc { font-size: 0.83rem; color: var(--text-muted); }
       .plan-features { display: flex; flex-direction: column; gap: 10px; }
-      .plan-feature {
-        display: flex; align-items: center; gap: 10px;
-        font-size: 0.85rem; color: var(--text);
-      }
-      .plan-feature .check { color: var(--success); font-size: 0.9rem; flex-shrink: 0; }
-      .plan-feature .cross { color: var(--text-muted); font-size: 0.9rem; flex-shrink: 0; }
+      .plan-feature { display: flex; align-items: center; gap: 10px; font-size: 0.84rem; color: var(--text); }
+      .plan-feature .check { color: var(--success); flex-shrink: 0; }
+      .plan-feature .cross { color: var(--text-muted); flex-shrink: 0; opacity: 0.5; }
       .plan-cta { margin-top: auto; }
 
-      /* ── SOCIAL PROOF ── */
-      #testimonials { background: var(--bg2); }
+      /* ── TESTIMONIALS ── */
       .testimonials-grid {
         display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
         gap: 20px; max-width: 1000px; margin: 0 auto;
       }
       .testimonial {
         background: var(--card); border: 1px solid var(--stroke);
-        border-radius: var(--radius-lg); padding: 24px;
+        border-radius: var(--radius-lg); padding: 26px;
       }
-      .testimonial-text { font-size: 0.9rem; color: var(--text); line-height: 1.7; margin-bottom: 16px; font-style: italic; }
+      .stars { color: #f59e0b; font-size: 0.78rem; letter-spacing: 1px; margin-bottom: 12px; }
+      .testimonial-text { font-size: 0.88rem; color: var(--text); line-height: 1.7; margin-bottom: 18px; font-style: italic; }
       .testimonial-author { display: flex; align-items: center; gap: 10px; }
       .testimonial-avatar {
-        width: 36px; height: 36px; border-radius: 50%;
-        background: var(--accent); display: flex; align-items: center; justify-content: center;
-        font-size: 0.88rem; font-weight: 700; color: #fff; flex-shrink: 0;
+        width: 38px; height: 38px; border-radius: 50%;
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0.84rem; font-weight: 700; color: #fff; flex-shrink: 0;
       }
       .testimonial-name { font-size: 0.85rem; font-weight: 700; color: var(--text-strong); }
-      .testimonial-role { font-size: 0.75rem; color: var(--text-muted); }
-      .stars { color: #f59e0b; font-size: 0.78rem; letter-spacing: 1px; margin-bottom: 10px; }
+      .testimonial-role { font-size: 0.74rem; color: var(--text-muted); }
 
       /* ── CTA FINAL ── */
       .cta-section {
         text-align: center; padding: 100px 5vw;
-        background: radial-gradient(ellipse 60% 60% at 50% 50%, rgba(79,142,247,0.08) 0%, transparent 70%);
+        background: radial-gradient(ellipse 70% 60% at 50% 50%, rgba(99,102,241,0.09) 0%, transparent 70%);
       }
-      .cta-section h2 {
-        font-size: clamp(1.8rem, 4vw, 2.8rem);
-        font-weight: 900; letter-spacing: -0.04em;
-        color: var(--text-strong); margin-bottom: 16px;
-      }
+      .cta-section h2 { font-size: clamp(1.8rem,4vw,2.8rem); font-weight: 900; letter-spacing: -0.04em; color: var(--text-strong); margin-bottom: 16px; }
       .cta-section p { font-size: 1rem; color: var(--text-muted); margin-bottom: 36px; }
       .cta-note { font-size: 0.8rem; color: var(--text-muted); margin-top: 14px; }
       .cta-note span { color: var(--success); }
 
       /* ── FOOTER ── */
       footer {
-        border-top: 1px solid var(--stroke);
-        padding: 40px 5vw;
+        border-top: 1px solid var(--stroke); padding: 40px 5vw;
         display: flex; align-items: center; justify-content: space-between;
         flex-wrap: wrap; gap: 16px;
       }
-      .footer-brand { font-weight: 700; font-size: 0.9rem; color: var(--text-muted); }
+      .footer-brand { font-weight: 700; font-size: 0.88rem; color: var(--text-muted); }
       .footer-links { display: flex; gap: 24px; }
       .footer-links a { font-size: 0.82rem; color: var(--text-muted); transition: color 0.15s; }
       .footer-links a:hover { color: var(--text); }
-      .footer-copy { font-size: 0.78rem; color: var(--text-muted); }
+      .footer-copy { font-size: 0.77rem; color: var(--text-muted); }
+
+      /* ── MODAL ── */
+      .modal-overlay {
+        position: fixed; inset: 0; z-index: 500;
+        background: rgba(0,0,0,0.72); backdrop-filter: blur(6px);
+        display: flex; align-items: center; justify-content: center;
+        padding: 16px; opacity: 0; pointer-events: none; transition: opacity 0.2s;
+      }
+      .modal-overlay.open { opacity: 1; pointer-events: all; }
+      .modal {
+        background: var(--bg3); border: 1px solid var(--stroke2);
+        border-radius: var(--radius-lg); padding: 36px;
+        max-width: 460px; width: 100%;
+        box-shadow: var(--shadow);
+        transform: translateY(20px); transition: transform 0.2s;
+      }
+      .modal-overlay.open .modal { transform: translateY(0); }
+      .modal h2 { font-size: 1.4rem; font-weight: 800; color: var(--text-strong); letter-spacing: -0.03em; margin-bottom: 6px; }
+      .modal-sub { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 28px; }
+      .modal-plan-badge {
+        display: inline-flex; align-items: center; gap: 6px;
+        background: rgba(99,102,241,0.12); border: 1px solid rgba(99,102,241,0.25);
+        border-radius: 20px; padding: 4px 12px;
+        font-size: 0.78rem; font-weight: 700; color: var(--accent);
+        margin-bottom: 20px;
+      }
+      .form-group { margin-bottom: 16px; }
+      .form-group label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; }
+      .form-group input, .form-group select {
+        width: 100%; padding: 11px 14px;
+        background: var(--bg2); border: 1px solid var(--stroke2);
+        border-radius: 8px; color: var(--text);
+        font-family: inherit; font-size: 0.9rem;
+        transition: border-color 0.15s;
+        outline: none;
+      }
+      .form-group input:focus, .form-group select:focus { border-color: var(--accent); }
+      .form-group select option { background: var(--bg2); }
+      .modal-submit {
+        width: 100%; padding: 13px; margin-top: 8px;
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        color: #fff; border: none; border-radius: 10px;
+        font-family: inherit; font-size: 0.95rem; font-weight: 700;
+        cursor: pointer; transition: opacity 0.15s;
+        box-shadow: 0 0 24px var(--accent-glow);
+      }
+      .modal-submit:hover { opacity: 0.9; }
+      .modal-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+      .modal-close {
+        position: absolute; top: 14px; right: 18px;
+        background: none; border: none; color: var(--text-muted);
+        font-size: 1.4rem; cursor: pointer; line-height: 1;
+      }
+      .modal-close:hover { color: var(--text); }
+      .modal-error {
+        background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25);
+        border-radius: 8px; padding: 10px 14px;
+        font-size: 0.82rem; color: #f87171; margin-top: 12px;
+        display: none;
+      }
+      .modal-error.show { display: block; }
 
       /* ── RESPONSIVE ── */
       @media (max-width: 768px) {
         .nav-links { display: none; }
         .hero { padding: 120px 5vw 60px; }
-        .demo-content { grid-template-columns: 1fr; }
-        .demo-sidebar { display: none; }
-        .hero-stats { gap: 24px; }
+        .stats-strip { gap: 28px; }
+        .modal { padding: 24px; }
       }
     </style>
   </head>
@@ -421,165 +345,83 @@
     <nav>
       <a href="/" class="nav-brand">
         <div class="nav-brand-icon">🤖</div>
-        SupportAI
+        Assistant IT
       </a>
       <div class="nav-links">
         <a href="#features">Fonctionnalités</a>
-        <a href="#how">Comment ça marche</a>
         <a href="#pricing">Tarifs</a>
+        <a href="#testimonials">Témoignages</a>
       </div>
       <div class="nav-cta">
         <a href="/app/login/" class="btn ghost">Connexion</a>
-        <a href="/auth/demo?redirect=/app/user/" class="btn primary" id="demoBtn">Voir la démo →</a>
+        <a href="/auth/demo?redirect=/app/user/" class="btn primary">Voir la démo →</a>
       </div>
     </nav>
 
     <!-- HERO -->
     <section class="hero">
-      <div class="hero-badge"><span class="dot"></span> Connecté à GLPI • Alimenté par l'IA</div>
-      <h1>Votre copilote IA pour<br /><span>réduire vos tickets IT</span></h1>
+      <div class="hero-badge"><span class="dot"></span> IA Support IT • 24h/24 • FR &amp; EN</div>
+      <h1>Votre assistant IA support IT<br /><span>disponible 24h/24</span></h1>
       <p class="hero-sub">
-        Réduisez 60% du temps de traitement des tickets. Classification automatique, suggestions de résolution, et assistance IA pour vos techniciens et utilisateurs.
+        Réduisez de 70% le temps de traitement des tickets IT. Réponses instantanées, escalade vers GLPI automatique, base de connaissances indexée.
       </p>
       <div class="hero-actions">
-        <a href="/auth/demo?redirect=/app/user/" class="btn primary large">Essayer gratuitement — 2 min</a>
-        <a href="#how" class="btn large">Comment ça marche</a>
-      </div>
-      <div class="hero-stats">
-        <div class="stat">
-          <span class="stat-value">-60%</span>
-          <span class="stat-label">Temps de traitement</span>
-        </div>
-        <div class="stat">
-          <span class="stat-value">&lt; 5 min</span>
-          <span class="stat-label">Pour démarrer</span>
-        </div>
-        <div class="stat">
-          <span class="stat-value">3 langues</span>
-          <span class="stat-label">FR / EN / ES</span>
-        </div>
-        <div class="stat">
-          <span class="stat-value">GLPI</span>
-          <span class="stat-label">Intégration native</span>
-        </div>
+        <a href="#pricing" class="btn primary large">Démarrer — 14 jours gratuits</a>
+        <a href="/auth/demo?redirect=/app/user/" class="btn large">Voir la démo</a>
       </div>
     </section>
 
-    <!-- DEMO PREVIEW -->
-    <div class="demo-preview">
-      <div class="demo-preview-bar">
-        <div class="demo-dot"></div><div class="demo-dot"></div><div class="demo-dot"></div>
-        <div class="demo-url">app.supportai.fr/user</div>
+    <!-- STATS -->
+    <div class="stats-strip">
+      <div class="stat">
+        <span class="stat-value">70%</span>
+        <span class="stat-label">Tickets résolus sans technicien</span>
       </div>
-      <div class="demo-content">
-        <div class="demo-sidebar">
-          <div class="demo-nav-item active"><span class="demo-nav-icon">💬</span> Assistant IA</div>
-          <div class="demo-nav-item"><span class="demo-nav-icon">🎫</span> Mes tickets</div>
-          <div class="demo-nav-item"><span class="demo-nav-icon">📚</span> Base de connaissances</div>
-          <div class="demo-nav-item"><span class="demo-nav-icon">📊</span> Statistiques</div>
-        </div>
-        <div class="demo-main">
-          <div class="demo-kpis">
-            <div class="demo-kpi"><span class="demo-kpi-v">12</span><span class="demo-kpi-l">Tickets</span></div>
-            <div class="demo-kpi"><span class="demo-kpi-v">3</span><span class="demo-kpi-l">En cours</span></div>
-            <div class="demo-kpi"><span class="demo-kpi-v">8</span><span class="demo-kpi-l">Résolus</span></div>
-            <div class="demo-kpi"><span class="demo-kpi-v">1.2h</span><span class="demo-kpi-l">Moy. résolution</span></div>
-          </div>
-          <div class="demo-ticket">
-            <div>
-              <div class="demo-ticket-title">Outlook ne s'ouvre plus depuis la mise à jour</div>
-              <div class="demo-ticket-meta">Thomas M. — Service comptabilité — Il y a 12 min</div>
-              <div class="demo-ticket-tags">
-                <span class="demo-tag open">En cours</span>
-                <span class="demo-tag urgent">Urgent</span>
-                <span class="demo-tag ai-tag">✨ IA Catégorisé</span>
-              </div>
-            </div>
-            <div class="demo-badge ai">IA</div>
-          </div>
-          <div class="demo-ai-box">
-            <div class="demo-ai-label">✨ Suggestion IA</div>
-            Problème identifié : conflit de profil Outlook après mise à jour Office 365. Solution recommandée : renommer le dossier %appdata%\Microsoft\Outlook et relancer. Taux de résolution pour ce type : 87%.
-          </div>
-          <div class="demo-ticket">
-            <div>
-              <div class="demo-ticket-title">Imprimante réseau plus accessible depuis poste RH</div>
-              <div class="demo-ticket-meta">Sarah K. — RH — Il y a 45 min</div>
-              <div class="demo-ticket-tags">
-                <span class="demo-tag open">Nouveau</span>
-                <span class="demo-tag ai-tag">✨ Procédure trouvée</span>
-              </div>
-            </div>
-            <div class="demo-badge new">Nouveau</div>
-          </div>
-        </div>
+      <div class="stat">
+        <span class="stat-value">8 min</span>
+        <span class="stat-label">Économisées par ticket</span>
+      </div>
+      <div class="stat">
+        <span class="stat-value">15 min</span>
+        <span class="stat-label">Pour être opérationnel</span>
       </div>
     </div>
 
     <!-- FEATURES -->
     <section id="features">
       <div class="section-label">Fonctionnalités</div>
-      <h2 class="section-title">Tout ce qu'il faut pour un support IT moderne</h2>
-      <p class="section-sub">Un seul outil pour vos techniciens et vos utilisateurs, connecté nativement à GLPI.</p>
+      <h2 class="section-title">Tout pour un support IT moderne</h2>
+      <p class="section-sub">Un outil unique pour vos techniciens et vos utilisateurs.</p>
       <div class="features-grid">
         <div class="feature-card">
-          <div class="feature-icon blue">🤖</div>
-          <h3>Classification IA automatique</h3>
-          <p>Chaque ticket est analysé, catégorisé et priorisé par l'IA dès sa création. Fini le tri manuel.</p>
+          <div class="feature-icon fi-indigo">🤖</div>
+          <h3>IA Support N1/N2</h3>
+          <p>Répond instantanément en français et anglais. Résout les problèmes courants sans intervention humaine.</p>
         </div>
         <div class="feature-card">
-          <div class="feature-icon teal">💡</div>
-          <h3>Suggestions de résolution</h3>
-          <p>L'IA recherche dans l'historique et la base de connaissances pour proposer des solutions immédiatement.</p>
+          <div class="feature-icon fi-violet">🎫</div>
+          <h3>Création tickets automatique</h3>
+          <p>Escalade vers GLPI dès que nécessaire. Classification, priorité et catégorie définis par l'IA.</p>
         </div>
         <div class="feature-card">
-          <div class="feature-icon orange">🔗</div>
-          <h3>Connecté à GLPI</h3>
-          <p>Synchronisation bidirectionnelle avec votre GLPI existant. Aucune migration de données nécessaire.</p>
+          <div class="feature-icon fi-teal">📚</div>
+          <h3>Base de connaissances</h3>
+          <p>Vos procédures internes indexées et utilisées par l'IA. Import CSV en un clic.</p>
         </div>
         <div class="feature-card">
-          <div class="feature-icon green">📚</div>
-          <h3>Base de connaissances IA</h3>
-          <p>Importez vos procédures CSV et l'IA les utilise automatiquement pour résoudre les tickets courants.</p>
+          <div class="feature-icon fi-green">📊</div>
+          <h3>Dashboard admin</h3>
+          <p>Suivi en temps réel, KPIs, SLA, exports. Tout ce qu'il faut pour piloter votre support.</p>
         </div>
         <div class="feature-card">
-          <div class="feature-icon purple">📊</div>
-          <h3>Statistiques avancées</h3>
-          <p>Temps de résolution, SLA, satisfaction utilisateur, volume par catégorie — tout en temps réel.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon red">🏢</div>
+          <div class="feature-icon fi-orange">🏢</div>
           <h3>Multi-tenant</h3>
-          <p>Gérez plusieurs entreprises ou sites depuis une interface unique avec isolation complète des données.</p>
+          <p>Une instance pour plusieurs clients ou entités. Isolation complète des données entre tenants.</p>
         </div>
-      </div>
-    </section>
-
-    <!-- HOW IT WORKS -->
-    <section id="how">
-      <div class="section-label">Démarrage</div>
-      <h2 class="section-title">Opérationnel en moins de 5 minutes</h2>
-      <p class="section-sub">Pas de configuration complexe. Pas de formation nécessaire.</p>
-      <div class="steps-grid">
-        <div class="step">
-          <div class="step-num">1</div>
-          <h3>Créez votre compte</h3>
-          <p>Renseignez votre email et choisissez votre plan. C'est tout pour commencer.</p>
-        </div>
-        <div class="step">
-          <div class="step-num">2</div>
-          <h3>Connectez GLPI</h3>
-          <p>Collez l'URL et les tokens GLPI dans les paramètres. Un bouton "Tester" confirme la connexion.</p>
-        </div>
-        <div class="step">
-          <div class="step-num">3</div>
-          <h3>Invitez vos équipes</h3>
-          <p>Envoyez des invitations par email. Les utilisateurs reçoivent un lien d'accès direct.</p>
-        </div>
-        <div class="step">
-          <div class="step-num">4</div>
-          <h3>L'IA prend le relais</h3>
-          <p>Dès le premier ticket, l'IA analyse, catégorise et propose des solutions automatiquement.</p>
+        <div class="feature-card">
+          <div class="feature-icon fi-pink">🔗</div>
+          <h3>Intégrations</h3>
+          <p>GLPI natif, webhooks Slack et Teams, Active Directory / LDAP sur les plans avancés.</p>
         </div>
       </div>
     </section>
@@ -588,8 +430,9 @@
     <section id="pricing">
       <div class="section-label">Tarifs</div>
       <h2 class="section-title">Des prix pensés pour les PME</h2>
-      <p class="section-sub">Sans engagement. Résiliable à tout moment. Setup inclus sur le plan Pro.</p>
+      <p class="section-sub">Sans engagement. Résiliable à tout moment. Essai 14 jours gratuit sur tous les plans.</p>
       <div class="pricing-grid">
+
         <div class="plan">
           <div class="plan-name">Starter</div>
           <div class="plan-price">
@@ -599,19 +442,20 @@
           <p class="plan-desc">Parfait pour les PME de moins de 50 collaborateurs.</p>
           <div class="plan-features">
             <div class="plan-feature"><span class="check">✓</span> Jusqu'à 50 utilisateurs</div>
-            <div class="plan-feature"><span class="check">✓</span> Assistant IA utilisateur</div>
-            <div class="plan-feature"><span class="check">✓</span> Classification automatique</div>
-            <div class="plan-feature"><span class="check">✓</span> Intégration GLPI</div>
-            <div class="plan-feature"><span class="check">✓</span> Base de connaissances</div>
-            <div class="plan-feature"><span class="cross">—</span> Active Directory / LDAP</div>
-            <div class="plan-feature"><span class="cross">—</span> Multi-sites</div>
+            <div class="plan-feature"><span class="check">✓</span> Assistant IA N1/N2</div>
+            <div class="plan-feature"><span class="check">✓</span> Tickets GLPI automatiques</div>
+            <div class="plan-feature"><span class="check">✓</span> Base de connaissances 50 docs</div>
+            <div class="plan-feature"><span class="check">✓</span> Dashboard basique</div>
+            <div class="plan-feature"><span class="cross">—</span> Analytics avancés &amp; SLA</div>
+            <div class="plan-feature"><span class="cross">—</span> Webhooks Slack/Teams</div>
           </div>
           <div class="plan-cta">
-            <a href="/app/login/" class="btn" style="width:100%;justify-content:center;">Commencer</a>
+            <button class="btn" style="width:100%;justify-content:center;" onclick="openModal('starter')">Commencer</button>
           </div>
         </div>
+
         <div class="plan featured">
-          <div class="plan-badge">Le plus populaire</div>
+          <div class="plan-badge">⭐ Le plus populaire</div>
           <div class="plan-name">Pro</div>
           <div class="plan-price">
             <span class="plan-amount">149€</span>
@@ -619,38 +463,40 @@
           </div>
           <p class="plan-desc">Pour les équipes IT avec GLPI et Active Directory.</p>
           <div class="plan-features">
-            <div class="plan-feature"><span class="check">✓</span> Utilisateurs illimités</div>
-            <div class="plan-feature"><span class="check">✓</span> Tout le plan Starter</div>
+            <div class="plan-feature"><span class="check">✓</span> Jusqu'à 200 utilisateurs</div>
+            <div class="plan-feature"><span class="check">✓</span> Tout Starter inclus</div>
+            <div class="plan-feature"><span class="check">✓</span> Analytics avancés &amp; SLA</div>
+            <div class="plan-feature"><span class="check">✓</span> Webhooks Slack / Teams</div>
             <div class="plan-feature"><span class="check">✓</span> Active Directory / LDAP</div>
-            <div class="plan-feature"><span class="check">✓</span> Multi-sites / Multi-tenant</div>
-            <div class="plan-feature"><span class="check">✓</span> Statistiques avancées + SLA</div>
             <div class="plan-feature"><span class="check">✓</span> Support prioritaire</div>
-            <div class="plan-feature"><span class="check">✓</span> Setup inclus (1500€ offerts)</div>
+            <div class="plan-feature"><span class="check">✓</span> Setup offert (1 500€)</div>
           </div>
           <div class="plan-cta">
-            <a href="/app/login/" class="btn primary" style="width:100%;justify-content:center;">Démarrer en Pro</a>
+            <button class="btn primary" style="width:100%;justify-content:center;" onclick="openModal('pro')">Démarrer en Pro</button>
           </div>
         </div>
+
         <div class="plan">
-          <div class="plan-name">Premium</div>
+          <div class="plan-name">Enterprise</div>
           <div class="plan-price">
             <span class="plan-amount">299€</span>
             <span class="plan-period">/mois</span>
           </div>
-          <p class="plan-desc">Pour les ESN et les organisations avec plusieurs clients.</p>
+          <p class="plan-desc">Pour les ESN et organisations avec plusieurs clients.</p>
           <div class="plan-features">
-            <div class="plan-feature"><span class="check">✓</span> Tout le plan Pro</div>
-            <div class="plan-feature"><span class="check">✓</span> Gestion multi-clients</div>
+            <div class="plan-feature"><span class="check">✓</span> Utilisateurs illimités</div>
+            <div class="plan-feature"><span class="check">✓</span> Tout Pro inclus</div>
+            <div class="plan-feature"><span class="check">✓</span> Multi-clients gestion</div>
             <div class="plan-feature"><span class="check">✓</span> API accès complet</div>
-            <div class="plan-feature"><span class="check">✓</span> Rapports automatiques clients</div>
-            <div class="plan-feature"><span class="check">✓</span> Intégrations Slack / Teams</div>
+            <div class="plan-feature"><span class="check">✓</span> Rapports automatiques</div>
             <div class="plan-feature"><span class="check">✓</span> Accompagnement dédié</div>
-            <div class="plan-feature"><span class="check">✓</span> SLA garanti 99.9%</div>
+            <div class="plan-feature"><span class="check">✓</span> SLA garanti 99,9%</div>
           </div>
           <div class="plan-cta">
-            <a href="/app/login/" class="btn" style="width:100%;justify-content:center;">Nous contacter</a>
+            <button class="btn" style="width:100%;justify-content:center;" onclick="openModal('enterprise')">Nous contacter</button>
           </div>
         </div>
+
       </div>
     </section>
 
@@ -658,7 +504,7 @@
     <section id="testimonials">
       <div class="section-label">Témoignages</div>
       <h2 class="section-title">Ils ont transformé leur support IT</h2>
-      <p class="section-sub">Des PME, mairies et écoles qui utilisent SupportAI au quotidien.</p>
+      <p class="section-sub">Des PME, mairies et ESN qui utilisent l'assistant au quotidien.</p>
       <div class="testimonials-grid">
         <div class="testimonial">
           <div class="stars">★★★★★</div>
@@ -673,7 +519,7 @@
         </div>
         <div class="testimonial">
           <div class="stars">★★★★★</div>
-          <p class="testimonial-text">"Connecté à notre GLPI en 10 minutes chrono. L'IA propose des solutions que nos techniciens utilisent directement."</p>
+          <p class="testimonial-text">"Connecté à notre GLPI en 10 minutes. L'IA propose des solutions que nos techniciens utilisent directement. ROI immédiat."</p>
           <div class="testimonial-author">
             <div class="testimonial-avatar">SL</div>
             <div>
@@ -684,12 +530,12 @@
         </div>
         <div class="testimonial">
           <div class="stars">★★★★★</div>
-          <p class="testimonial-text">"Simple à utiliser pour nos enseignants non-tech. Les tickets sont créés en 2 clics et suivis automatiquement."</p>
+          <p class="testimonial-text">"Simple pour nos enseignants non-tech. Tickets créés en 2 clics, suivis automatiquement, escalade vers l'équipe en cas de besoin."</p>
           <div class="testimonial-author">
             <div class="testimonial-avatar">AC</div>
             <div>
               <div class="testimonial-name">Alexandre C.</div>
-              <div class="testimonial-role">Technicien IT — Lycée, 1200 élèves</div>
+              <div class="testimonial-role">Technicien IT — Lycée, 1 200 élèves</div>
             </div>
           </div>
         </div>
@@ -699,36 +545,129 @@
     <!-- CTA FINAL -->
     <div class="cta-section">
       <h2>Prêt à transformer votre support IT ?</h2>
-      <p>Essayez sans créer de compte. Connectez GLPI quand vous voulez.</p>
+      <p>14 jours gratuits, sans carte bancaire, opérationnel en 15 minutes.</p>
       <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
-        <a href="/auth/demo?redirect=/app/user/" class="btn primary large">Accéder à la démo maintenant</a>
-        <a href="/app/login/" class="btn large">Créer un compte</a>
+        <button class="btn primary large" onclick="openModal('pro')">Démarrer gratuitement 14 jours</button>
+        <a href="/auth/demo?redirect=/app/user/" class="btn large">Voir la démo en direct</a>
       </div>
       <p class="cta-note">
         <span>✓</span> Sans carte bancaire &nbsp;&nbsp;
         <span>✓</span> Sans engagement &nbsp;&nbsp;
-        <span>✓</span> Setup en 5 minutes
+        <span>✓</span> Setup en 15 minutes
       </p>
     </div>
 
     <!-- FOOTER -->
     <footer>
-      <div class="footer-brand">🤖 SupportAI — par Kah-Digital</div>
+      <div class="footer-brand">🤖 Assistant IT — par KAH Digital</div>
       <div class="footer-links">
         <a href="#features">Fonctionnalités</a>
         <a href="#pricing">Tarifs</a>
         <a href="/app/login/">Connexion</a>
+        <a href="mailto:contact@kah-digital.fr">Contact</a>
       </div>
-      <div class="footer-copy">© 2026 Kah-Digital. Tous droits réservés.</div>
+      <div class="footer-copy">© 2026 KAH Digital. Tous droits réservés.</div>
     </footer>
 
+    <!-- MODAL INSCRIPTION -->
+    <div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
+      <div class="modal" style="position:relative;">
+        <button class="modal-close" onclick="closeModal()" aria-label="Fermer">&times;</button>
+        <h2>Créer votre compte</h2>
+        <p class="modal-sub">Remplissez ce formulaire pour commencer votre essai gratuit.</p>
+        <div class="modal-plan-badge" id="modalPlanBadge">Plan Starter — 79€/mois</div>
+        <form id="checkoutForm" onsubmit="submitCheckout(event)">
+          <div class="form-group">
+            <label for="fieldOrg">Nom de l'organisation</label>
+            <input type="text" id="fieldOrg" placeholder="Acme Corp" required />
+          </div>
+          <div class="form-group">
+            <label for="fieldEmail">Email professionnel</label>
+            <input type="email" id="fieldEmail" placeholder="jean@entreprise.fr" required />
+          </div>
+          <div class="form-group">
+            <label for="fieldPlan">Plan sélectionné</label>
+            <select id="fieldPlan">
+              <option value="starter">Starter — 79€/mois</option>
+              <option value="pro">Pro — 149€/mois ⭐</option>
+              <option value="enterprise">Enterprise — 299€/mois</option>
+            </select>
+          </div>
+          <button type="submit" class="modal-submit" id="submitBtn">
+            Payer avec Stripe →
+          </button>
+          <div class="modal-error" id="modalError"></div>
+        </form>
+        <p style="font-size:0.75rem;color:var(--text-muted);margin-top:14px;text-align:center;">
+          Paiement sécurisé par Stripe. Résiliable à tout moment.
+        </p>
+      </div>
+    </div>
+
     <script>
-      // Demo button — fallback si /auth/demo échoue
-      document.querySelectorAll('a[href*="/auth/demo"]').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-          // Let it through naturally — server handles the redirect
-        });
+      const PLAN_LABELS = {
+        starter: "Plan Starter — 79€/mois",
+        pro: "Plan Pro — 149€/mois ⭐",
+        enterprise: "Plan Enterprise — 299€/mois",
+      };
+
+      function openModal(plan) {
+        const overlay = document.getElementById("modalOverlay");
+        const select = document.getElementById("fieldPlan");
+        const badge = document.getElementById("modalPlanBadge");
+        if (plan && select) select.value = plan;
+        if (badge) badge.textContent = PLAN_LABELS[plan] || PLAN_LABELS.starter;
+        overlay.classList.add("open");
+        document.getElementById("fieldOrg").focus();
+      }
+
+      function closeModal() {
+        document.getElementById("modalOverlay").classList.remove("open");
+      }
+
+      function closeModalOutside(e) {
+        if (e.target === document.getElementById("modalOverlay")) closeModal();
+      }
+
+      document.getElementById("fieldPlan").addEventListener("change", function() {
+        const badge = document.getElementById("modalPlanBadge");
+        badge.textContent = PLAN_LABELS[this.value] || PLAN_LABELS.starter;
       });
+
+      document.addEventListener("keydown", function(e) {
+        if (e.key === "Escape") closeModal();
+      });
+
+      async function submitCheckout(e) {
+        e.preventDefault();
+        const btn = document.getElementById("submitBtn");
+        const errEl = document.getElementById("modalError");
+        errEl.classList.remove("show");
+        btn.disabled = true;
+        btn.textContent = "Redirection en cours…";
+
+        const email = document.getElementById("fieldEmail").value.trim();
+        const tenantName = document.getElementById("fieldOrg").value.trim();
+        const plan = document.getElementById("fieldPlan").value;
+
+        try {
+          const r = await fetch("/billing/create-checkout", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, tenant_name: tenantName, plan }),
+          });
+          const data = await r.json();
+          if (!r.ok || !data.url) {
+            throw new Error(data.error || data.message || "Erreur lors de la création de la session.");
+          }
+          window.location.href = data.url;
+        } catch (err) {
+          errEl.textContent = err.message || "Une erreur est survenue. Réessayez.";
+          errEl.classList.add("show");
+          btn.disabled = false;
+          btn.textContent = "Payer avec Stripe →";
+        }
+      }
     </script>
   </body>
 </html>

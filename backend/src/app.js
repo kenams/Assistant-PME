@@ -124,7 +124,11 @@ app.get("/app/user/index.html", (req, res) => sendNoCache(res, path.join(appDir,
 app.get("/app/admin", (req, res) => sendNoCache(res, path.join(appDir, "admin.html")));
 app.get("/app/admin/", (req, res) => sendNoCache(res, path.join(appDir, "admin.html")));
 app.get("/app/admin/index.html", (req, res) => sendNoCache(res, path.join(appDir, "admin.html")));
+app.get("/app/reset-password", (req, res) => sendNoCache(res, path.join(appDir, "reset-password.html")));
+app.get("/app/reset-password/", (req, res) => sendNoCache(res, path.join(appDir, "reset-password.html")));
 app.use("/app", express.static(appDir, staticOptions));
+// Routes racine pour les pages standalone (success post-paiement, reset mdp)
+app.get("/success.html", (req, res) => sendNoCache(res, path.join(appDir, "success.html")));
 // Removed legacy static apps (landing/crm/dashboard/superadmin) to keep a single app surface.
 
 app.get("/debug/paths", (req, res) => {

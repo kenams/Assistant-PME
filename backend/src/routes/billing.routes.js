@@ -14,8 +14,12 @@ const {
   getInvoiceById
 } = require("../services/billing.service");
 const { quoteEmailTemplate, invoiceEmailTemplate, formatMoney } = require("../utils/templates");
-const { createCheckoutSession, createPortalSession, handleWebhook, isConfigured, PLANS } = require("../services/stripe.service");
+const crypto = require("crypto");
+const { createCheckoutSession, createPublicCheckoutSession, createPortalSession, handleWebhook, retrieveSessionCredentials, isConfigured, PLANS } = require("../services/stripe.service");
+const { createTenant } = require("../services/tenants.service");
+const { createRateLimiter } = require("../middleware/rate-limit");
 const { db } = require("../config/db");
+const { sendWelcomeEmail } = require("../services/email.service");
 
 const router = express.Router();
 
@@ -341,6 +345,47 @@ router.get("/invoices/:id/print", authRequired, async (req, res, next) => {
 
 // ── Stripe SaaS subscription ──────────────────────────────────────────────────
 
+const checkoutLimiter = createRateLimiter({ max: 10, windowSec: 60 });
+const sessionLimiter  = createRateLimiter({ max: 20, windowSec: 60 });
+
+// POST /billing/create-checkout — création session Stripe depuis landing page (public)
+router.post("/create-checkout", checkoutLimiter, async (req, res) => {
+  if (!isConfigured()) {
+    return res.status(503).json({ error: "stripe_not_configured" });
+  }
+  const { plan, email, tenant_name } = req.body || {};
+  if (!email || !email.includes("@")) {
+    return res.status(400).json({ error: "email_invalide" });
+  }
+  const validPlans = ["starter", "pro", "enterprise"];
+  const selectedPlan = validPlans.includes(plan) ? plan : "starter";
+  try {
+    const session = await createPublicCheckoutSession({
+      plan: selectedPlan,
+      email: email.trim().toLowerCase(),
+      tenantName: tenant_name || email,
+    });
+    if (!session) return res.status(503).json({ error: "stripe_not_configured" });
+    return res.json({ url: session.url, session_id: session.session_id });
+  } catch (err) {
+    return res.status(500).json({ error: "stripe_error", message: err.message });
+  }
+});
+
+// GET /billing/session/:session_id — récupérer credentials post-paiement (public)
+router.get("/session/:session_id", sessionLimiter, async (req, res) => {
+  if (!isConfigured()) {
+    return res.status(503).json({ error: "stripe_not_configured" });
+  }
+  try {
+    const result = await retrieveSessionCredentials(req.params.session_id);
+    if (!result) return res.status(404).json({ error: "session_not_found" });
+    return res.json(result);
+  } catch (err) {
+    return res.status(500).json({ error: "stripe_error", message: err.message });
+  }
+});
+
 router.get("/plans", (req, res) => {
   return res.json({
     configured: isConfigured(),
@@ -411,16 +456,69 @@ router.post("/webhook/stripe", async (req, res) => {
     const now = new Date().toISOString();
     if (event.type === "checkout.session.completed") {
       const session = event.data.object;
-      const tenantId = session.metadata?.tenant_id;
       const plan = session.metadata?.plan || "starter";
-      if (tenantId) {
-        await db("tenants").where({ id: tenantId }).update({
+
+      // ── Cas 1 : abonnement existant (metadata.tenant_id) ───────────────────
+      const existingTenantId = session.metadata?.tenant_id;
+      if (existingTenantId) {
+        await db("tenants").where({ id: existingTenantId }).update({
           stripe_customer_id: session.customer,
           stripe_subscription_id: session.subscription,
           subscription_plan: plan,
           subscription_status: "active",
           subscription_updated_at: now
         });
+      }
+
+      // ── Cas 2 : onboarding public (pas de tenant_id dans metadata) ─────────
+      if (!existingTenantId && session.customer_email) {
+        const email = session.customer_email.toLowerCase();
+        const tenantName = session.metadata?.tenant_name || email.split("@")[0];
+
+        // Générer mot de passe temporaire
+        const tempPassword = crypto.randomBytes(9).toString("base64").replace(/[^a-zA-Z0-9]/g, "").slice(0, 12) || crypto.randomUUID().slice(0, 12);
+
+        // Créer tenant + admin
+        const result = await createTenant({
+          name: tenantName,
+          plan,
+          adminEmail: email,
+          adminPassword: tempPassword,
+        });
+
+        if (!result.error) {
+          // Mettre à jour le tenant avec les infos Stripe
+          await db("tenants").where({ id: result.tenant_id }).update({
+            stripe_customer_id: session.customer,
+            stripe_subscription_id: session.subscription,
+            subscription_plan: plan,
+            subscription_status: "active",
+            subscription_updated_at: now
+          });
+
+          // Stocker token d'onboarding (TTL 24h)
+          const expires = new Date(Date.now() + 24 * 3600 * 1000).toISOString();
+          await db("onboarding_tokens").insert({
+            id: crypto.randomUUID(),
+            session_id: session.id,
+            email,
+            tenant_name: tenantName,
+            tenant_id: result.tenant_id,
+            temp_password: tempPassword,
+            used: false,
+            created_at: now,
+            expires_at: expires,
+          });
+
+          // Envoyer email de bienvenue avec identifiants
+          const appUrl = process.env.APP_URL || "http://localhost:3001";
+          sendWelcomeEmail({
+            email,
+            tempPassword,
+            tenantName,
+            loginUrl: `${appUrl}/app/login/`,
+          }).catch(() => {});
+        }
       }
     } else if (event.type === "customer.subscription.updated") {
       const sub = event.data.object;

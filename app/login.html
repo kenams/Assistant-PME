@@ -255,7 +255,25 @@
               Se connecter →
             </button>
             <p id="loginStatus" class="status"></p>
+            <p style="text-align:center;margin-top:10px;">
+              <button id="forgotPasswordBtn" type="button" style="background:none;border:none;color:var(--text-muted);font-size:0.8rem;cursor:pointer;text-decoration:underline;font-family:inherit;">Mot de passe oublié ?</button>
+            </p>
           </form>
+
+          <!-- Forgot password inline form -->
+          <div id="forgotForm" style="display:none;">
+            <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:12px;">Entrez votre email et nous vous enverrons un lien de réinitialisation.</p>
+            <div class="input-wrap">
+              <span class="input-icon">✉️</span>
+              <input id="forgotEmailInput" type="email" placeholder="Votre adresse email" />
+            </div>
+            <button id="forgotSubmitBtn" type="button" class="btn primary" style="width:100%;padding:11px;font-size:0.9rem;margin-top:10px;">Envoyer le lien →</button>
+            <p id="forgotStatus" class="status"></p>
+            <p style="text-align:center;margin-top:10px;">
+              <button id="backToLoginBtn" type="button" style="background:none;border:none;color:var(--text-muted);font-size:0.8rem;cursor:pointer;text-decoration:underline;font-family:inherit;">← Retour à la connexion</button>
+            </p>
+          </div>
+
           <div class="login-divider"><span>Démo</span></div>
           <div style="display:flex;flex-direction:column;gap:6px">
             <button id="demoUserLoginBtn" class="btn ghost" type="button" style="width:100%;font-size:0.85rem;border-color:rgba(79,142,247,0.3);color:var(--accent)">⚡ Démo Utilisateur</button>
@@ -292,6 +310,57 @@
       if (demoUser) demoUser.addEventListener('click', function() { fillAndSubmit('user@assistant.local', 'user123'); });
       var demoAdmin = document.getElementById('demoAdminLoginBtn');
       if (demoAdmin) demoAdmin.addEventListener('click', function() { fillAndSubmit('admin@assistant.local', 'admin123'); });
+
+      // Forgot password flow
+      var forgotBtn = document.getElementById('forgotPasswordBtn');
+      var backBtn = document.getElementById('backToLoginBtn');
+      var loginFormEl = document.getElementById('loginForm');
+      var forgotFormEl = document.getElementById('forgotForm');
+      var forgotSubmit = document.getElementById('forgotSubmitBtn');
+      var forgotStatus = document.getElementById('forgotStatus');
+
+      if (forgotBtn) {
+        forgotBtn.addEventListener('click', function() {
+          loginFormEl.style.display = 'none';
+          forgotFormEl.style.display = 'block';
+          var email = document.getElementById('loginEmailInput');
+          var fi = document.getElementById('forgotEmailInput');
+          if (email && fi) fi.value = email.value;
+        });
+      }
+      if (backBtn) {
+        backBtn.addEventListener('click', function() {
+          forgotFormEl.style.display = 'none';
+          loginFormEl.style.display = 'block';
+        });
+      }
+      if (forgotSubmit) {
+        forgotSubmit.addEventListener('click', async function() {
+          var email = (document.getElementById('forgotEmailInput').value || '').trim();
+          if (!email || !email.includes('@')) {
+            forgotStatus.textContent = 'Adresse email invalide.';
+            forgotStatus.className = 'status error';
+            return;
+          }
+          forgotSubmit.disabled = true;
+          forgotSubmit.textContent = 'Envoi…';
+          try {
+            var r = await fetch('/auth/forgot-password', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email: email })
+            });
+            forgotStatus.textContent = 'Si cet email est enregistré, un lien de réinitialisation vous a été envoyé.';
+            forgotStatus.className = 'status success';
+            forgotSubmit.textContent = '✓ Email envoyé';
+          } catch (_) {
+            forgotStatus.textContent = 'Erreur réseau. Réessayez.';
+            forgotStatus.className = 'status error';
+            forgotSubmit.disabled = false;
+            forgotSubmit.textContent = 'Envoyer le lien →';
+          }
+        });
+      }
     });
     </script>
   </body>

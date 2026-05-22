@@ -1,6 +1,7 @@
 const express = require("express");
 const { z } = require("zod");
 const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
 const { env } = require("../config/env");
 const { authRequired } = require("../middleware/auth");
 const {
@@ -14,6 +15,9 @@ const { getDefaultTenantId, getTenantByCode } = require("../services/tenants.ser
 const { logEvent } = require("../services/audit.service");
 const { validateOr400 } = require("../utils/validate");
 const { loginLimiter } = require("../middleware/rate-limit");
+const { hashPassword } = require("../utils/crypto");
+const { db } = require("../config/db");
+const { sendPasswordResetEmail } = require("../services/email.service");
 
 const { createRateLimiter } = require("../middleware/rate-limit");
 const router = express.Router();
@@ -357,6 +361,87 @@ router.post("/refresh", authRequired, async (req, res, next) => {
       { expiresIn: "8h" }
     );
     return res.json({ token });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ── Mot de passe oublié ───────────────────────────────────────────────────────
+const forgotLimiter = createRateLimiter({ max: 5, windowSec: 300 });
+
+router.post("/forgot-password", forgotLimiter, async (req, res, next) => {
+  try {
+    const email = (req.body?.email || "").trim().toLowerCase();
+    if (!email || !email.includes("@")) {
+      return res.status(400).json({ error: "email_invalide" });
+    }
+
+    // Toujours retourner 200 pour ne pas révéler si l'email existe
+    const user = await findUserByEmail(email);
+    if (user) {
+      const token = crypto.randomBytes(32).toString("hex");
+      const now = new Date().toISOString();
+      const expires = new Date(Date.now() + 3600 * 1000).toISOString();
+
+      // Invalider les anciens tokens de cet utilisateur
+      await db("password_resets").where({ user_id: user.id, used: false }).update({ used: true });
+
+      await db("password_resets").insert({
+        id: crypto.randomUUID(),
+        user_id: user.id,
+        token,
+        used: false,
+        created_at: now,
+        expires_at: expires,
+      });
+
+      const appUrl = env.appUrl || "http://localhost:3001";
+      const resetUrl = `${appUrl}/app/reset-password/?token=${token}`;
+      sendPasswordResetEmail({ email, resetUrl }).catch(() => {});
+
+      await logEvent({
+        tenantId: user.tenant_id,
+        userId: user.id,
+        action: "auth_forgot_password",
+        meta: { email }
+      });
+    }
+
+    return res.json({ ok: true, message: "Si cet email existe, un lien de réinitialisation a été envoyé." });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post("/reset-password", async (req, res, next) => {
+  try {
+    const { token, password } = req.body || {};
+    if (!token || !password || password.length < 6) {
+      return res.status(400).json({ error: "invalid_payload" });
+    }
+
+    const reset = await db("password_resets").where({ token }).first();
+    if (!reset) return res.status(404).json({ error: "token_invalide" });
+    if (reset.used) return res.status(410).json({ error: "token_deja_utilise" });
+    if (new Date(reset.expires_at) < new Date()) return res.status(410).json({ error: "token_expire" });
+
+    await db("users").where({ id: reset.user_id }).update({
+      password_hash: hashPassword(password)
+    });
+
+    await db("password_resets").where({ id: reset.id }).update({ used: true });
+
+    const user = await findUserById(reset.user_id);
+    if (user) {
+      await logEvent({
+        tenantId: user.tenant_id,
+        userId: user.id,
+        action: "auth_reset_password",
+        meta: {}
+      });
+    }
+
+    return res.json({ ok: true });
   } catch (err) {
     next(err);
   }
