@@ -1446,7 +1446,7 @@
         <!-- ══ GLPI TICKETS ══ -->
         <div class="admin-panel" id="panel-glpi">
           <div class="panel-title-row">
-            <h2 class="panel-title">GLPI — Tickets en direct</h2>
+            <h2 class="panel-title">GLPI — Connexion & Tickets</h2>
             <div class="actions-inline">
               <select id="glpiStatusFilter" class="kb-filter" style="font-size:0.82rem">
                 <option value="">Tous les statuts</option>
@@ -1460,7 +1460,45 @@
             </div>
           </div>
 
-          <div style="display:grid;grid-template-columns:1fr 380px;gap:16px;height:calc(100vh - 160px)">
+          <!-- ─ Configuration GLPI ─ -->
+          <div class="card" id="glpiConfigCard" style="margin-bottom:16px">
+            <div class="card-header" style="cursor:pointer;user-select:none;display:flex;align-items:center;justify-content:space-between" onclick="toggleGlpiConfig()">
+              <h3 style="margin:0">⚙️ Configuration GLPI</h3>
+              <span id="glpiConfigToggleIcon" style="font-size:0.8rem;color:var(--text-muted)">▼ Configurer</span>
+            </div>
+            <div id="glpiConfigBody" style="display:none;padding:16px 20px;display:flex;flex-direction:column;gap:12px">
+              <div style="background:rgba(91,106,212,0.08);border:1px solid rgba(91,106,212,0.2);border-radius:10px;padding:14px 16px;font-size:0.82rem;color:var(--text-muted);line-height:1.6">
+                <strong style="color:var(--text)">Où trouver vos tokens GLPI ?</strong><br>
+                1. Connectez-vous à votre GLPI en tant qu'administrateur<br>
+                2. <strong>Mon compte → API</strong> → copiez votre <strong>User-Token</strong><br>
+                3. <strong>Configuration → Générale → API</strong> → activez l'API REST et copiez l'<strong>App-Token</strong>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                <div style="grid-column:1/-1">
+                  <label style="font-size:0.78rem;color:var(--text-muted);display:block;margin-bottom:4px">URL GLPI</label>
+                  <input id="glpiCfgUrl" type="url" placeholder="https://glpi.votreentreprise.fr" style="width:100%;padding:8px 12px;background:var(--bg3);border:1px solid var(--stroke2);border-radius:8px;color:var(--text);font-size:0.85rem" />
+                </div>
+                <div>
+                  <label style="font-size:0.78rem;color:var(--text-muted);display:block;margin-bottom:4px">App-Token</label>
+                  <input id="glpiCfgAppToken" type="password" placeholder="Entrer l'App-Token" style="width:100%;padding:8px 12px;background:var(--bg3);border:1px solid var(--stroke2);border-radius:8px;color:var(--text);font-size:0.85rem" autocomplete="off" />
+                </div>
+                <div>
+                  <label style="font-size:0.78rem;color:var(--text-muted);display:block;margin-bottom:4px">User-Token</label>
+                  <input id="glpiCfgUserToken" type="password" placeholder="Entrer le User-Token" style="width:100%;padding:8px 12px;background:var(--bg3);border:1px solid var(--stroke2);border-radius:8px;color:var(--text);font-size:0.85rem" autocomplete="off" />
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                <label style="display:flex;align-items:center;gap:6px;font-size:0.83rem;cursor:pointer">
+                  <input id="glpiCfgEnabled" type="checkbox" /> Activer l'intégration GLPI
+                </label>
+                <button id="glpiCfgTestBtn" class="btn ghost" type="button" style="font-size:0.82rem;padding:6px 14px">🔗 Tester</button>
+                <button id="glpiCfgSaveBtn" class="btn primary" type="button" style="font-size:0.82rem;padding:6px 14px">💾 Enregistrer</button>
+                <span id="glpiCfgStatus" style="font-size:0.8rem;color:var(--text-muted)"></span>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 380px;gap:16px;height:calc(100vh - 280px)">
             <!-- Liste tickets -->
             <div class="card" style="padding:0;overflow-y:auto">
               <div id="glpiTicketsList" style="display:flex;flex-direction:column">
@@ -2890,6 +2928,90 @@
           if (st) st.textContent = res.ok && d.ok ? '✅ GLPI OK' : `❌ ${d.error || res.status}`;
         } catch(e) { if (st) st.textContent = `❌ ${e.message}`; }
         finally { glpiTestBtn.disabled = false; }
+      });
+
+      // ─── GLPI Config Panel ────────────────────────────────────────────────────
+      window.toggleGlpiConfig = function() {
+        const body = document.getElementById('glpiConfigBody');
+        const icon = document.getElementById('glpiConfigToggleIcon');
+        if (!body) return;
+        const open = body.style.display !== 'none' && body.style.display !== '';
+        body.style.display = open ? 'none' : 'flex';
+        if (icon) icon.textContent = open ? '▼ Configurer' : '▲ Réduire';
+        if (!open) loadGlpiPanelSettings();
+      };
+
+      async function loadGlpiPanelSettings() {
+        try {
+          const r = await fetch('/org/settings', { headers: authHeaders() });
+          if (!r.ok) return;
+          const s = await r.json();
+          const urlEl = document.getElementById('glpiCfgUrl');
+          const enabledEl = document.getElementById('glpiCfgEnabled');
+          if (urlEl) urlEl.value = s.glpi_base_url || '';
+          if (enabledEl) enabledEl.checked = Boolean(s.glpi_enabled);
+          const st = document.getElementById('glpiCfgStatus');
+          if (s.glpi_app_token_configured) {
+            const appEl = document.getElementById('glpiCfgAppToken');
+            if (appEl && !appEl.value) appEl.placeholder = '••••• (déjà configuré)';
+          }
+          if (s.glpi_user_token_configured) {
+            const userEl = document.getElementById('glpiCfgUserToken');
+            if (userEl && !userEl.value) userEl.placeholder = '••••• (déjà configuré)';
+          }
+          if (st && s.glpi_enabled) {
+            st.textContent = s.glpi_app_token_configured && s.glpi_user_token_configured ? '✅ Tokens configurés' : '⚠ Tokens manquants';
+          }
+        } catch(e) {}
+      }
+
+      const glpiCfgTestBtn = document.getElementById('glpiCfgTestBtn');
+      if (glpiCfgTestBtn) glpiCfgTestBtn.addEventListener('click', async () => {
+        const url = document.getElementById('glpiCfgUrl')?.value.trim();
+        const app = document.getElementById('glpiCfgAppToken')?.value.trim();
+        const user = document.getElementById('glpiCfgUserToken')?.value.trim();
+        const st = document.getElementById('glpiCfgStatus');
+        if (!url) { if (st) { st.textContent = '⚠ URL GLPI requise'; st.style.color = 'var(--warning)'; } return; }
+        glpiCfgTestBtn.disabled = true;
+        if (st) { st.textContent = 'Test en cours…'; st.style.color = 'var(--text-muted)'; }
+        try {
+          const payload = { baseUrl: url, enabled: true };
+          if (app) payload.appToken = app;
+          if (user) payload.userToken = user;
+          const res = await fetch('/admin/glpi/test', { method: 'POST', headers: authHeaders(), body: JSON.stringify(payload) });
+          const d = await res.json();
+          if (st) { st.textContent = res.ok && d.ok ? '✅ Connexion GLPI OK !' : `❌ ${d.error || res.status}`; st.style.color = res.ok && d.ok ? 'var(--success)' : 'var(--danger)'; }
+        } catch(e) { if (st) { st.textContent = `❌ ${e.message}`; st.style.color = 'var(--danger)'; } }
+        finally { glpiCfgTestBtn.disabled = false; }
+      });
+
+      const glpiCfgSaveBtn = document.getElementById('glpiCfgSaveBtn');
+      if (glpiCfgSaveBtn) glpiCfgSaveBtn.addEventListener('click', async () => {
+        const url = document.getElementById('glpiCfgUrl')?.value.trim();
+        const app = document.getElementById('glpiCfgAppToken')?.value.trim();
+        const user = document.getElementById('glpiCfgUserToken')?.value.trim();
+        const enabled = document.getElementById('glpiCfgEnabled')?.checked || false;
+        const st = document.getElementById('glpiCfgStatus');
+        const payload = { glpi_enabled: enabled };
+        if (url) payload.glpi_base_url = url;
+        if (app) payload.glpi_app_token = app;
+        if (user) payload.glpi_user_token = user;
+        glpiCfgSaveBtn.disabled = true;
+        if (st) { st.textContent = 'Enregistrement…'; st.style.color = 'var(--text-muted)'; }
+        try {
+          const res = await fetch('/org/settings', { method: 'PUT', headers: authHeaders(), body: JSON.stringify(payload) });
+          if (!res.ok) throw new Error(res.status);
+          if (st) { st.textContent = '✅ Configuration GLPI enregistrée'; st.style.color = 'var(--success)'; setTimeout(() => { if (st) { st.textContent = ''; } }, 3000); }
+          await loadGlpiPanelSettings();
+        } catch(e) { if (st) { st.textContent = `❌ Erreur: ${e.message}`; st.style.color = 'var(--danger)'; } }
+        finally { glpiCfgSaveBtn.disabled = false; }
+      });
+
+      // Load GLPI config when GLPI panel is opened
+      const glpiPanelBtn = document.querySelector('[data-panel="glpi"]');
+      if (glpiPanelBtn) glpiPanelBtn.addEventListener('click', () => {
+        const body = document.getElementById('glpiConfigBody');
+        if (body && body.style.display !== 'none') loadGlpiPanelSettings();
       });
 
       // Users

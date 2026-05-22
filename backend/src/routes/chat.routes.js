@@ -3,9 +3,11 @@ const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
 const multer = require("multer");
+const FormData = require("form-data");
 const { z } = require("zod");
 const { authRequired } = require("../middleware/auth");
 const { answerWithLLM } = require("../services/openai.service");
+const { env } = require("../config/env");
 const { getOrgSettings } = require("../services/org.service");
 const { searchKb, ensureProcedureForQuickIssue } = require("../services/rag.service");
 const {
@@ -626,6 +628,68 @@ router.get("/search", authRequired, async (req, res, next) => {
       role: req.user.role
     });
     return res.json({ items });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ─── Whisper transcription ───────────────────────────────────────────────────
+const audioUploadDir = path.join(process.cwd(), "data", "uploads", "audio");
+fs.mkdirSync(audioUploadDir, { recursive: true });
+const audioUpload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => cb(null, audioUploadDir),
+    filename: (req, file, cb) => {
+      const ext = path.extname(file.originalname || "").toLowerCase() || ".webm";
+      cb(null, `${crypto.randomUUID()}${ext}`);
+    }
+  }),
+  limits: { fileSize: 25 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const allowed = ["audio/webm", "audio/ogg", "audio/mp4", "audio/mpeg", "audio/wav", "audio/x-wav", "audio/m4a", "audio/mp3"];
+    if (allowed.includes(file.mimetype) || file.mimetype.startsWith("audio/")) {
+      cb(null, true);
+    } else {
+      cb(new Error("invalid_audio_type"));
+    }
+  }
+});
+
+router.post("/transcribe", authRequired, audioUpload.single("audio"), async (req, res, next) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: "no_audio_file" });
+    if (!env.openaiApiKey) return res.status(503).json({ error: "openai_not_configured" });
+
+    const filePath = req.file.path;
+    const fileBuffer = fs.readFileSync(filePath);
+
+    const form = new FormData();
+    form.append("file", fileBuffer, {
+      filename: req.file.originalname || `audio${path.extname(req.file.path)}`,
+      contentType: req.file.mimetype || "audio/webm"
+    });
+    form.append("model", "whisper-1");
+    const lang = req.body.language || "";
+    if (lang === "fr" || lang === "en") form.append("language", lang);
+
+    const whisperRes = await fetch("https://api.openai.com/v1/audio/transcriptions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${env.openaiApiKey}`,
+        ...form.getHeaders()
+      },
+      body: form
+    });
+
+    fs.unlink(filePath, () => {});
+
+    if (!whisperRes.ok) {
+      const errText = await whisperRes.text();
+      return res.status(502).json({ error: "whisper_error", detail: errText.slice(0, 200) });
+    }
+
+    const data = await whisperRes.json();
+    return res.json({ text: data.text || "" });
   } catch (err) {
     next(err);
   }

@@ -1342,6 +1342,8 @@
               <input id="chatImageInput" type="file" accept="image/*" style="display:none" />
               <button id="chatImageBtn" type="button" title="Joindre une capture d'écran"
                 style="flex-shrink:0;width:42px;height:42px;border-radius:10px;border:1.5px solid var(--stroke2);background:var(--bg3);color:var(--text-muted);font-size:1.15rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s">📎</button>
+              <button id="chatMicBtn" type="button" title="Dicter un message vocal"
+                style="flex-shrink:0;width:42px;height:42px;border-radius:10px;border:1.5px solid var(--stroke2);background:var(--bg3);color:var(--text-muted);font-size:1.15rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s">🎤</button>
               <input id="chatMessageInput" name="message" placeholder="Décrivez votre problème…" data-placeholder-fr="Décrivez votre problème…" data-placeholder-en="Describe your issue…" required />
               <button class="send-btn" type="submit" title="Envoyer">Envoyer ↑</button>
             </form>
@@ -1717,6 +1719,91 @@
           }
         });
       });
+    })();
+    </script>
+    <script>
+    // ─── Voice transcription (Whisper) ─────────────────────────────────────────
+    (function() {
+      var micBtn = document.getElementById('chatMicBtn');
+      if (!micBtn) return;
+      if (!navigator.mediaDevices || !window.MediaRecorder) {
+        micBtn.style.display = 'none';
+        return;
+      }
+
+      var recorder = null;
+      var chunks = [];
+      var recording = false;
+
+      micBtn.addEventListener('click', function() {
+        if (recording) stopRecording();
+        else startRecording();
+      });
+
+      function startRecording() {
+        navigator.mediaDevices.getUserMedia({ audio: true }).then(function(stream) {
+          var mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+            ? 'audio/webm;codecs=opus'
+            : MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : '';
+          var opts = mimeType ? { mimeType: mimeType } : {};
+          recorder = new MediaRecorder(stream, opts);
+          chunks = [];
+          recorder.ondataavailable = function(e) { if (e.data.size > 0) chunks.push(e.data); };
+          recorder.onstop = function() {
+            stream.getTracks().forEach(function(t) { t.stop(); });
+            transcribeAudio(chunks, recorder.mimeType || 'audio/webm');
+          };
+          recorder.start();
+          recording = true;
+          micBtn.style.background = 'var(--danger)';
+          micBtn.style.color = '#fff';
+          micBtn.style.border = '1.5px solid var(--danger)';
+          micBtn.title = 'Arrêter l\'enregistrement';
+        }).catch(function() {
+          alert('Accès au microphone refusé.');
+        });
+      }
+
+      function stopRecording() {
+        if (recorder && recorder.state !== 'inactive') recorder.stop();
+        recording = false;
+        micBtn.style.background = 'var(--bg3)';
+        micBtn.style.color = 'var(--text-muted)';
+        micBtn.style.border = '1.5px solid var(--stroke2)';
+        micBtn.textContent = '⏳';
+        micBtn.disabled = true;
+        micBtn.title = 'Transcription…';
+      }
+
+      function transcribeAudio(audioChunks, mimeType) {
+        var blob = new Blob(audioChunks, { type: mimeType });
+        var ext = mimeType.includes('ogg') ? '.ogg' : mimeType.includes('mp4') ? '.mp4' : '.webm';
+        var file = new File([blob], 'voice' + ext, { type: mimeType });
+        var fd = new FormData();
+        fd.append('audio', file);
+        var lang = (localStorage.getItem('assistant_lang') || 'fr');
+        fd.append('language', lang);
+        var token = localStorage.getItem('assistant_token') || sessionStorage.getItem('assistant_token') || '';
+        fetch('/chat/transcribe', {
+          method: 'POST',
+          headers: token ? { 'Authorization': 'Bearer ' + token } : {},
+          body: fd
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          var input = document.getElementById('chatMessageInput');
+          if (data.text && input) {
+            input.value = data.text;
+            input.focus();
+          }
+        })
+        .catch(function() {})
+        .finally(function() {
+          micBtn.textContent = '🎤';
+          micBtn.disabled = false;
+          micBtn.title = 'Dicter un message vocal';
+        });
+      }
     })();
     </script>
   </body>

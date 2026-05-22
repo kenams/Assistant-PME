@@ -14,9 +14,9 @@ function getStripe() {
 
 // Plans SaaS
 const PLANS = {
-  starter:    { name: "Starter",    price_id: process.env.STRIPE_PRICE_STARTER    || null, amount: 7900  },
-  pro:        { name: "Pro",        price_id: process.env.STRIPE_PRICE_PRO        || null, amount: 14900 },
-  enterprise: { name: "Entreprise", price_id: process.env.STRIPE_PRICE_ENTERPRISE || null, amount: 29900 },
+  starter:    { name: "Starter",    price_id: process.env.STRIPE_PRICE_STARTER    || null, amount: 29900 },
+  pro:        { name: "Pro",        price_id: process.env.STRIPE_PRICE_PRO        || null, amount: 59900 },
+  enterprise: { name: "Entreprise", price_id: process.env.STRIPE_PRICE_ENTERPRISE || null, amount: 99900 },
 };
 
 async function createCheckoutSession({ tenantId, plan, customerEmail, successUrl, cancelUrl }) {
