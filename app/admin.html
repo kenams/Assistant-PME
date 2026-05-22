@@ -3,7 +3,8 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>SupportAI — Tableau de bord technicien</title>
+    <title>Assistant IT — Tableau de bord</title>
+    <link rel="icon" type="image/svg+xml" href="/app/favicon.svg" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
     <link rel="stylesheet" href="/app/styles.css?v=20260512" />
     <style>
@@ -1730,6 +1731,7 @@
     <footer class="footer" style="display:none">
       <button id="logoutBtnBottom" class="btn ghost" type="button">Déconnexion</button>
       <a class="footer-note footer-link" id="footerCredit" href="https://kah-digital-site.vercel.app/" target="_blank" rel="noopener">Kah-Digital</a>
+      <a class="footer-note" href="/app/legal.html" style="opacity:0.4;margin-left:8px">Mentions légales</a>
     </footer>
 
     <!-- Lightbox -->
@@ -3365,7 +3367,99 @@
         }, 500);
       }
     });
+
+    // ── Forced password change (must_change_password) ────────────────────────
+    (function() {
+      function decodeJwt(t) {
+        try { return JSON.parse(atob(t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))); }
+        catch(e) { return null; }
+      }
+      function checkMcp() {
+        const tok = localStorage.getItem('assistant_token') || sessionStorage.getItem('assistant_token');
+        if (!tok) return;
+        const payload = decodeJwt(tok);
+        if (payload && payload.mcp === 1) showMcpModal();
+      }
+      function showMcpModal() {
+        const el = document.getElementById('mcpModal');
+        if (el) el.style.display = 'flex';
+      }
+      function hideMcpModal() {
+        const el = document.getElementById('mcpModal');
+        if (el) el.style.display = 'none';
+      }
+      window.addEventListener('DOMContentLoaded', () => {
+        // Check on page load and after login
+        checkMcp();
+        // Also check 500ms later (token may be set just after DOMContentLoaded)
+        setTimeout(checkMcp, 600);
+      });
+      // Re-check whenever localStorage changes (after login redirect)
+      window.addEventListener('storage', e => { if (e.key === 'assistant_token') checkMcp(); });
+
+      document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('mcpForm');
+        if (!form) return;
+        form.addEventListener('submit', async function(e) {
+          e.preventDefault();
+          const cur = document.getElementById('mcpCurrent').value;
+          const nw = document.getElementById('mcpNew').value;
+          const nw2 = document.getElementById('mcpNew2').value;
+          const status = document.getElementById('mcpStatus');
+          const btn = document.getElementById('mcpSubmitBtn');
+          if (nw !== nw2) { status.textContent = 'Les mots de passe ne correspondent pas.'; status.style.color='var(--danger)'; return; }
+          if (nw.length < 8) { status.textContent = 'Le nouveau mot de passe doit faire au moins 8 caractères.'; status.style.color='var(--danger)'; return; }
+          btn.disabled = true; btn.textContent = 'Changement en cours…';
+          status.textContent = '';
+          const tok = localStorage.getItem('assistant_token') || sessionStorage.getItem('assistant_token') || '';
+          try {
+            const r = await fetch('/auth/change-password', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + tok },
+              body: JSON.stringify({ current_password: cur, new_password: nw })
+            });
+            const data = await r.json();
+            if (!r.ok) throw new Error(data.error || 'Erreur serveur');
+            // Store new token (without mcp flag)
+            if (data.token) {
+              localStorage.setItem('assistant_token', data.token);
+              if (sessionStorage.getItem('assistant_token')) sessionStorage.setItem('assistant_token', data.token);
+            }
+            hideMcpModal();
+            status.textContent = '';
+          } catch(err) {
+            const msg = err.message === 'invalid_current_password'
+              ? 'Mot de passe actuel incorrect.'
+              : (err.message || 'Erreur. Réessayez.');
+            status.textContent = msg;
+            status.style.color = 'var(--danger)';
+            btn.disabled = false;
+            btn.textContent = 'Changer le mot de passe';
+          }
+        });
+      });
+    })();
     </script>
+
+  <!-- Modal changement de mot de passe forcé -->
+  <div id="mcpModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:16px">
+    <div style="background:#14171f;border:1px solid rgba(99,102,241,0.3);border-radius:16px;padding:36px 32px;max-width:420px;width:100%;box-shadow:0 0 60px rgba(99,102,241,0.15)">
+      <div style="text-align:center;margin-bottom:24px">
+        <div style="width:52px;height:52px;border-radius:50%;background:rgba(99,102,241,0.12);border:2px solid rgba(99,102,241,0.3);display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin:0 auto 16px">🔐</div>
+        <h2 style="font-size:1.25rem;font-weight:800;color:#fff;letter-spacing:-0.03em;margin-bottom:6px">Changez votre mot de passe</h2>
+        <p style="font-size:0.85rem;color:#6b7796">Vous utilisez un mot de passe temporaire. Choisissez un mot de passe personnel pour sécuriser votre compte.</p>
+      </div>
+      <form id="mcpForm" style="display:flex;flex-direction:column;gap:12px">
+        <input id="mcpCurrent" type="password" placeholder="Mot de passe temporaire actuel" required style="width:100%;padding:11px 14px;background:#0f1117;border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#e2e6f3;font-family:inherit;font-size:0.9rem;outline:none" />
+        <input id="mcpNew" type="password" placeholder="Nouveau mot de passe (8 caractères min)" required minlength="8" style="width:100%;padding:11px 14px;background:#0f1117;border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#e2e6f3;font-family:inherit;font-size:0.9rem;outline:none" />
+        <input id="mcpNew2" type="password" placeholder="Confirmer le nouveau mot de passe" required style="width:100%;padding:11px 14px;background:#0f1117;border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#e2e6f3;font-family:inherit;font-size:0.9rem;outline:none" />
+        <p id="mcpStatus" style="font-size:0.82rem;min-height:18px;margin:0"></p>
+        <button id="mcpSubmitBtn" type="submit" style="padding:13px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none;border-radius:10px;font-family:inherit;font-size:0.95rem;font-weight:700;cursor:pointer;box-shadow:0 0 24px rgba(99,102,241,0.25)">
+          Changer le mot de passe
+        </button>
+      </form>
+    </div>
+  </div>
   </body>
 </html>
 

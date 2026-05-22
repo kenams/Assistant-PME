@@ -9,7 +9,8 @@ const {
   findUserByEmailInTenant,
   findUserById,
   verifyPassword,
-  createUser
+  createUser,
+  clearMustChangePassword
 } = require("../services/users.service");
 const { getDefaultTenantId, getTenantByCode } = require("../services/tenants.service");
 const { logEvent } = require("../services/audit.service");
@@ -74,11 +75,14 @@ router.post("/login", loginLimiter(), async (req, res, next) => {
         ? "superadmin"
         : user.role;
 
+    const mustChange = Boolean(user.must_change_password);
+
     const token = jwt.sign(
       {
         sub: user.id,
         tenant_id: user.tenant_id,
-        role: effectiveRole
+        role: effectiveRole,
+        ...(mustChange ? { mcp: 1 } : {})
       },
       env.jwtSecret,
       { expiresIn: "8h" }
@@ -97,7 +101,8 @@ router.post("/login", loginLimiter(), async (req, res, next) => {
         id: user.id,
         email: user.email,
         role: effectiveRole,
-        tenant_id: user.tenant_id
+        tenant_id: user.tenant_id,
+        must_change_password: mustChange
       }
     });
   } catch (err) {
@@ -442,6 +447,51 @@ router.post("/reset-password", async (req, res, next) => {
     }
 
     return res.json({ ok: true });
+  } catch (err) {
+    next(err);
+  }
+});
+
+const changePasswordSchema = z.object({
+  current_password: z.string().min(1),
+  new_password: z.string().min(8)
+});
+
+router.post("/change-password", authRequired, async (req, res, next) => {
+  try {
+    const payload = validateOr400(changePasswordSchema, res, req.body);
+    if (!payload) return;
+
+    const user = await findUserById(req.user.id);
+    if (!user) return res.status(404).json({ error: "user_not_found" });
+
+    if (!verifyPassword(payload.current_password, user.password_hash)) {
+      return res.status(401).json({ error: "invalid_current_password" });
+    }
+
+    await db("users").where({ id: user.id }).update({
+      password_hash: hashPassword(payload.new_password),
+      must_change_password: false,
+      updated_at: new Date().toISOString()
+    });
+
+    // Issue fresh token without mcp flag
+    const effectiveRole = env.superAdminEmail && user.email === env.superAdminEmail
+      ? "superadmin" : user.role;
+    const newToken = jwt.sign(
+      { sub: user.id, tenant_id: user.tenant_id, role: effectiveRole },
+      env.jwtSecret,
+      { expiresIn: "8h" }
+    );
+
+    await logEvent({
+      tenantId: user.tenant_id,
+      userId: user.id,
+      action: "auth_password_changed",
+      meta: { forced: Boolean(user.must_change_password) }
+    });
+
+    return res.json({ ok: true, token: newToken });
   } catch (err) {
     next(err);
   }

@@ -487,6 +487,12 @@ router.post("/webhook/stripe", async (req, res) => {
         });
 
         if (!result.error) {
+          // Forcer le changement de mot de passe à la première connexion
+          await db("users")
+            .where({ tenant_id: result.tenant_id })
+            .whereRaw("LOWER(email) = ?", [email.toLowerCase()])
+            .update({ must_change_password: true });
+
           // Mettre à jour le tenant avec les infos Stripe
           await db("tenants").where({ id: result.tenant_id }).update({
             stripe_customer_id: session.customer,

@@ -279,6 +279,13 @@ async function listUsers({ tenantId }) {
   return rows;
 }
 
+async function clearMustChangePassword(userId) {
+  await db("users").where({ id: userId }).update({
+    must_change_password: false,
+    updated_at: new Date().toISOString()
+  });
+}
+
 module.exports = {
   ensureSeeded,
   findUserByEmail,
@@ -288,5 +295,6 @@ module.exports = {
   verifyPassword,
   createUser,
   listUsers,
-  checkUserLimit
+  checkUserLimit,
+  clearMustChangePassword
 };
