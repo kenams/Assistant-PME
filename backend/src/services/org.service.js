@@ -70,6 +70,7 @@ function defaultSettings(tenantId) {
     ad_base_dn: "",
     ad_bind_user: "",
     ad_bind_password: "",
+    confidential_mode: false,
     updated_at: null
   };
 }

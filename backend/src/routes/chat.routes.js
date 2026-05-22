@@ -36,6 +36,7 @@ const {
   updateConversation
 } = require("../services/conversations.service");
 const { validateOr400 } = require("../utils/validate");
+const { anonymize, anonymizeChunks } = require("../services/pii.service");
 
 const router = express.Router();
 
@@ -251,10 +252,16 @@ router.post("/", authRequired, async (req, res, next) => {
       userPastTickets = (await listTicketsByUser({ tenantId, userId })).slice(0, 5);
     } catch (_) { /* ignore */ }
 
+    // Mode confidentiel : anonymise les PII avant envoi à OpenAI
+    const isConfidential = Boolean(orgSettings && orgSettings.confidential_mode);
+    const llmMessage = isConfidential ? anonymize(messageWithContext) : messageWithContext;
+    const llmRawMessage = isConfidential ? anonymize(message) : message;
+    const llmKbChunks = isConfidential ? anonymizeChunks(kbChunks) : kbChunks;
+
     const llm = await answerWithLLM({
-      message: messageWithContext,
-      rawMessage: message,
-      kbChunks,
+      message: llmMessage,
+      rawMessage: llmRawMessage,
+      kbChunks: llmKbChunks,
       language: language || "fr",
       orgSettings,
       conversationHistory,

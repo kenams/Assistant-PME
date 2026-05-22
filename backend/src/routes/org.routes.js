@@ -70,7 +70,8 @@ const settingsSchema = z.object({
   ad_domain: z.string().min(1).optional().or(z.literal("")),
   ad_base_dn: z.string().min(1).optional().or(z.literal("")),
   ad_bind_user: z.string().min(1).optional().or(z.literal("")),
-  ad_bind_password: z.string().min(1).optional().or(z.literal(""))
+  ad_bind_password: z.string().min(1).optional().or(z.literal("")),
+  confidential_mode: z.boolean().optional()
 });
 
 function sanitizeSettings(settings, includeSecrets) {
