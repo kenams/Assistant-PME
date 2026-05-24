@@ -282,6 +282,18 @@
   let testOk = false;
   let connAccount = '';
 
+  // Pre-select tool from URL param ?tool=glpi
+  (function() {
+    const urlTool = new URLSearchParams(window.location.search).get('tool');
+    if (urlTool) {
+      const card = document.querySelector('[data-tool="' + urlTool + '"]');
+      if (card) {
+        card.click();
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+  })();
+
   // Step indicators
   function setStep(n) {
     [1,2,3].forEach(i => {

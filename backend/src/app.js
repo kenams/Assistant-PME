@@ -31,6 +31,7 @@ const oauthRoutes = require("./routes/oauth.routes");
 const tenantsRoutes = require("./routes/tenants.routes");
 const docsRoutes = require("./routes/docs.routes");
 const uploadsRoutes = require("./routes/uploads.routes");
+const prospectRoutes = require("./routes/prospect.routes");
 
 const app = express();
 const logger = createLogger();
@@ -146,6 +147,9 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(appDir, "index.html"));
 });
 
+app.get("/glpi", (req, res) => sendNoCache(res, path.join(appDir, "glpi.html")));
+app.get("/glpi/", (req, res) => sendNoCache(res, path.join(appDir, "glpi.html")));
+
 app.use("/health", healthRoutes);
 app.use("/auth", authRoutes);
 app.use("/org", orgRoutes);
@@ -162,6 +166,7 @@ app.use("/oauth", oauthRoutes);
 app.use("/tenants", tenantsRoutes);
 app.use("/docs", docsRoutes);
 app.use("/uploads", uploadsRoutes);
+app.use("/prospect", prospectRoutes);
 
 app.use((req, res) => {
   return res.status(404).json({ error: "not_found" });
