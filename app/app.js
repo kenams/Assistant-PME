@@ -30,14 +30,14 @@ const resolvedOrigin =
     : "http://localhost:3001";
 const isLocalHost = ["localhost", "127.0.0.1"].includes(window.location.hostname);
 const isVercelHost = /\\.vercel\\.app$/i.test(window.location.hostname || "");
-const canonicalVercelHost = "assistant-pme.vercel.app";
-if (isVercelHost && window.location.hostname !== canonicalVercelHost) {
+const canonicalHost = "kah-support.ch";
+if (isVercelHost) {
   try {
     const canonicalUrl = new URL(window.location.href);
-    canonicalUrl.hostname = canonicalVercelHost;
+    canonicalUrl.hostname = canonicalHost;
     window.location.replace(canonicalUrl.toString());
   } catch (err) {
-    window.location.replace(`https://${canonicalVercelHost}`);
+    window.location.replace(`https://${canonicalHost}`);
   }
 }
 const defaultRemoteApi = "https://assistant-pme.onrender.com";
@@ -559,6 +559,19 @@ if (kioskMode) {
       let currentRole = null;
       let currentLang = localStorage.getItem("assistant_lang") || "fr";
 
+      // ── Auto language detection ───────────────────────────────────────
+      function detectLang(text) {
+        const lower = (text || "").toLowerCase();
+        const words = lower.match(/\b[a-zA-ZÀ-ÿ]{2,}\b/g) || [];
+        const FR = new Set(["je","mon","ma","mes","les","des","une","est","pas","sur","avec","pour","dans","que","qui","quoi","bonjour","merci","problème","probleme","erreur","aide","aidez","pouvez","peux","ordinateur","réseau","reseau","imprimante","connexion","comment","depuis","fonctionne","marche","toujours","encore","impossible","ecran","fichier","logiciel","windows","outlook","teams","wifi"]);
+        const EN = new Set(["the","my","is","not","on","with","for","in","that","who","what","how","hello","thanks","thank","error","issue","help","can","could","please","computer","network","printer","connection","screen","file","software","windows","outlook","teams","wifi","still","always","again","impossible","working","works","broken","fix"]);
+        let fr = 0, en = 0;
+        words.forEach(w => { if (FR.has(w)) fr++; if (EN.has(w)) en++; });
+        if (fr >= 2 && fr > en * 1.5) return "fr";
+        if (en >= 2 && en > fr * 1.5) return "en";
+        return null;
+      }
+
       // ── KAH Local Agent ────────────────────────────────────────────────
       let localAgentInfo = null;
       const AGENT_URL = "http://localhost:47878";
@@ -1047,6 +1060,8 @@ if (kioskMode) {
         setText("ticketThanksLabelDetails", "thanks.label.details");
         setText("ticketThanksLabelEta", "thanks.label.eta");
         setText("thanksNewBtn", "thanks.newIssue");
+        setText("thanksViewTicketsBtn", "thanks.viewTickets");
+        setText("demoUserBtn", "login.demoUser");
 
         setText("myTicketsTitle", "tickets.title");
         setText("reloadMyTicketsBtn", "tickets.refresh");
@@ -2291,7 +2306,8 @@ if (kioskMode) {
           setBanner(null);
           setChatBusyState(true);
           showTyping();
-          const payload = { message: cleaned, language: currentLang };
+          const detectedLang = detectLang(cleaned) || currentLang;
+          const payload = { message: cleaned, language: detectedLang };
           const contextPayload = getContextPayload();
           if (contextPayload) {
             payload.context = contextPayload;
@@ -7032,9 +7048,9 @@ if (kioskMode) {
           overlay.innerHTML = `
             <div class="resolve-success-inner">
               <div class="resolve-success-icon">✅</div>
-              <h2 class="resolve-success-title">Problème résolu !</h2>
-              <p class="resolve-success-sub">Votre retour a bien été enregistré.<br>Merci d'utiliser le support IT.</p>
-              <button class="resolve-success-close btn primary" onclick="document.getElementById('resolveSuccessOverlay').remove()">Fermer →</button>
+              <h2 class="resolve-success-title">${t("feedback.resolved.title")}</h2>
+              <p class="resolve-success-sub">${t("feedback.resolved.message")}</p>
+              <button class="resolve-success-close btn primary" onclick="document.getElementById('resolveSuccessOverlay').remove()">${t("feedback.resolved.close")}</button>
             </div>`;
           document.body.appendChild(overlay);
         }

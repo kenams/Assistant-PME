@@ -358,21 +358,15 @@
             </p>
           </div>
 
-          <div class="login-divider"><span>Démo</span></div>
-          <div style="display:flex;flex-direction:column;gap:6px">
-            <button id="demoUserLoginBtn" class="btn ghost" type="button" style="width:100%;font-size:0.85rem;border-color:rgba(79,142,247,0.3);color:var(--accent)">⚡ Démo Utilisateur</button>
-            <button id="demoAdminLoginBtn" class="btn ghost" type="button" style="width:100%;font-size:0.85rem;border-color:rgba(123,111,240,0.3);color:#a78bfa">⚙️ Démo Admin</button>
-          </div>
+          <div class="login-divider"><span>Découvrir</span></div>
+          <a href="/auth/demo" class="btn ghost" style="display:block;width:100%;text-align:center;font-size:0.85rem;padding:10px;border-color:rgba(79,142,247,0.3);color:var(--accent);text-decoration:none;box-sizing:border-box;">Essayer la démo gratuite →</a>
           <p class="note" id="loginHint" style="text-align:center;margin-top:8px">Code entreprise fourni par votre service IT.</p>
-          <p class="note subtle mt-2" id="loginTestAccount" style="text-align:center;opacity:0.5">
-            Test : <strong>user@assistant.local</strong> / <strong>user123</strong>
-          </p>
         </section>
       </div>
     </main>
 
     <footer class="page-footer">
-      <a class="footer-note footer-link" id="footerCredit" href="https://kah-digital-site.vercel.app/" target="_blank" rel="noopener">Concu par Kah-Digital</a>
+      <a class="footer-note footer-link" id="footerCredit" href="https://kah-support.ch" target="_blank" rel="noopener">Concu par KAH Digital</a>
       <span style="color:rgba(255,255,255,0.2);margin:0 8px">·</span>
       <a class="footer-note footer-link" href="/app/legal.html" style="opacity:0.5">Mentions légales</a>
     </footer>
@@ -390,11 +384,6 @@
         if (passInput) passInput.value = password;
         if (form) form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
       }
-      var demoUser = document.getElementById('demoUserLoginBtn');
-      if (demoUser) demoUser.addEventListener('click', function() { fillAndSubmit('user@assistant.local', 'user123'); });
-      var demoAdmin = document.getElementById('demoAdminLoginBtn');
-      if (demoAdmin) demoAdmin.addEventListener('click', function() { fillAndSubmit('admin@assistant.local', 'admin123'); });
-
       // Forgot password flow
       var forgotBtn = document.getElementById('forgotPasswordBtn');
       var backBtn = document.getElementById('backToLoginBtn');

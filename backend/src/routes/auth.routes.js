@@ -59,13 +59,6 @@ router.post("/login", loginLimiter(), async (req, res, next) => {
       user = await findUserByEmail(payload.email);
     }
 
-    if (!user) {
-      const email = payload.email.toLowerCase();
-      const isDemo = email.endsWith("@assistant.local");
-      if (isDemo) {
-        user = await findUserByEmail(payload.email);
-      }
-    }
     if (!user || !verifyPassword(payload.password, user.password_hash)) {
       return res.status(401).json({ error: "invalid_credentials" });
     }
