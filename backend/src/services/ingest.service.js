@@ -34,13 +34,13 @@ async function ingestSupport({
   const normalizedEmail =
     fromEmail || buildFallbackEmail({ source, fromId: fromName || "user" });
 
-  let user = findUserByEmailInTenant({
+  let user = await findUserByEmailInTenant({
     tenantId: finalTenantId,
     email: normalizedEmail
   });
   if (!user) {
     const tempPassword = crypto.randomBytes(9).toString("base64url");
-    const created = createUser({
+    const created = await createUser({
       tenantId: finalTenantId,
       email: normalizedEmail,
       password: tempPassword,
@@ -51,7 +51,7 @@ async function ingestSupport({
     }
   }
 
-  const conversation = createConversation({
+  const conversation = await createConversation({
     tenantId: finalTenantId,
     userId: user ? user.id : null
   });
@@ -62,7 +62,7 @@ async function ingestSupport({
     fromName || normalizedEmail
   }\nSujet: ${safeSubject}\n\n${safeBody}`.trim();
 
-  addMessage({
+  await addMessage({
     tenantId: finalTenantId,
     conversationId: conversation.id,
     role: "user",
@@ -82,7 +82,7 @@ async function ingestSupport({
     draft
   });
 
-  updateConversation({
+  await updateConversation({
     tenantId: finalTenantId,
     conversationId: conversation.id,
     updates: { status: "escalated" }
