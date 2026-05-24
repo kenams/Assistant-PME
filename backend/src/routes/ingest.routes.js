@@ -10,7 +10,9 @@ const { getOrgSettings } = require("../services/org.service");
 const { getDefaultTenantId } = require("../services/tenants.service");
 const { verifySlackSignature } = require("../services/slack.service");
 const { verifyHmacSignature } = require("../services/signature.service");
-const { ingestLimiter } = require("../middleware/rate-limit");
+const { ingestLimiter, createRateLimiter } = require("../middleware/rate-limit");
+const { testTicketingConnection, buildOrgPayload } = require("../services/ticketing-test.service");
+const { updateOrgSettings } = require("../services/org.service");
 
 const router = express.Router();
 
@@ -199,6 +201,34 @@ router.post("/email/pull", authRequired, requireAdmin, async (req, res) => {
     return res.json({ ok: true, processed: result.processed || 0 });
   } catch (err) {
     return res.status(500).json({ error: "mailbox_pull_failed" });
+  }
+});
+
+const testTicketingLimiter = createRateLimiter({ max: 10, windowSec: 60 });
+
+router.post("/test-ticketing", authRequired, testTicketingLimiter, async (req, res) => {
+  try {
+    const { tool, config } = req.body || {};
+    if (!tool || !config || typeof config !== "object") {
+      return res.status(400).json({ error: "missing_tool_or_config" });
+    }
+    const result = await testTicketingConnection({ tool, config });
+    return res.json({ ok: true, tool, account: result.account || null });
+  } catch (err) {
+    const msg = err.message || "connection_failed";
+    return res.status(422).json({ ok: false, error: msg });
+  }
+});
+
+router.post("/save-ticketing", authRequired, async (req, res) => {
+  try {
+    const { tool, config } = req.body || {};
+    if (!tool || !config) return res.status(400).json({ error: "missing_params" });
+    const orgPayload = buildOrgPayload(tool, config);
+    await updateOrgSettings({ tenantId: req.user.tenant_id, payload: orgPayload });
+    return res.json({ ok: true });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
   }
 });
 

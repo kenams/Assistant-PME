@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Configuration — Assistant IT KAH Digital</title>
+  <link rel="icon" type="image/svg+xml" href="/app/favicon.svg" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
+  <style>
+    :root {
+      --bg: #0B0B0B; --bg2: #111; --bg3: #161616;
+      --card: #161616; --stroke: rgba(255,255,255,0.07); --stroke2: rgba(255,255,255,0.12);
+      --text: #EDEDED; --text-muted: #888; --text-dim: #555;
+      --accent: #5B6AD4; --accent-glow: rgba(91,106,212,0.18); --accent-hover: #4A59C3;
+      --cta: #FF6B35; --cta-hover: #E55A24; --cta-glow: rgba(255,107,53,0.22);
+      --green: #22c55e; --red: #ef4444; --yellow: #f59e0b;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: Inter, sans-serif; min-height: 100vh; display: flex; flex-direction: column; }
+
+    /* ── Header ── */
+    .header { display: flex; align-items: center; gap: 10px; padding: 20px 32px; border-bottom: 1px solid var(--stroke); }
+    .logo-mark { width: 32px; height: 32px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 800; color: #fff; flex-shrink: 0; }
+    .logo-name { font-size: 0.95rem; font-weight: 600; color: var(--text); }
+    .demo-badge { margin-left: auto; background: rgba(255,107,53,0.12); border: 1px solid rgba(255,107,53,0.3); color: var(--cta); font-size: 0.72rem; font-weight: 600; padding: 3px 10px; border-radius: 20px; letter-spacing: 0.04em; }
+
+    /* ── Layout ── */
+    .main { flex: 1; display: flex; align-items: flex-start; justify-content: center; padding: 48px 20px 80px; }
+    .card { background: var(--card); border: 1px solid var(--stroke2); border-radius: 16px; width: 100%; max-width: 560px; padding: 36px 40px; }
+
+    /* ── Steps ── */
+    .steps { display: flex; gap: 0; margin-bottom: 32px; }
+    .step { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; position: relative; }
+    .step:not(:last-child)::after { content: ''; position: absolute; top: 14px; left: calc(50% + 14px); right: calc(-50% + 14px); height: 1px; background: var(--stroke2); }
+    .step.active:not(:last-child)::after { background: var(--accent); }
+    .step-dot { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--stroke2); background: var(--bg3); display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 700; color: var(--text-dim); transition: all .2s; z-index: 1; }
+    .step.active .step-dot { border-color: var(--accent); background: var(--accent-glow); color: var(--accent); }
+    .step.done .step-dot { border-color: var(--green); background: rgba(34,197,94,0.12); color: var(--green); }
+    .step-label { font-size: 0.68rem; font-weight: 500; color: var(--text-dim); text-align: center; }
+    .step.active .step-label { color: var(--text-muted); }
+
+    /* ── Typography ── */
+    h2 { font-size: 1.35rem; font-weight: 700; color: #fff; margin-bottom: 6px; }
+    .sub { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 28px; line-height: 1.5; }
+
+    /* ── Form ── */
+    .field { margin-bottom: 16px; }
+    label { display: block; font-size: 0.78rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; letter-spacing: 0.03em; text-transform: uppercase; }
+    input, select { width: 100%; background: var(--bg3); border: 1px solid var(--stroke2); border-radius: 8px; padding: 10px 14px; font-size: 0.88rem; color: var(--text); font-family: inherit; outline: none; transition: border .15s; }
+    input:focus, select:focus { border-color: var(--accent); }
+    input::placeholder { color: var(--text-dim); }
+    select option { background: #1a1a1a; }
+    .field-hint { font-size: 0.73rem; color: var(--text-dim); margin-top: 4px; line-height: 1.4; }
+    .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    /* ── Buttons ── */
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 11px 20px; border-radius: 8px; font-size: 0.87rem; font-weight: 600; cursor: pointer; border: none; font-family: inherit; transition: all .15s; }
+    .btn-primary { background: var(--accent); color: #fff; width: 100%; }
+    .btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
+    .btn-cta { background: var(--cta); color: #fff; width: 100%; }
+    .btn-cta:hover:not(:disabled) { background: var(--cta-hover); box-shadow: 0 0 20px var(--cta-glow); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-ghost { background: transparent; border: 1px solid var(--stroke2); color: var(--text-muted); }
+    .btn-ghost:hover { border-color: var(--stroke2); background: rgba(255,255,255,0.04); }
+    .btn-row { display: flex; gap: 10px; margin-top: 20px; }
+
+    /* ── Status ── */
+    .status-box { border-radius: 8px; padding: 12px 16px; font-size: 0.83rem; margin-top: 14px; display: none; align-items: center; gap: 10px; }
+    .status-box.show { display: flex; }
+    .status-box.ok { background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.25); color: var(--green); }
+    .status-box.err { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.25); color: var(--red); }
+    .status-box .icon { font-size: 1.1rem; flex-shrink: 0; }
+
+    /* ── Tool cards ── */
+    .tool-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 24px; }
+    .tool-card { background: var(--bg3); border: 2px solid var(--stroke); border-radius: 10px; padding: 14px 16px; cursor: pointer; transition: all .15s; display: flex; align-items: center; gap: 12px; }
+    .tool-card:hover { border-color: var(--stroke2); background: rgba(255,255,255,0.03); }
+    .tool-card.selected { border-color: var(--accent); background: var(--accent-glow); }
+    .tool-icon { font-size: 1.5rem; flex-shrink: 0; }
+    .tool-name { font-size: 0.85rem; font-weight: 600; color: var(--text); }
+    .tool-desc { font-size: 0.71rem; color: var(--text-muted); margin-top: 1px; }
+
+    /* ── Section ── */
+    .section { display: none; }
+    .section.active { display: block; }
+
+    /* ── Success ── */
+    .success-icon { width: 64px; height: 64px; background: rgba(34,197,94,0.1); border: 2px solid rgba(34,197,94,0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; margin: 0 auto 20px; }
+    .success-title { text-align: center; font-size: 1.3rem; font-weight: 700; margin-bottom: 8px; }
+    .success-sub { text-align: center; color: var(--text-muted); font-size: 0.85rem; margin-bottom: 28px; }
+    .connected-badge { display: flex; align-items: center; gap: 10px; background: rgba(34,197,94,0.06); border: 1px solid rgba(34,197,94,0.2); border-radius: 10px; padding: 12px 16px; margin-bottom: 24px; }
+    .connected-badge .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); flex-shrink: 0; }
+    .connected-badge .info { font-size: 0.82rem; }
+    .connected-badge .tool-label { font-weight: 600; color: var(--text); }
+    .connected-badge .account { color: var(--text-muted); }
+
+    /* ── Loader ── */
+    .spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin .6s linear infinite; flex-shrink: 0; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Footer ── */
+    .page-footer { text-align: center; padding: 20px; font-size: 0.75rem; color: var(--text-dim); border-top: 1px solid var(--stroke); }
+    .page-footer a { color: var(--text-dim); text-decoration: none; }
+    .page-footer a:hover { color: var(--text-muted); }
+
+    @media (max-width: 520px) {
+      .card { padding: 24px 20px; }
+      .tool-grid { grid-template-columns: 1fr; }
+      .field-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="header">
+  <div class="logo-mark">K</div>
+  <span class="logo-name">Assistant IT — KAH Digital</span>
+  <span class="demo-badge">DÉMO GRATUITE</span>
+</header>
+
+<main class="main">
+  <div class="card">
+
+    <!-- Steps indicator -->
+    <div class="steps" id="stepsBar">
+      <div class="step active" id="step1ind"><div class="step-dot">1</div><span class="step-label">Outil</span></div>
+      <div class="step" id="step2ind"><div class="step-dot">2</div><span class="step-label">Connexion</span></div>
+      <div class="step" id="step3ind"><div class="step-dot">3</div><span class="step-label">Prêt</span></div>
+    </div>
+
+    <!-- ── STEP 1 : Choose tool ── -->
+    <div class="section active" id="sec1">
+      <h2>Quel outil utilisez-vous ?</h2>
+      <p class="sub">Sélectionnez votre logiciel de ticketing. L'assistant s'y connectera en direct pendant la démo.</p>
+
+      <div class="tool-grid">
+        <div class="tool-card" data-tool="glpi">
+          <div class="tool-icon">🖥️</div>
+          <div><div class="tool-name">GLPI</div><div class="tool-desc">Open source, ITSM</div></div>
+        </div>
+        <div class="tool-card" data-tool="jira">
+          <div class="tool-icon">🔷</div>
+          <div><div class="tool-name">Jira</div><div class="tool-desc">Atlassian Service Mgmt</div></div>
+        </div>
+        <div class="tool-card" data-tool="zendesk">
+          <div class="tool-icon">☀️</div>
+          <div><div class="tool-name">Zendesk</div><div class="tool-desc">Support & ticketing</div></div>
+        </div>
+        <div class="tool-card" data-tool="freshdesk">
+          <div class="tool-icon">🌿</div>
+          <div><div class="tool-name">Freshdesk</div><div class="tool-desc">Freshworks Support</div></div>
+        </div>
+        <div class="tool-card" data-tool="freshservice">
+          <div class="tool-icon">⚙️</div>
+          <div><div class="tool-name">Freshservice</div><div class="tool-desc">ITSM Freshworks</div></div>
+        </div>
+        <div class="tool-card" data-tool="servicenow">
+          <div class="tool-icon">❄️</div>
+          <div><div class="tool-name">ServiceNow</div><div class="tool-desc">Enterprise ITSM</div></div>
+        </div>
+        <div class="tool-card" data-tool="osticket">
+          <div class="tool-icon">🎫</div>
+          <div><div class="tool-name">osTicket</div><div class="tool-desc">Open source, auto-hébergé</div></div>
+        </div>
+        <div class="tool-card" data-tool="none" style="border-style:dashed;">
+          <div class="tool-icon">🚀</div>
+          <div><div class="tool-name">Sans outil</div><div class="tool-desc">Tester quand même</div></div>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" id="btnStep1Next" disabled>Continuer →</button>
+    </div>
+
+    <!-- ── STEP 2 : Config ── -->
+    <div class="section" id="sec2">
+      <h2 id="s2Title">Connecter l'outil</h2>
+      <p class="sub" id="s2Sub">Entrez vos identifiants API. La connexion est testée en direct — aucune donnée n'est stockée sans votre accord.</p>
+      <div id="configFields"></div>
+      <div class="status-box" id="testStatus"><span class="icon"></span><span id="testMsg"></span></div>
+      <div class="btn-row">
+        <button class="btn btn-ghost" id="btnBack" style="flex:0 0 auto;padding:11px 16px">←</button>
+        <button class="btn btn-primary" id="btnTest" style="flex:1">Tester la connexion</button>
+      </div>
+    </div>
+
+    <!-- ── STEP 3 : Success ── -->
+    <div class="section" id="sec3">
+      <div class="success-icon">✓</div>
+      <div class="success-title">Connexion établie !</div>
+      <div class="success-sub">L'assistant peut maintenant lire et créer des tickets dans votre outil.</div>
+      <div class="connected-badge">
+        <div class="dot"></div>
+        <div class="info">
+          <div class="tool-label" id="connToolName">—</div>
+          <div class="account" id="connAccount">—</div>
+        </div>
+      </div>
+      <button class="btn btn-cta" id="btnLaunch">Lancer l'assistant →</button>
+      <p style="text-align:center;margin-top:14px;font-size:0.75rem;color:var(--text-dim)">Session démo · 2 heures · Données de test uniquement</p>
+    </div>
+
+  </div>
+</main>
+
+<footer class="page-footer">
+  <a href="https://kah-support.ch" target="_blank">KAH Digital</a> &nbsp;·&nbsp;
+  <a href="/app/legal.html">Mentions légales</a>
+</footer>
+
+<script>
+(function() {
+  const params = new URLSearchParams(location.search);
+  const token = params.get('token') || localStorage.getItem('assistant_token') || '';
+  if (token) localStorage.setItem('assistant_token', token);
+
+  const API = window.location.origin;
+
+  const TOOLS = {
+    glpi: {
+      label: 'GLPI',
+      fields: [
+        { key: 'url',       label: 'URL de votre GLPI',      placeholder: 'https://glpi.votre-entreprise.com', hint: "L'URL de base, sans /apirest.php" },
+        { key: 'appToken',  label: 'App-Token',              placeholder: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx', hint: 'Généré dans GLPI → Configuration → API' },
+        { key: 'userToken', label: 'User-Token',             placeholder: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx', hint: 'Votre jeton personnel dans Mon profil → API' }
+      ]
+    },
+    jira: {
+      label: 'Jira',
+      fields: [
+        { key: 'url',      label: 'URL Jira',    placeholder: 'https://votre-domaine.atlassian.net', hint: "URL complète de votre instance Atlassian" },
+        { key: 'email',    label: 'Email',       placeholder: 'vous@votre-domaine.com' },
+        { key: 'apiToken', label: 'API Token',   placeholder: 'ATATxxxxxxxxxxxxxxxx', hint: 'id.atlassian.com → Sécurité → Créer un jeton API' }
+      ]
+    },
+    zendesk: {
+      label: 'Zendesk',
+      fields: [
+        { key: 'subdomain', label: 'Sous-domaine',  placeholder: 'votre-entreprise', hint: 'Depuis votre-entreprise.zendesk.com' },
+        { key: 'email',     label: 'Email admin',   placeholder: 'vous@exemple.com' },
+        { key: 'apiToken',  label: 'API Token',     placeholder: 'xxxxxxxxxxxxxxxxxxxx', hint: 'Admin → Apps & intégrations → Accès API → Token' }
+      ]
+    },
+    freshdesk: {
+      label: 'Freshdesk',
+      fields: [
+        { key: 'subdomain', label: 'Sous-domaine', placeholder: 'votre-entreprise', hint: 'Depuis votre-entreprise.freshdesk.com' },
+        { key: 'apiKey',    label: 'Clé API',      placeholder: 'xxxxxxxxxxxxxxxxxxxx', hint: 'Profil → Votre clé API (coin supérieur droit)' }
+      ]
+    },
+    freshservice: {
+      label: 'Freshservice',
+      fields: [
+        { key: 'subdomain', label: 'Sous-domaine', placeholder: 'votre-entreprise', hint: 'Depuis votre-entreprise.freshservice.com' },
+        { key: 'apiKey',    label: 'Clé API',      placeholder: 'xxxxxxxxxxxxxxxxxxxx', hint: 'Profil → Clé API' }
+      ]
+    },
+    servicenow: {
+      label: 'ServiceNow',
+      fields: [
+        { key: 'instance',  label: 'Instance',        placeholder: 'votre-instance', hint: 'Depuis votre-instance.service-now.com' },
+        { key: 'username',  label: "Nom d'utilisateur", placeholder: 'admin' },
+        { key: 'password',  label: 'Mot de passe',    placeholder: '••••••••', type: 'password' }
+      ]
+    },
+    osticket: {
+      label: 'osTicket',
+      fields: [
+        { key: 'url',    label: 'URL osTicket',  placeholder: 'https://support.votre-entreprise.com', hint: "URL racine de votre installation osTicket" },
+        { key: 'apiKey', label: 'Clé API',       placeholder: 'xxxxxxxxxxxxxxxxxxxx', hint: 'Admin → Manage → API Keys → Ajouter' }
+      ]
+    },
+    none: { label: 'Sans outil', fields: [] }
+  };
+
+  let selectedTool = null;
+  let testOk = false;
+  let connAccount = '';
+
+  // Step indicators
+  function setStep(n) {
+    [1,2,3].forEach(i => {
+      const ind = document.getElementById('step'+i+'ind');
+      ind.className = 'step ' + (i < n ? 'done' : i === n ? 'active' : '');
+      const dot = ind.querySelector('.step-dot');
+      dot.textContent = i < n ? '✓' : String(i);
+    });
+    [1,2,3].forEach(i => {
+      document.getElementById('sec'+i).className = 'section' + (i === n ? ' active' : '');
+    });
+  }
+
+  // Tool selection
+  document.querySelectorAll('.tool-card').forEach(card => {
+    card.addEventListener('click', () => {
+      document.querySelectorAll('.tool-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      selectedTool = card.dataset.tool;
+      document.getElementById('btnStep1Next').disabled = false;
+    });
+  });
+
+  document.getElementById('btnStep1Next').addEventListener('click', () => {
+    if (!selectedTool) return;
+    if (selectedTool === 'none') { goToApp(); return; }
+    buildForm(selectedTool);
+    setStep(2);
+  });
+
+  document.getElementById('btnBack').addEventListener('click', () => setStep(1));
+
+  function buildForm(tool) {
+    const def = TOOLS[tool];
+    document.getElementById('s2Title').textContent = 'Connecter ' + def.label;
+    const container = document.getElementById('configFields');
+    container.innerHTML = def.fields.map(f => `
+      <div class="field">
+        <label for="f_${f.key}">${f.label}</label>
+        <input id="f_${f.key}" type="${f.type || 'text'}" placeholder="${f.placeholder || ''}" autocomplete="off" spellcheck="false" />
+        ${f.hint ? `<div class="field-hint">${f.hint}</div>` : ''}
+      </div>
+    `).join('');
+    // Reset status
+    const sb = document.getElementById('testStatus');
+    sb.className = 'status-box';
+    testOk = false;
+  }
+
+  function getConfig() {
+    const def = TOOLS[selectedTool];
+    const config = {};
+    def.fields.forEach(f => {
+      config[f.key] = (document.getElementById('f_' + f.key)?.value || '').trim();
+    });
+    return config;
+  }
+
+  function showStatus(type, msg) {
+    const sb = document.getElementById('testStatus');
+    sb.className = 'status-box show ' + type;
+    sb.querySelector('.icon').textContent = type === 'ok' ? '✓' : '✗';
+    document.getElementById('testMsg').textContent = msg;
+  }
+
+  document.getElementById('btnTest').addEventListener('click', async () => {
+    const btn = document.getElementById('btnTest');
+    const config = getConfig();
+    const missing = (TOOLS[selectedTool]?.fields || []).find(f => !config[f.key]);
+    if (missing) { showStatus('err', 'Veuillez remplir tous les champs.'); return; }
+
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner"></div> Test en cours…';
+    const sb = document.getElementById('testStatus');
+    sb.className = 'status-box';
+
+    try {
+      const res = await fetch('/ingest/test-ticketing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        body: JSON.stringify({ tool: selectedTool, config })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        testOk = true;
+        connAccount = data.account || '';
+        showStatus('ok', 'Connexion réussie ! ' + (data.account ? '(' + data.account + ')' : ''));
+        btn.innerHTML = '✓ Connexion testée — Continuer →';
+        btn.addEventListener('click', saveAndContinue, { once: true });
+      } else {
+        showStatus('err', 'Échec : ' + (data.error || 'erreur inconnue'));
+      }
+    } catch (e) {
+      showStatus('err', 'Erreur réseau : ' + e.message);
+    } finally {
+      btn.disabled = false;
+      if (!testOk) btn.innerHTML = 'Tester la connexion';
+    }
+  });
+
+  async function saveAndContinue() {
+    if (!testOk) return;
+    const config = getConfig();
+    try {
+      await fetch('/ingest/save-ticketing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        body: JSON.stringify({ tool: selectedTool, config })
+      });
+    } catch (_) {}
+    document.getElementById('connToolName').textContent = TOOLS[selectedTool]?.label || selectedTool;
+    document.getElementById('connAccount').textContent = connAccount || 'Connecté avec succès';
+    setStep(3);
+  }
+
+  document.getElementById('btnLaunch').addEventListener('click', goToApp);
+
+  function goToApp() {
+    const dest = '/app/' + (token ? '?token=' + encodeURIComponent(token) : '');
+    window.location.href = dest;
+  }
+})();
+</script>
+</body>
+</html>

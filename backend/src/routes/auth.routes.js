@@ -261,9 +261,9 @@ router.get("/demo", demoLimiter, async (req, res, next) => {
     );
 
     const rawRedirect = typeof req.query.redirect === "string" ? req.query.redirect : "";
-    const redirectPath = rawRedirect && rawRedirect.startsWith("/") ? rawRedirect : "/app/user/";
+    const redirectPath = rawRedirect && rawRedirect.startsWith("/") ? rawRedirect : "/app/setup.html";
     const joiner = redirectPath.includes("?") ? "&" : "?";
-    return res.redirect(`${redirectPath}${joiner}token=${encodeURIComponent(token)}`);
+    return res.redirect(`${redirectPath}${joiner}token=${encodeURIComponent(token)}&demo=1`);
   } catch (err) {
     next(err);
   }
