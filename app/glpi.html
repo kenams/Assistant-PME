@@ -1,0 +1,788 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Assistant IA pour GLPI — Support IT Automatisé | KAH Digital</title>
+    <meta name="description" content="Connectez votre GLPI à une IA de support IT disponible 24h/24. Tickets créés automatiquement, base de connaissances indexée, 70% de tickets résolus sans technicien. Compatible GLPI 10.x et 9.5.x." />
+    <meta name="robots" content="index, follow" />
+    <meta name="keywords" content="GLPI IA, assistant GLPI, automatisation tickets GLPI, support IT GLPI, GLPI intelligence artificielle, GLPI PME, GLPI France, GLPI Suisse" />
+    <meta property="og:title" content="Assistant IA pour GLPI — Support IT Automatisé | KAH Digital" />
+    <meta property="og:description" content="Connectez votre GLPI à une IA de support IT 24h/24. Tickets créés automatiquement, 70% résolus sans technicien. Compatible GLPI 10.x et 9.5.x." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://kah-support.ch/app/glpi" />
+    <meta property="og:image" content="https://kah-support.ch/app/assets/og-cover.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Assistant IA pour GLPI — KAH Digital" />
+    <meta name="twitter:description" content="GLPI + IA : 70% de tickets résolus automatiquement. Compatible GLPI 10.x, 9.5.x. Connexion en 5 minutes." />
+    <meta name="twitter:image" content="https://kah-support.ch/app/assets/og-cover.png" />
+    <link rel="canonical" href="https://kah-support.ch/app/glpi" />
+    <link rel="icon" type="image/svg+xml" href="/app/favicon.svg" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" />
+    <style>
+      :root {
+        --bg: #0f1117;
+        --bg2: #14171f;
+        --bg3: #1a1e2a;
+        --card: #1a1e2a;
+        --stroke: rgba(255,255,255,0.06);
+        --stroke2: rgba(255,255,255,0.11);
+        --text: #e2e6f3;
+        --text-strong: #ffffff;
+        --text-muted: #6b7796;
+        --accent: #6366f1;
+        --accent2: #8b5cf6;
+        --accent-glow: rgba(99,102,241,0.22);
+        --orange: #f97316;
+        --orange-glow: rgba(249,115,22,0.22);
+        --success: #22c55e;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --radius: 12px;
+        --radius-lg: 18px;
+        --shadow: 0 4px 40px rgba(0,0,0,0.55);
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      html { font-size: 16px; scroll-behavior: smooth; }
+      body {
+        font-family: 'Inter', system-ui, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.65;
+        overflow-x: hidden;
+      }
+      ::-webkit-scrollbar { width: 5px; }
+      ::-webkit-scrollbar-track { background: transparent; }
+      ::-webkit-scrollbar-thumb { background: var(--stroke2); border-radius: 4px; }
+      a { color: inherit; text-decoration: none; }
+
+      /* NAV */
+      nav {
+        position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 0 5vw; height: 64px;
+        background: rgba(15,17,23,0.88);
+        backdrop-filter: blur(24px);
+        border-bottom: 1px solid var(--stroke);
+      }
+      .nav-brand {
+        display: flex; align-items: center; gap: 10px;
+        font-weight: 800; font-size: 1.05rem; letter-spacing: -0.02em;
+        color: var(--text-strong);
+      }
+      .nav-brand-icon {
+        width: 32px; height: 32px;
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        border-radius: 8px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1rem; flex-shrink: 0;
+      }
+      .nav-links { display: flex; align-items: center; gap: 28px; }
+      .nav-links a { color: var(--text-muted); font-size: 0.87rem; font-weight: 500; transition: color 0.15s; }
+      .nav-links a:hover { color: var(--text); }
+      .nav-cta { display: flex; align-items: center; gap: 10px; }
+      .btn {
+        display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+        padding: 9px 20px; border-radius: 8px;
+        font-family: inherit; font-size: 0.87rem; font-weight: 600;
+        cursor: pointer; border: 1px solid var(--stroke2);
+        background: var(--card); color: var(--text);
+        transition: all 0.15s; text-decoration: none;
+      }
+      .btn:hover { background: #222638; color: var(--text-strong); }
+      .btn.primary {
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        border-color: transparent; color: #fff;
+        box-shadow: 0 0 24px var(--accent-glow);
+      }
+      .btn.primary:hover { opacity: 0.92; box-shadow: 0 0 32px rgba(99,102,241,0.35); }
+      .btn.orange {
+        background: linear-gradient(135deg, var(--orange), #ea580c);
+        border-color: transparent; color: #fff;
+        box-shadow: 0 0 24px var(--orange-glow);
+      }
+      .btn.orange:hover { opacity: 0.92; box-shadow: 0 0 32px rgba(249,115,22,0.35); }
+      .btn.large { padding: 14px 30px; font-size: 0.97rem; border-radius: 10px; }
+      .btn.ghost { background: transparent; color: var(--text-muted); border-color: var(--stroke2); }
+      .btn.ghost:hover { background: var(--card); color: var(--text); }
+
+      /* HERO */
+      .hero {
+        padding: 160px 5vw 80px;
+        text-align: center; position: relative; overflow: hidden;
+      }
+      .hero::before {
+        content: '';
+        position: absolute; inset: 0;
+        background:
+          radial-gradient(ellipse 70% 55% at 50% 0%, rgba(99,102,241,0.13) 0%, transparent 65%),
+          radial-gradient(ellipse 40% 30% at 80% 70%, rgba(249,115,22,0.06) 0%, transparent 50%);
+        pointer-events: none;
+      }
+      .hero-badge {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 5px 14px;
+        background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.25);
+        border-radius: 20px; color: var(--accent);
+        font-size: 0.78rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+        margin-bottom: 28px;
+      }
+      .hero-badge .dot {
+        width: 6px; height: 6px; border-radius: 50%; background: var(--accent);
+        animation: pulse 2s infinite;
+      }
+      @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
+      .hero h1 {
+        font-size: clamp(2.4rem, 6vw, 4rem);
+        font-weight: 900; color: var(--text-strong);
+        letter-spacing: -0.04em; line-height: 1.1;
+        max-width: 860px; margin: 0 auto 20px;
+      }
+      .hero h1 span {
+        background: linear-gradient(90deg, var(--accent), var(--accent2));
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      .hero-sub {
+        font-size: 1.12rem; color: var(--text-muted);
+        max-width: 600px; margin: 0 auto 40px; line-height: 1.65;
+      }
+      .hero-actions {
+        display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
+        margin-bottom: 48px;
+      }
+      .compat-badge {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 6px 16px;
+        background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.2);
+        border-radius: 20px; color: var(--success);
+        font-size: 0.78rem; font-weight: 600;
+      }
+
+      /* STATS */
+      .stats-strip {
+        display: flex; justify-content: center; gap: 48px; flex-wrap: wrap;
+        padding: 48px 5vw;
+        border-top: 1px solid var(--stroke);
+        border-bottom: 1px solid var(--stroke);
+        background: var(--bg2);
+      }
+      .stat { text-align: center; }
+      .stat-value {
+        font-size: 2rem; font-weight: 900; color: var(--text-strong);
+        letter-spacing: -0.04em; display: block;
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      .stat-label { font-size: 0.78rem; color: var(--text-muted); font-weight: 500; margin-top: 4px; }
+
+      /* SECTIONS */
+      section { padding: 100px 5vw; }
+      .section-label {
+        font-size: 0.73rem; font-weight: 700; letter-spacing: 0.1em;
+        text-transform: uppercase; color: var(--accent);
+        text-align: center; margin-bottom: 14px;
+      }
+      .section-title {
+        font-size: clamp(1.8rem, 4vw, 2.6rem);
+        font-weight: 800; letter-spacing: -0.03em;
+        color: var(--text-strong); text-align: center; margin-bottom: 14px;
+      }
+      .section-sub {
+        font-size: 0.97rem; color: var(--text-muted);
+        text-align: center; max-width: 520px; margin: 0 auto 60px;
+      }
+
+      /* HOW IT WORKS */
+      #how-it-works { background: var(--bg2); }
+      .steps-grid {
+        display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 24px; max-width: 1000px; margin: 0 auto;
+        position: relative;
+      }
+      .step-card {
+        background: var(--card); border: 1px solid var(--stroke);
+        border-radius: var(--radius-lg); padding: 32px;
+        position: relative;
+      }
+      .step-number {
+        width: 40px; height: 40px; border-radius: 10px;
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1rem; font-weight: 900; color: #fff;
+        margin-bottom: 20px; flex-shrink: 0;
+      }
+      .step-card h3 { font-size: 1.05rem; font-weight: 700; color: var(--text-strong); margin-bottom: 10px; }
+      .step-card p { font-size: 0.86rem; color: var(--text-muted); line-height: 1.65; }
+      .step-detail {
+        margin-top: 14px; padding: 12px 14px;
+        background: rgba(99,102,241,0.06); border: 1px solid rgba(99,102,241,0.14);
+        border-radius: 8px; font-size: 0.78rem; color: var(--text-muted);
+        font-family: 'Courier New', monospace;
+      }
+
+      /* FEATURES */
+      .features-grid {
+        display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 18px; max-width: 1100px; margin: 0 auto;
+      }
+      .feature-card {
+        background: var(--card); border: 1px solid var(--stroke);
+        border-radius: var(--radius-lg); padding: 28px;
+        transition: border-color 0.2s, transform 0.15s;
+      }
+      .feature-card:hover { border-color: rgba(99,102,241,0.3); transform: translateY(-2px); }
+      .feature-icon {
+        width: 44px; height: 44px; border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.2rem; margin-bottom: 16px;
+      }
+      .fi-indigo { background: rgba(99,102,241,0.12); }
+      .fi-violet { background: rgba(139,92,246,0.12); }
+      .fi-teal { background: rgba(20,184,166,0.12); }
+      .fi-green { background: rgba(34,197,94,0.12); }
+      .fi-orange { background: rgba(249,115,22,0.12); }
+      .fi-pink { background: rgba(236,72,153,0.12); }
+      .feature-card h3 { font-size: 0.97rem; font-weight: 700; color: var(--text-strong); margin-bottom: 8px; }
+      .feature-card p { font-size: 0.86rem; color: var(--text-muted); line-height: 1.6; }
+
+      /* TESTIMONIALS */
+      .testimonials-grid {
+        display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 20px; max-width: 1000px; margin: 0 auto;
+      }
+      .testimonial {
+        background: var(--card); border: 1px solid var(--stroke);
+        border-radius: var(--radius-lg); padding: 26px;
+      }
+      .stars { color: #f59e0b; font-size: 0.78rem; letter-spacing: 1px; margin-bottom: 12px; }
+      .testimonial-text { font-size: 0.88rem; color: var(--text); line-height: 1.7; margin-bottom: 18px; font-style: italic; }
+      .testimonial-author { display: flex; align-items: center; gap: 10px; }
+      .testimonial-avatar {
+        width: 38px; height: 38px; border-radius: 50%;
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0.84rem; font-weight: 700; color: #fff; flex-shrink: 0;
+      }
+      .testimonial-name { font-size: 0.85rem; font-weight: 700; color: var(--text-strong); }
+      .testimonial-role { font-size: 0.74rem; color: var(--text-muted); }
+
+      /* PRICING */
+      #pricing { background: var(--bg2); }
+      .pricing-spotlight {
+        max-width: 520px; margin: 0 auto;
+      }
+      .plan {
+        background: var(--bg3); border: 1px solid var(--stroke2);
+        border-radius: var(--radius-lg); padding: 40px;
+        display: flex; flex-direction: column; gap: 24px;
+        position: relative;
+        border-color: var(--accent);
+        background: linear-gradient(160deg, #1a1e2a 0%, rgba(99,102,241,0.06) 100%);
+        box-shadow: 0 0 48px rgba(99,102,241,0.12);
+      }
+      .plan-badge {
+        position: absolute; top: -13px; left: 50%; transform: translateX(-50%);
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        color: #fff; font-size: 0.7rem; font-weight: 700;
+        padding: 3px 14px; border-radius: 20px; letter-spacing: 0.05em;
+        white-space: nowrap;
+      }
+      .plan-name { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
+      .plan-price { display: flex; align-items: flex-end; gap: 4px; }
+      .plan-amount { font-size: 2.8rem; font-weight: 900; color: var(--text-strong); letter-spacing: -0.05em; line-height: 1; }
+      .plan-period { font-size: 0.8rem; color: var(--text-muted); padding-bottom: 5px; }
+      .plan-desc { font-size: 0.85rem; color: var(--text-muted); }
+      .plan-features { display: flex; flex-direction: column; gap: 12px; }
+      .plan-feature { display: flex; align-items: center; gap: 10px; font-size: 0.87rem; color: var(--text); }
+      .plan-feature .check { color: var(--success); flex-shrink: 0; }
+      .plan-cta { margin-top: 8px; }
+      .trial-note { text-align: center; font-size: 0.8rem; color: var(--text-muted); margin-top: 16px; }
+      .trial-note span { color: var(--success); }
+
+      /* FAQ */
+      #faq { background: var(--bg); }
+      .faq-list { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
+      .faq-item {
+        background: var(--card); border: 1px solid var(--stroke);
+        border-radius: var(--radius); overflow: hidden;
+      }
+      .faq-question {
+        width: 100%; padding: 18px 22px; display: flex; justify-content: space-between; align-items: center;
+        background: none; border: none; cursor: pointer;
+        font-family: inherit; font-size: 0.93rem; font-weight: 600; color: var(--text-strong);
+        text-align: left; gap: 12px;
+      }
+      .faq-question:hover { color: #fff; }
+      .faq-icon {
+        flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%;
+        background: rgba(99,102,241,0.12); display: flex; align-items: center; justify-content: center;
+        font-size: 0.85rem; color: var(--accent); transition: transform 0.2s;
+      }
+      .faq-item.open .faq-icon { transform: rotate(45deg); }
+      .faq-answer {
+        max-height: 0; overflow: hidden; transition: max-height 0.3s ease;
+        padding: 0 22px;
+      }
+      .faq-item.open .faq-answer { max-height: 300px; padding: 0 22px 18px; }
+      .faq-answer p { font-size: 0.87rem; color: var(--text-muted); line-height: 1.7; }
+
+      /* CTA FINAL */
+      .cta-section {
+        text-align: center; padding: 100px 5vw;
+        background: radial-gradient(ellipse 70% 60% at 50% 50%, rgba(99,102,241,0.09) 0%, transparent 70%);
+      }
+      .cta-section h2 { font-size: clamp(1.8rem,4vw,2.8rem); font-weight: 900; letter-spacing: -0.04em; color: var(--text-strong); margin-bottom: 16px; }
+      .cta-section p { font-size: 1rem; color: var(--text-muted); margin-bottom: 36px; }
+      .cta-note { font-size: 0.8rem; color: var(--text-muted); margin-top: 14px; }
+      .cta-note span { color: var(--success); }
+
+      /* FOOTER */
+      footer {
+        border-top: 1px solid var(--stroke); padding: 40px 5vw;
+        display: flex; align-items: center; justify-content: space-between;
+        flex-wrap: wrap; gap: 16px;
+      }
+      .footer-brand { font-weight: 700; font-size: 0.88rem; color: var(--text-muted); }
+      .footer-links { display: flex; gap: 24px; flex-wrap: wrap; }
+      .footer-links a { font-size: 0.82rem; color: var(--text-muted); transition: color 0.15s; }
+      .footer-links a:hover { color: var(--text); }
+      .footer-copy { font-size: 0.77rem; color: var(--text-muted); }
+
+      /* MODAL */
+      .modal-overlay {
+        position: fixed; inset: 0; z-index: 500;
+        background: rgba(0,0,0,0.72); backdrop-filter: blur(6px);
+        display: flex; align-items: center; justify-content: center;
+        padding: 16px; opacity: 0; pointer-events: none; transition: opacity 0.2s;
+      }
+      .modal-overlay.open { opacity: 1; pointer-events: all; }
+      .modal {
+        background: var(--bg3); border: 1px solid var(--stroke2);
+        border-radius: var(--radius-lg); padding: 36px;
+        max-width: 460px; width: 100%;
+        box-shadow: var(--shadow);
+        transform: translateY(20px); transition: transform 0.2s;
+      }
+      .modal-overlay.open .modal { transform: translateY(0); }
+      .modal h2 { font-size: 1.4rem; font-weight: 800; color: var(--text-strong); letter-spacing: -0.03em; margin-bottom: 6px; }
+      .modal-sub { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 28px; }
+      .modal-plan-badge {
+        display: inline-flex; align-items: center; gap: 6px;
+        background: rgba(99,102,241,0.12); border: 1px solid rgba(99,102,241,0.25);
+        border-radius: 20px; padding: 4px 12px;
+        font-size: 0.78rem; font-weight: 700; color: var(--accent);
+        margin-bottom: 20px;
+      }
+      .form-group { margin-bottom: 16px; }
+      .form-group label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; }
+      .form-group input, .form-group select {
+        width: 100%; padding: 11px 14px;
+        background: var(--bg2); border: 1px solid var(--stroke2);
+        border-radius: 8px; color: var(--text);
+        font-family: inherit; font-size: 0.9rem;
+        transition: border-color 0.15s; outline: none;
+      }
+      .form-group input:focus, .form-group select:focus { border-color: var(--accent); }
+      .form-group select option { background: var(--bg2); }
+      .modal-submit {
+        width: 100%; padding: 13px; margin-top: 8px;
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        color: #fff; border: none; border-radius: 10px;
+        font-family: inherit; font-size: 0.95rem; font-weight: 700;
+        cursor: pointer; transition: opacity 0.15s;
+        box-shadow: 0 0 24px var(--accent-glow);
+      }
+      .modal-submit:hover { opacity: 0.9; }
+      .modal-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+      .modal-close {
+        position: absolute; top: 14px; right: 18px;
+        background: none; border: none; color: var(--text-muted);
+        font-size: 1.4rem; cursor: pointer; line-height: 1;
+      }
+      .modal-close:hover { color: var(--text); }
+      .modal-error {
+        background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25);
+        border-radius: 8px; padding: 10px 14px;
+        font-size: 0.82rem; color: #f87171; margin-top: 12px; display: none;
+      }
+      .modal-error.show { display: block; }
+
+      /* RESPONSIVE */
+      @media (max-width: 768px) {
+        .nav-links { display: none; }
+        .hero { padding: 120px 5vw 60px; }
+        .stats-strip { gap: 28px; }
+        .modal { padding: 24px; }
+        .plan { padding: 28px; }
+      }
+    </style>
+  </head>
+  <body>
+
+    <!-- NAV -->
+    <nav>
+      <a href="/" class="nav-brand">
+        <div class="nav-brand-icon">🤖</div>
+        Assistant IT
+      </a>
+      <div class="nav-links">
+        <a href="#features">Fonctionnalités</a>
+        <a href="#pricing">Tarifs</a>
+        <a href="#faq">FAQ GLPI</a>
+      </div>
+      <div class="nav-cta">
+        <a href="/app/login.html?tool=glpi" class="btn primary">Voir la démo GLPI →</a>
+      </div>
+    </nav>
+
+    <!-- HERO -->
+    <section class="hero">
+      <div class="hero-badge"><span class="dot"></span> Intégration GLPI native &bull; IA 24h/24 &bull; PME France &amp; Suisse</div>
+      <h1>Boostez votre <span>GLPI</span> avec une IA de support IT</h1>
+      <p class="hero-sub">
+        Votre assistant IA répond aux tickets avant même que vos techniciens les ouvrent. Création automatique dans GLPI, base de connaissances indexée, résolution 24h/24.
+      </p>
+      <div class="hero-actions">
+        <a href="/app/login.html?tool=glpi" class="btn orange large">Essayer gratuitement avec mon GLPI →</a>
+        <button class="btn large ghost" onclick="document.getElementById('how-it-works').scrollIntoView({behavior:'smooth'})">Voir la démo en direct</button>
+      </div>
+      <div>
+        <span class="compat-badge">✓ Compatible GLPI 10.x, 9.5.x</span>
+      </div>
+    </section>
+
+    <!-- STATS -->
+    <div class="stats-strip">
+      <div class="stat">
+        <span class="stat-value">70%</span>
+        <span class="stat-label">Tickets auto-résolus sans technicien</span>
+      </div>
+      <div class="stat">
+        <span class="stat-value">8 min</span>
+        <span class="stat-label">Économisées par ticket traité</span>
+      </div>
+      <div class="stat">
+        <span class="stat-value">5 min</span>
+        <span class="stat-label">Pour connecter votre GLPI</span>
+      </div>
+    </div>
+
+    <!-- HOW IT WORKS -->
+    <section id="how-it-works">
+      <div class="section-label">Intégration</div>
+      <h2 class="section-title">Comment ça marche ?</h2>
+      <p class="section-sub">Trois étapes pour que votre GLPI travaille pendant que vos techniciens se concentrent sur le vrai travail.</p>
+      <div class="steps-grid">
+        <div class="step-card">
+          <div class="step-number">1</div>
+          <h3>Connectez GLPI en 5 minutes</h3>
+          <p>Renseignez l'URL de votre instance GLPI, votre App Token et un User Token. Pas de plugin à installer, pas de modification serveur.</p>
+          <div class="step-detail">URL + App Token + User Token → connecté</div>
+        </div>
+        <div class="step-card">
+          <div class="step-number">2</div>
+          <h3>L'IA prend les demandes 24h/24</h3>
+          <p>Vos utilisateurs écrivent via le chat widget sur votre site, par email ou via Slack. L'IA comprend, répond et résout instantanément.</p>
+          <div class="step-detail">Chat widget · Email · Slack → IA répond</div>
+        </div>
+        <div class="step-card">
+          <div class="step-number">3</div>
+          <h3>Tickets créés automatiquement dans GLPI</h3>
+          <p>Dès qu'une demande nécessite un technicien, l'IA ouvre le ticket dans GLPI avec la bonne priorité, catégorie et description complète.</p>
+          <div class="step-detail">Priorité · Catégorie · Description → GLPI</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FEATURES -->
+    <section id="features">
+      <div class="section-label">Fonctionnalités GLPI</div>
+      <h2 class="section-title">Tout ce qu'un admin GLPI attendait</h2>
+      <p class="section-sub">Des fonctionnalités pensées pour les équipes IT qui gèrent GLPI au quotidien.</p>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon fi-indigo">🎫</div>
+          <h3>Création tickets GLPI automatique</h3>
+          <p>Chaque demande non-résolue par l'IA génère un ticket dans GLPI avec priorité, catégorie, demandeur et description structurée.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon fi-violet">🔄</div>
+          <h3>Synchronisation bidirectionnelle des statuts</h3>
+          <p>Le ticket se ferme dans l'assistant quand il est résolu dans GLPI. Vos utilisateurs sont notifiés automatiquement.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon fi-teal">📚</div>
+          <h3>Base de connaissances GLPI indexée</h3>
+          <p>L'IA lit et utilise votre base de connaissances GLPI pour répondre aux utilisateurs. Mise à jour en temps réel.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon fi-orange">🚨</div>
+          <h3>Escalade intelligente vers les techniciens</h3>
+          <p>L'IA détecte quand une demande dépasse ses capacités et transfère à un technicien disponible avec tout le contexte.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon fi-green">📊</div>
+          <h3>Rapports et statistiques GLPI</h3>
+          <p>Volume de tickets, taux de résolution IA, temps moyen de traitement, charge par technicien — tout dans un dashboard unifié.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon fi-pink">🏢</div>
+          <h3>Multi-tenant : une instance, plusieurs clients</h3>
+          <p>Gérez plusieurs organisations GLPI depuis une seule instance. Isolation complète des données entre chaque client.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- TESTIMONIALS -->
+    <section id="testimonials" style="background: var(--bg2);">
+      <div class="section-label">Témoignages</div>
+      <h2 class="section-title">Ils ont branché l'IA sur leur GLPI</h2>
+      <p class="section-sub">Des admins GLPI en France et en Suisse qui ont transformé leur support IT.</p>
+      <div class="testimonials-grid">
+        <div class="testimonial">
+          <div class="stars">★★★★★</div>
+          <p class="testimonial-text">"On a réduit de 65% les tickets niveau 1 en 2 semaines. L'IA répond aux problèmes courants directement dans GLPI, les techniciens ne voient plus les tickets banals."</p>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar">TM</div>
+            <div>
+              <div class="testimonial-name">Thomas M.</div>
+              <div class="testimonial-role">DSI — PME logistique, Lyon</div>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial">
+          <div class="stars">★★★★★</div>
+          <p class="testimonial-text">"L'intégration GLPI a pris 10 minutes. Nos techniciens peuvent enfin se concentrer sur le vrai travail. Les utilisateurs ne savent même plus qu'ils parlent à une IA."</p>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar">SL</div>
+            <div>
+              <div class="testimonial-name">Sophie L.</div>
+              <div class="testimonial-role">Responsable IT — Entreprise, Genève</div>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial">
+          <div class="stars">★★★★★</div>
+          <p class="testimonial-text">"ROI en moins d'un mois. 8 minutes économisées par ticket × 200 tickets/mois = ça parle. Et la base de connaissances GLPI est enfin utilisée à 100%."</p>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar">KB</div>
+            <div>
+              <div class="testimonial-name">Karim B.</div>
+              <div class="testimonial-role">Admin GLPI — Société de services, Bordeaux</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PRICING -->
+    <section id="pricing">
+      <div class="section-label">Tarifs</div>
+      <h2 class="section-title">Un plan, tout inclus</h2>
+      <p class="section-sub">Intégration GLPI native, IA illimitée, support prioritaire. 14 jours gratuits sans carte bancaire.</p>
+      <div class="pricing-spotlight">
+        <div class="plan">
+          <div class="plan-badge">Intégration GLPI native incluse</div>
+          <div class="plan-name">Pro</div>
+          <div class="plan-price">
+            <span class="plan-amount">299€</span>
+            <span class="plan-period">/mois</span>
+          </div>
+          <p class="plan-desc">Pour les équipes IT qui veulent automatiser leur support GLPI sans effort de configuration.</p>
+          <div class="plan-features">
+            <div class="plan-feature"><span class="check">✓</span> Intégration GLPI native (10.x, 9.5.x)</div>
+            <div class="plan-feature"><span class="check">✓</span> Création automatique de tickets dans GLPI</div>
+            <div class="plan-feature"><span class="check">✓</span> Synchronisation bidirectionnelle des statuts</div>
+            <div class="plan-feature"><span class="check">✓</span> Base de connaissances GLPI indexée par l'IA</div>
+            <div class="plan-feature"><span class="check">✓</span> IA illimitée 24h/24 (GPT-4o)</div>
+            <div class="plan-feature"><span class="check">✓</span> Jusqu'à 50 agents simultanés</div>
+            <div class="plan-feature"><span class="check">✓</span> Support prioritaire par email</div>
+            <div class="plan-feature"><span class="check">✓</span> Dashboard analytics et SLA</div>
+          </div>
+          <div class="plan-cta">
+            <button class="btn orange" style="width:100%;justify-content:center;padding:14px;" onclick="openModal('pro')">
+              Démarrer 14 jours gratuits →
+            </button>
+          </div>
+        </div>
+        <p class="trial-note"><span>✓</span> Sans carte bancaire &nbsp;&nbsp; <span>✓</span> Résiliable à tout moment &nbsp;&nbsp; <span>✓</span> Setup en 5 minutes</p>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section id="faq">
+      <div class="section-label">FAQ GLPI</div>
+      <h2 class="section-title">Questions fréquentes</h2>
+      <p class="section-sub">Tout ce qu'il faut savoir avant de connecter votre GLPI.</p>
+      <div class="faq-list">
+
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            Quelle version de GLPI est supportée ?
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            <p>Notre assistant supporte GLPI 9.5.x et GLPI 10.x (toutes sous-versions). La connexion utilise l'API REST native de GLPI, aucun plugin supplémentaire n'est nécessaire. Les nouvelles versions de GLPI sont ajoutées dès leur sortie officielle.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            Est-ce que ça fonctionne avec un GLPI on-premise ?
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            <p>Oui, complètement. Que votre GLPI soit hébergé sur vos serveurs internes, chez un hébergeur tiers ou sur le cloud GLPI Network, l'intégration fonctionne de la même façon. Il suffit que l'URL de votre GLPI soit accessible depuis Internet (ou via un tunnel sécurisé si réseau privé).</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            Les tickets créés ont-ils toutes les métadonnées GLPI ?
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            <p>Oui. Chaque ticket créé automatiquement dans GLPI contient : le titre, la description complète de la conversation, la priorité (déterminée par l'IA selon le contexte), la catégorie, le demandeur et la date. Les champs personnalisés GLPI sont supportés sur demande.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            Est-ce que l'IA peut accéder à la base de connaissances GLPI ?
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            <p>Oui. L'assistant indexe automatiquement votre base de connaissances GLPI lors de la connexion, puis se met à jour toutes les heures. L'IA utilise ces articles pour répondre aux utilisateurs avant de créer un ticket. Vous pouvez aussi importer des documents supplémentaires (PDF, Word, CSV) en dehors de GLPI.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            Quel est le délai de synchronisation des statuts ?
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            <p>La synchronisation est quasi-temps réel : moins de 60 secondes entre un changement de statut dans GLPI et la mise à jour dans l'assistant. Lorsqu'un technicien ferme un ticket dans GLPI, l'utilisateur reçoit automatiquement une notification de résolution dans l'interface de chat.</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- CTA FINAL -->
+    <div class="cta-section">
+      <h2>Prêt à connecter votre GLPI ?</h2>
+      <p>14 jours gratuits. Intégration en 5 minutes. Aucune carte bancaire requise.</p>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+        <button class="btn orange large" onclick="openModal('pro')">Essayer gratuitement avec mon GLPI →</button>
+        <a href="/app/login.html?tool=glpi" class="btn large">Voir la démo en direct</a>
+      </div>
+      <p class="cta-note">
+        <span>✓</span> Compatible GLPI 10.x, 9.5.x &nbsp;&nbsp;
+        <span>✓</span> On-premise et cloud &nbsp;&nbsp;
+        <span>✓</span> Setup en 5 minutes
+      </p>
+    </div>
+
+    <!-- FOOTER -->
+    <footer>
+      <div class="footer-brand">🤖 Assistant IT — par KAH Digital</div>
+      <div class="footer-links">
+        <a href="#features">Fonctionnalités</a>
+        <a href="#pricing">Tarifs</a>
+        <a href="#faq">FAQ GLPI</a>
+        <a href="/app/index.html">Accueil</a>
+        <a href="mailto:contact@kah-digital.fr">Contact</a>
+      </div>
+      <div class="footer-copy">© 2026 KAH Digital. Tous droits réservés. <a href="/app/legal.html" style="opacity:0.5;color:inherit">Mentions légales</a></div>
+    </footer>
+
+    <!-- MODAL INSCRIPTION -->
+    <div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
+      <div class="modal" style="position:relative;">
+        <button class="modal-close" onclick="closeModal()" aria-label="Fermer">&times;</button>
+        <h2>Connecter votre GLPI</h2>
+        <p class="modal-sub">14 jours gratuits, sans carte bancaire. Opérationnel en 5 minutes.</p>
+        <div class="modal-plan-badge">Plan Pro — Intégration GLPI native — 299€/mois</div>
+        <form id="checkoutForm" onsubmit="submitCheckout(event)">
+          <div class="form-group">
+            <label for="fieldOrg">Nom de l'organisation</label>
+            <input type="text" id="fieldOrg" placeholder="Acme Corp" required />
+          </div>
+          <div class="form-group">
+            <label for="fieldEmail">Email professionnel</label>
+            <input type="email" id="fieldEmail" placeholder="jean@entreprise.fr" required />
+          </div>
+          <button type="submit" class="modal-submit" id="submitBtn">
+            Démarrer l'essai gratuit →
+          </button>
+          <div class="modal-error" id="modalError"></div>
+        </form>
+        <p style="font-size:0.75rem;color:var(--text-muted);margin-top:14px;text-align:center;">
+          Paiement sécurisé par Stripe. Résiliable à tout moment.
+        </p>
+      </div>
+    </div>
+
+    <script>
+      function openModal() {
+        const overlay = document.getElementById("modalOverlay");
+        overlay.classList.add("open");
+        const f = document.getElementById("fieldOrg");
+        if (f) f.focus();
+      }
+
+      function closeModal() {
+        document.getElementById("modalOverlay").classList.remove("open");
+      }
+
+      function closeModalOutside(e) {
+        if (e.target === document.getElementById("modalOverlay")) closeModal();
+      }
+
+      document.addEventListener("keydown", function(e) {
+        if (e.key === "Escape") closeModal();
+      });
+
+      async function submitCheckout(e) {
+        e.preventDefault();
+        const btn = document.getElementById("submitBtn");
+        const errEl = document.getElementById("modalError");
+        errEl.classList.remove("show");
+        btn.disabled = true;
+        btn.textContent = "Redirection en cours…";
+
+        const email = document.getElementById("fieldEmail").value.trim();
+        const tenantName = document.getElementById("fieldOrg").value.trim();
+        const plan = "pro";
+
+        try {
+          const r = await fetch("/billing/create-checkout", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, tenant_name: tenantName, plan }),
+          });
+          const data = await r.json();
+          if (!r.ok || !data.url) {
+            throw new Error(data.error || data.message || "Erreur lors de la création de la session.");
+          }
+          window.location.href = data.url;
+        } catch (err) {
+          errEl.textContent = err.message || "Une erreur est survenue. Réessayez.";
+          errEl.classList.add("show");
+          btn.disabled = false;
+          btn.textContent = "Démarrer l'essai gratuit →";
+        }
+      }
+
+      function toggleFaq(btn) {
+        const item = btn.closest(".faq-item");
+        const isOpen = item.classList.contains("open");
+        document.querySelectorAll(".faq-item.open").forEach(el => el.classList.remove("open"));
+        if (!isOpen) item.classList.add("open");
+      }
+    </script>
+  </body>
+</html>
