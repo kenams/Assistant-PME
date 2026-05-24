@@ -19,6 +19,7 @@ const { loginLimiter } = require("../middleware/rate-limit");
 const { hashPassword } = require("../utils/crypto");
 const { db } = require("../config/db");
 const { sendPasswordResetEmail } = require("../services/email.service");
+const { seedDemoTickets } = require("../services/demo-seed.service");
 
 const { createRateLimiter } = require("../middleware/rate-limit");
 const router = express.Router();
@@ -259,6 +260,8 @@ router.get("/demo", demoLimiter, async (req, res, next) => {
       env.jwtSecret,
       { expiresIn: "2h" }
     );
+
+    seedDemoTickets(user.tenant_id, user.id).catch(() => {});
 
     const rawRedirect = typeof req.query.redirect === "string" ? req.query.redirect : "";
     const redirectPath = rawRedirect && rawRedirect.startsWith("/") ? rawRedirect : "/app/setup.html";

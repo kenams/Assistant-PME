@@ -3,7 +3,13 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Assistant IT — Connexion</title>
+    <title>Assistant IT — Connexion | KAH Digital</title>
+    <meta name="description" content="Connectez-vous à votre assistant IA support IT ou accédez à la démo gratuite. Opérationnel en 15 minutes, sans carte bancaire." />
+    <meta property="og:title" content="Assistant IA Support IT — KAH Digital" />
+    <meta property="og:description" content="Assistant IA support IT disponible 24h/24. Essayez gratuitement, sans carte bancaire." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://kah-support.ch/app/login.html" />
+    <meta property="og:image" content="https://kah-support.ch/app/assets/og-cover.png" />
     <link rel="icon" type="image/svg+xml" href="/app/favicon.svg" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
     <link rel="stylesheet" href="/app/styles.css?v=20260512" />
@@ -359,7 +365,19 @@
           </div>
 
           <div class="login-divider"><span>Découvrir</span></div>
-          <a href="/auth/demo" class="btn ghost" style="display:block;width:100%;text-align:center;font-size:0.85rem;padding:10px;border-color:rgba(79,142,247,0.3);color:var(--accent);text-decoration:none;box-sizing:border-box;">Essayer la démo gratuite →</a>
+          <button id="demoCtaBtn" type="button" class="btn ghost" style="display:block;width:100%;text-align:center;font-size:0.85rem;padding:10px;border-color:rgba(79,142,247,0.3);color:var(--accent);background:none;cursor:pointer;box-sizing:border-box;">Essayer la démo gratuite →</button>
+
+          <!-- Lead capture avant démo -->
+          <div id="demoLeadForm" style="display:none;margin-top:12px;background:var(--bg3);border:1px solid var(--stroke2);border-radius:var(--radius);padding:16px;">
+            <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:12px;text-align:center;">Accès instantané · Sans carte bancaire</p>
+            <div class="input-wrap" style="margin-bottom:8px;"><span class="input-icon">👤</span><input id="demoLeadName" type="text" placeholder="Votre prénom *" style="padding-left:38px;" /></div>
+            <div class="input-wrap" style="margin-bottom:8px;"><span class="input-icon">✉️</span><input id="demoLeadEmail" type="email" placeholder="Email professionnel *" style="padding-left:38px;" /></div>
+            <div class="input-wrap" style="margin-bottom:12px;"><span class="input-icon">🏢</span><input id="demoLeadCompany" type="text" placeholder="Entreprise" style="padding-left:38px;" /></div>
+            <input type="text" name="company_website" id="demoHoneypot" style="display:none;" tabindex="-1" autocomplete="off" />
+            <button id="demoLeadSubmit" type="button" style="width:100%;padding:11px;font-size:0.9rem;font-weight:700;background:var(--cta);border:none;border-radius:var(--radius);color:#fff;cursor:pointer;box-shadow:0 0 20px var(--cta-glow);font-family:inherit;">Accéder à la démo →</button>
+            <p id="demoLeadStatus" style="font-size:0.8rem;text-align:center;margin-top:8px;color:var(--text-muted);min-height:18px;"></p>
+          </div>
+
           <p class="note" id="loginHint" style="text-align:center;margin-top:8px">Code entreprise fourni par votre service IT.</p>
         </section>
       </div>
@@ -374,6 +392,49 @@
     <script src="/app/i18n.js?v=20260512" defer></script>
     <script src="/app/app.js?v=20260512" defer></script>
     <script src="/app/logout.js?v=20260509" defer></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      var demoCtaBtn = document.getElementById('demoCtaBtn');
+      var demoLeadForm = document.getElementById('demoLeadForm');
+      var demoLeadSubmit = document.getElementById('demoLeadSubmit');
+      var demoLeadStatus = document.getElementById('demoLeadStatus');
+
+      if (demoCtaBtn) {
+        demoCtaBtn.addEventListener('click', function() {
+          demoLeadForm.style.display = demoLeadForm.style.display === 'none' ? 'block' : 'none';
+          if (demoLeadForm.style.display === 'block') {
+            document.getElementById('demoLeadName').focus();
+          }
+        });
+      }
+
+      if (demoLeadSubmit) {
+        demoLeadSubmit.addEventListener('click', async function() {
+          var name = (document.getElementById('demoLeadName').value || '').trim();
+          var email = (document.getElementById('demoLeadEmail').value || '').trim();
+          var company = (document.getElementById('demoLeadCompany').value || '').trim();
+          var honeypot = (document.getElementById('demoHoneypot').value || '');
+          if (honeypot) { window.location.href = '/auth/demo'; return; }
+          if (!name) { demoLeadStatus.textContent = 'Prénom requis.'; return; }
+          if (!email || !email.includes('@')) { demoLeadStatus.textContent = 'Email invalide.'; return; }
+
+          demoLeadSubmit.disabled = true;
+          demoLeadSubmit.textContent = 'Chargement…';
+          demoLeadStatus.textContent = '';
+
+          try {
+            await fetch('/leads', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ name: name, email: email, company: company || undefined, message: 'Demo request' })
+            });
+          } catch (_) {}
+
+          window.location.href = '/auth/demo';
+        });
+      }
+    });
+    </script>
     <script>
     document.addEventListener('DOMContentLoaded', function() {
       function fillAndSubmit(email, password) {

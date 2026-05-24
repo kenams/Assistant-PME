@@ -1263,6 +1263,36 @@ if (kioskMode) {
         return localStorage.getItem("assistant_token") || "";
       }
 
+      function parseJwtPayload(token) {
+        try {
+          const part = token.split(".")[1];
+          return JSON.parse(atob(part.replace(/-/g, "+").replace(/_/g, "/")));
+        } catch { return null; }
+      }
+
+      function injectDemoBanner(expTimestamp) {
+        if (document.getElementById("_demoBanner")) return;
+        const banner = document.createElement("div");
+        banner.id = "_demoBanner";
+        banner.style.cssText = "position:fixed;top:0;left:0;right:0;z-index:9999;background:linear-gradient(90deg,#5B6AD4,#7C3AED);color:#fff;text-align:center;font-size:0.82rem;font-weight:600;padding:7px 16px;display:flex;align-items:center;justify-content:center;gap:16px;box-shadow:0 2px 12px rgba(91,106,212,0.35);";
+
+        function renderBanner() {
+          const remaining = Math.max(0, expTimestamp * 1000 - Date.now());
+          const h = Math.floor(remaining / 3600000);
+          const m = Math.floor((remaining % 3600000) / 60000);
+          const timeStr = h > 0 ? h + "h" + String(m).padStart(2, "0") : m + "min";
+          banner.innerHTML =
+            "<span>⚡ Mode démo · " + (remaining > 0 ? timeStr + " restantes" : "Session expirée") + "</span>" +
+            "<a href='https://kah-support.ch/#pricing' style='background:#FF6B35;color:#fff;padding:3px 12px;border-radius:6px;text-decoration:none;font-weight:700;font-size:0.77rem;white-space:nowrap;'>Voir les tarifs →</a>";
+        }
+
+        renderBanner();
+        document.body.prepend(banner);
+        const topbar = document.querySelector(".topbar");
+        if (topbar) topbar.style.marginTop = "36px";
+        setInterval(renderBanner, 60000);
+      }
+
       let _tokenRefreshTimer = null;
       function scheduleTokenRefresh() {
         if (_tokenRefreshTimer) clearTimeout(_tokenRefreshTimer);
@@ -3788,6 +3818,10 @@ if (kioskMode) {
         _currentUserEmail = data.email || null;
         applyRoleVisibility();
         setSessionBadge(data.role, data.email);
+        const _jwtPayload = parseJwtPayload(getToken());
+        if (_jwtPayload && _jwtPayload.demo) {
+          injectDemoBanner(_jwtPayload.exp || 0);
+        }
         if (document.body.classList.contains("login-only")) {
           const target =
             data.role === "admin" || data.role === "superadmin" || data.role === "agent"
