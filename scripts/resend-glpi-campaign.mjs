@@ -14,7 +14,8 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, "..");
 
-const RESEND_API_KEY = "REDACTED";
+const RESEND_API_KEY = process.env.RESEND_API_KEY;
+if (!RESEND_API_KEY) { console.error("❌ RESEND_API_KEY manquant dans les variables d'env"); process.exit(1); }
 const FROM = "KAH Digital <contact@kah-digital.ch>";
 const REPLY_TO = "kahdigital42@gmail.com";
 const DELAY_MS = 2500;
