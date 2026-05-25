@@ -25,7 +25,7 @@ function getTransporter() {
   return transporter;
 }
 
-async function sendEmail({ to, subject, html, text }) {
+async function sendEmail({ to, subject, html, text, replyTo }) {
   const transport = getTransporter();
   if (!transport) {
     console.log(`[email] SMTP non configuré — email non envoyé: ${subject} → ${Array.isArray(to) ? to.join(", ") : to}`);
@@ -35,6 +35,7 @@ async function sendEmail({ to, subject, html, text }) {
   const result = await transport.sendMail({
     from: env.smtpFrom || env.smtpUser,
     to: recipients,
+    replyTo: replyTo || undefined,
     subject,
     html,
     text: text || html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim()
@@ -374,7 +375,8 @@ async function sendGlpiProspectEmail({ to, name, company, personalNote }) {
   return sendEmail({
     to,
     subject: `Votre GLPI + IA : 70% de tickets N1 en moins${company ? ` — pour ${company}` : ""}`,
-    html
+    html,
+    replyTo: "kahdigital42@gmail.com"
   });
 }
 

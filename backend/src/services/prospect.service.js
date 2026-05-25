@@ -103,7 +103,7 @@ async function sendGlpiProspectEmail({ to, name, company, personalNote }) {
   }
   const subject = "Votre GLPI + IA : 70% de tickets en moins dès la semaine prochaine";
   const html = buildGlpiEmailHtml({ name, company, personalNote });
-  return sendEmail({ to, subject, html });
+  return sendEmail({ to, subject, html, replyTo: "kahdigital42@gmail.com" });
 }
 
 async function getProspectStats() {
