@@ -128,7 +128,8 @@ async function notifyTicketCreated({ ticket, context }) {
   return sendEmail({
     to: recipients,
     subject: `[Support IT] Nouveau ticket : ${ticket.title || "Sans titre"}`,
-    html
+    html,
+    replyTo: "kahdigital42@gmail.com"
   });
 }
 
@@ -194,7 +195,8 @@ async function notifySlaBreach({ ticket, ageHours, slaHours }) {
   return sendEmail({
     to: recipients,
     subject: `[SLA DÉPASSÉ] Ticket : ${ticket.title || "Sans titre"} (+${overHours}h)`,
-    html
+    html,
+    replyTo: "kahdigital42@gmail.com"
   });
 }
 
@@ -245,7 +247,8 @@ async function sendWelcomeEmail({ email, tempPassword, tenantName, loginUrl }) {
   return sendEmail({
     to: email,
     subject: "Bienvenue sur Assistant IT — vos identifiants de connexion",
-    html
+    html,
+    replyTo: "kahdigital42@gmail.com"
   });
 }
 
@@ -281,7 +284,8 @@ async function sendInviteEmail({ email, inviteUrl, inviterEmail, tenantName, rol
   return sendEmail({
     to: email,
     subject: `Invitation à rejoindre ${tenantName || "Assistant IT"}`,
-    html
+    html,
+    replyTo: "kahdigital42@gmail.com"
   });
 }
 
@@ -311,7 +315,8 @@ async function sendPasswordResetEmail({ email, resetUrl }) {
   return sendEmail({
     to: email,
     subject: "Réinitialisation de votre mot de passe — Assistant IT",
-    html
+    html,
+    replyTo: "kahdigital42@gmail.com"
   });
 }
 
