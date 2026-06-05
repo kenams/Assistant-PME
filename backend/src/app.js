@@ -32,6 +32,7 @@ const tenantsRoutes = require("./routes/tenants.routes");
 const docsRoutes = require("./routes/docs.routes");
 const uploadsRoutes = require("./routes/uploads.routes");
 const prospectRoutes = require("./routes/prospect.routes");
+const onboardingCronRoutes = require("./routes/onboarding-cron.routes");
 
 const app = express();
 const logger = createLogger();
@@ -167,6 +168,7 @@ app.use("/tenants", tenantsRoutes);
 app.use("/docs", docsRoutes);
 app.use("/uploads", uploadsRoutes);
 app.use("/prospect", prospectRoutes);
+app.use("/", onboardingCronRoutes);
 
 app.use((req, res) => {
   return res.status(404).json({ error: "not_found" });

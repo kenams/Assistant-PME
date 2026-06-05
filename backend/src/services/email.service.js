@@ -394,6 +394,83 @@ function escapeHtml(str) {
     .replace(/'/g, "&#039;");
 }
 
+// ── SÉQUENCE ONBOARDING ────────────────────────────────────────────────────────
+const ACCENT = "#6366f1";
+const DARK = "#0f1117";
+
+function onboardingWrap(content) {
+  return `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><style>
+    body{margin:0;padding:0;background:#f4f4f8;font-family:Inter,Arial,sans-serif}
+    .wrap{max-width:580px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden}
+    .header{background:${DARK};padding:28px 36px;text-align:center}
+    .logo{color:${ACCENT};font-size:20px;font-weight:800;letter-spacing:0.08em}
+    .body{padding:36px}
+    h1{font-size:24px;font-weight:800;color:${DARK};margin:0 0 12px;line-height:1.25}
+    p{font-size:15px;line-height:1.7;color:#444;margin:0 0 14px}
+    .btn{display:inline-block;background:${ACCENT};color:#fff;text-decoration:none;padding:13px 28px;border-radius:8px;font-size:14px;font-weight:700;margin:8px 0}
+    .tip{background:#f7f7fd;border-left:3px solid ${ACCENT};border-radius:0 8px 8px 0;padding:14px 16px;margin:18px 0;font-size:14px;color:#333}
+    .footer{padding:20px 36px;background:#f9f9f9;font-size:12px;color:#999;text-align:center}
+  </style></head><body><div style="padding:20px">
+  <div class="wrap">
+    <div class="header"><div class="logo">KAH Support</div></div>
+    ${content}
+    <div class="footer">KAH Digital · kah-support.ch · Se désabonner</div>
+  </div></div></body></html>`;
+}
+
+async function sendOnboardingJ0({ email, tenantName, loginUrl }) {
+  await sendEmail({
+    to: email,
+    subject: `Bienvenue sur KAH Support, ${esc(tenantName)} — votre assistant est prêt`,
+    html: onboardingWrap(`<div class="body">
+      <h1>Votre assistant IT est en ligne. 🎉</h1>
+      <p>Bonjour,<br>Votre espace <strong>${esc(tenantName)}</strong> est actif sur KAH Support. Voici les 3 actions à faire en 10 minutes pour voir les premiers résultats :</p>
+      <div class="tip">✅ <strong>1. Connectez votre GLPI</strong> — Paramètres → Intégration GLPI → coller l'URL + clé API</div>
+      <div class="tip">✅ <strong>2. Invitez un technicien</strong> — Administration → Utilisateurs → Inviter</div>
+      <div class="tip">✅ <strong>3. Testez votre premier ticket</strong> — cliquez sur "Nouveau ticket" et posez une question au chatbot</div>
+      <div style="text-align:center;margin:24px 0"><a href="${esc(loginUrl)}" class="btn">Accéder à mon espace →</a></div>
+      <p style="font-size:13px;color:#888">Une question ? Répondez directement à cet email — notre équipe répond sous 24h.</p>
+    </div>`),
+  });
+}
+
+async function sendOnboardingJ3({ email, tenantName, loginUrl, ticketCount }) {
+  const hasTickets = ticketCount > 0;
+  await sendEmail({
+    to: email,
+    subject: `${hasTickets ? `${ticketCount} tickets traités ✓` : "Astuce du jour"} — KAH Support`,
+    html: onboardingWrap(`<div class="body">
+      <h1>${hasTickets ? `Votre assistant a traité ${ticketCount} ticket${ticketCount > 1 ? "s" : ""}.` : "3 astuces pour aller plus loin."}</h1>
+      ${hasTickets
+        ? `<p>En 3 jours, <strong>${ticketCount} demande${ticketCount > 1 ? "s" : ""}</strong> ont été traitées automatiquement. Chaque ticket N1 pris en charge = ~25 min de travail économisées pour votre équipe.</p>`
+        : `<p>Vous n'avez pas encore de tickets dans le système. Voici comment accélérer la prise en main :</p>`
+      }
+      <div class="tip">💡 <strong>Base de connaissances</strong> — Importez vos procédures PDF/Word. L'IA les apprend en 2 minutes.</div>
+      <div class="tip">💡 <strong>Slack/Teams</strong> — Connectez votre messagerie pour que les alertes arrivent directement dans vos channels.</div>
+      <div class="tip">💡 <strong>Escalade automatique</strong> — Configurez les mots-clés qui déclenchent une escalade N2 immédiate.</div>
+      <div style="text-align:center;margin:24px 0"><a href="${esc(loginUrl)}" class="btn">Configurer maintenant →</a></div>
+    </div>`),
+  });
+}
+
+async function sendOnboardingJ7({ email, tenantName, loginUrl, ticketCount, savedHours }) {
+  await sendEmail({
+    to: email,
+    subject: `Votre bilan 7 jours — ${esc(tenantName)}`,
+    html: onboardingWrap(`<div class="body">
+      <h1>Votre assistant, 7 jours plus tard.</h1>
+      <p>Voici ce que KAH Support a fait pour <strong>${esc(tenantName)}</strong> cette semaine :</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:20px 0;text-align:center">
+        <div style="background:#f0f0ff;border-radius:10px;padding:16px"><p style="font-size:28px;font-weight:800;color:${ACCENT};margin:0">${ticketCount}</p><p style="font-size:12px;color:#666;margin:4px 0 0">Tickets traités</p></div>
+        <div style="background:#f0fff4;border-radius:10px;padding:16px"><p style="font-size:28px;font-weight:800;color:#22c55e;margin:0">~${savedHours}h</p><p style="font-size:12px;color:#666;margin:4px 0 0">Économisées</p></div>
+      </div>
+      <p>Vous avez encore 7 jours d'essai gratuit. Si vous souhaitez continuer avec le plan Starter (299€/mois), votre équipe IT sera couverte 24h/24 sans aucune interruption.</p>
+      <div style="text-align:center;margin:24px 0"><a href="${esc(loginUrl)}/billing" class="btn">Activer mon abonnement →</a></div>
+      <p style="font-size:13px;color:#888;text-align:center">Ou <a href="mailto:contact@kah-digital.fr" style="color:${ACCENT}">demandez une démo personnalisée</a> avec notre équipe.</p>
+    </div>`),
+  });
+}
+
 module.exports = {
   sendEmail,
   notifyTicketCreated,
@@ -402,5 +479,8 @@ module.exports = {
   sendInviteEmail,
   sendPasswordResetEmail,
   sendGlpiProspectEmail,
+  sendOnboardingJ0,
+  sendOnboardingJ3,
+  sendOnboardingJ7,
   isConfigured
 };
