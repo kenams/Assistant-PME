@@ -452,6 +452,66 @@
       </div>
     </section>
 
+    <!-- ROI CALCULATOR -->
+    <section id="roi" style="background:var(--bg2)">
+      <div class="section-label">Calculateur ROI</div>
+      <h2 class="section-title">Combien économisez-vous par mois ?</h2>
+      <p class="section-sub">Ajustez les curseurs selon votre contexte IT réel.</p>
+      <div style="max-width:680px;margin:0 auto;background:var(--card);border:1px solid var(--stroke2);border-radius:20px;padding:40px">
+        <div style="display:grid;gap:28px">
+
+          <div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:10px">
+              <label style="font-size:.85rem;font-weight:600;color:var(--text-muted)">Tickets N1/semaine</label>
+              <span id="val-tickets" style="font-weight:700;color:var(--accent)">80</span>
+            </div>
+            <input type="range" id="slider-tickets" min="10" max="300" value="80" style="width:100%;accent-color:var(--accent);cursor:pointer" oninput="calcRoi()">
+            <div style="display:flex;justify-content:space-between;font-size:.72rem;color:var(--text-muted);margin-top:4px"><span>10</span><span>300</span></div>
+          </div>
+
+          <div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:10px">
+              <label style="font-size:.85rem;font-weight:600;color:var(--text-muted)">Temps moyen de traitement manuel (min)</label>
+              <span id="val-time" style="font-weight:700;color:var(--accent)">25</span>
+            </div>
+            <input type="range" id="slider-time" min="5" max="60" value="25" style="width:100%;accent-color:var(--accent);cursor:pointer" oninput="calcRoi()">
+            <div style="display:flex;justify-content:space-between;font-size:.72rem;color:var(--text-muted);margin-top:4px"><span>5 min</span><span>60 min</span></div>
+          </div>
+
+          <div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:10px">
+              <label style="font-size:.85rem;font-weight:600;color:var(--text-muted)">Coût horaire technicien N1 (€/h)</label>
+              <span id="val-cost" style="font-weight:700;color:var(--accent)">35</span>
+            </div>
+            <input type="range" id="slider-cost" min="20" max="80" value="35" style="width:100%;accent-color:var(--accent);cursor:pointer" oninput="calcRoi()">
+            <div style="display:flex;justify-content:space-between;font-size:.72rem;color:var(--text-muted);margin-top:4px"><span>20€</span><span>80€</span></div>
+          </div>
+        </div>
+
+        <div style="margin-top:36px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;text-align:center">
+          <div style="background:var(--bg3);border-radius:14px;padding:20px">
+            <p id="roi-hours" style="font-size:2rem;font-weight:900;color:#fff;line-height:1">—</p>
+            <p style="font-size:.75rem;color:var(--text-muted);margin-top:6px">Heures/mois automatisées</p>
+          </div>
+          <div style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.3);border-radius:14px;padding:20px">
+            <p id="roi-savings" style="font-size:2rem;font-weight:900;color:var(--accent);line-height:1">—</p>
+            <p style="font-size:.75rem;color:var(--text-muted);margin-top:6px">Économies mensuelles</p>
+          </div>
+          <div style="background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.2);border-radius:14px;padding:20px">
+            <p id="roi-return" style="font-size:2rem;font-weight:900;color:var(--success);line-height:1">—</p>
+            <p style="font-size:.75rem;color:var(--text-muted);margin-top:6px">ROI vs plan Starter</p>
+          </div>
+        </div>
+
+        <div style="margin-top:24px;text-align:center">
+          <p id="roi-message" style="font-size:.9rem;color:var(--text-muted);margin-bottom:16px"></p>
+          <button class="btn primary" onclick="openModal('starter')" style="padding:14px 36px">
+            Démarrer l'essai gratuit 14 jours →
+          </button>
+        </div>
+      </div>
+    </section>
+
     <!-- PRICING -->
     <section id="pricing">
       <div class="section-label">Tarifs</div>
@@ -663,6 +723,36 @@
       document.addEventListener("keydown", function(e) {
         if (e.key === "Escape") closeModal();
       });
+
+      function calcRoi() {
+        const tickets = +document.getElementById("slider-tickets").value;
+        const time = +document.getElementById("slider-time").value;
+        const cost = +document.getElementById("slider-cost").value;
+        document.getElementById("val-tickets").textContent = tickets;
+        document.getElementById("val-time").textContent = time;
+        document.getElementById("val-cost").textContent = cost;
+
+        // IA gère 70% des tickets N1 automatiquement
+        const automatedTickets = Math.round(tickets * 4 * 0.70); // par mois
+        const hoursPerMonth = Math.round(automatedTickets * time / 60);
+        const savings = Math.round(hoursPerMonth * cost);
+        const roi = savings > 0 ? Math.round((savings - 299) / 299 * 100) : 0;
+
+        document.getElementById("roi-hours").textContent = hoursPerMonth + "h";
+        document.getElementById("roi-savings").textContent = savings.toLocaleString("fr-FR") + "€";
+        document.getElementById("roi-return").textContent = "×" + (savings / 299).toFixed(1);
+
+        let msg = "";
+        if (savings < 299) {
+          msg = "Plan Starter à 299€/mois — rentabilité dès que votre volume de tickets augmente.";
+        } else if (savings < 600) {
+          msg = `Votre ROI est positif dès le 1er mois. Le plan Starter s'autofinance en ${Math.round(299/savings*30)} jours.`;
+        } else {
+          msg = `${savings.toLocaleString("fr-FR")}€ économisés = ${(savings/299).toFixed(0)}x le coût du plan Starter. Chaque jour sans l'outil vous coûte ${Math.round(savings/30)}€.`;
+        }
+        document.getElementById("roi-message").textContent = msg;
+      }
+      calcRoi();
 
       async function submitCheckout(e) {
         e.preventDefault();
