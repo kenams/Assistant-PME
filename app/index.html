@@ -522,7 +522,7 @@
         <div class="plan">
           <div class="plan-name">Starter</div>
           <div class="plan-price">
-            <span class="plan-amount">299€</span>
+            <span class="plan-amount">99€</span>
             <span class="plan-period">/mois</span>
           </div>
           <p class="plan-desc">Pour les PME souhaitant automatiser leur support N1 sans infrastructure lourde.</p>
@@ -544,7 +544,7 @@
           <div class="plan-badge">Recommandé</div>
           <div class="plan-name">Pro</div>
           <div class="plan-price">
-            <span class="plan-amount">599€</span>
+            <span class="plan-amount">199€</span>
             <span class="plan-period">/mois</span>
           </div>
           <p class="plan-desc">Pour les équipes IT structurées avec GLPI, Active Directory et reportings SLA.</p>
@@ -565,7 +565,7 @@
         <div class="plan">
           <div class="plan-name">Entreprise</div>
           <div class="plan-price">
-            <span class="plan-amount">999€</span>
+            <span class="plan-amount">399€</span>
             <span class="plan-period">/mois</span>
           </div>
           <p class="plan-desc">Pour les ESN, groupes et collectivités gérant plusieurs périmètres IT.</p>
@@ -661,7 +661,7 @@
         <button class="modal-close" onclick="closeModal()" aria-label="Fermer">&times;</button>
         <h2>Créer votre compte</h2>
         <p class="modal-sub">Remplissez ce formulaire pour commencer votre essai gratuit.</p>
-        <div class="modal-plan-badge" id="modalPlanBadge">Plan Starter — 299€/mois</div>
+        <div class="modal-plan-badge" id="modalPlanBadge">Plan Starter — 99€/mois</div>
         <form id="checkoutForm" onsubmit="submitCheckout(event)">
           <div class="form-group">
             <label for="fieldOrg">Nom de l'organisation</label>
@@ -674,9 +674,9 @@
           <div class="form-group">
             <label for="fieldPlan">Plan sélectionné</label>
             <select id="fieldPlan">
-              <option value="starter">Starter — 299€/mois</option>
-              <option value="pro">Pro — 599€/mois</option>
-              <option value="enterprise">Entreprise — 999€/mois</option>
+              <option value="starter">Starter — 99€/mois</option>
+              <option value="pro">Pro — 199€/mois</option>
+              <option value="enterprise">Entreprise — 399€/mois</option>
             </select>
           </div>
           <button type="submit" class="modal-submit" id="submitBtn">
@@ -692,9 +692,9 @@
 
     <script>
       const PLAN_LABELS = {
-        starter: "Plan Starter — 299€/mois",
-        pro: "Plan Pro — 599€/mois",
-        enterprise: "Plan Entreprise — 999€/mois",
+        starter: "Plan Starter — 99€/mois",
+        pro: "Plan Pro — 199€/mois",
+        enterprise: "Plan Entreprise — 399€/mois",
       };
 
       function openModal(plan) {
@@ -736,19 +736,19 @@
         const automatedTickets = Math.round(tickets * 4 * 0.70); // par mois
         const hoursPerMonth = Math.round(automatedTickets * time / 60);
         const savings = Math.round(hoursPerMonth * cost);
-        const roi = savings > 0 ? Math.round((savings - 299) / 299 * 100) : 0;
+        const roi = savings > 0 ? Math.round((savings - 99) / 99 * 100) : 0;
 
         document.getElementById("roi-hours").textContent = hoursPerMonth + "h";
         document.getElementById("roi-savings").textContent = savings.toLocaleString("fr-FR") + "€";
-        document.getElementById("roi-return").textContent = "×" + (savings / 299).toFixed(1);
+        document.getElementById("roi-return").textContent = "×" + (savings / 99).toFixed(1);
 
         let msg = "";
-        if (savings < 299) {
-          msg = "Plan Starter à 299€/mois — rentabilité dès que votre volume de tickets augmente.";
-        } else if (savings < 600) {
-          msg = `Votre ROI est positif dès le 1er mois. Le plan Starter s'autofinance en ${Math.round(299/savings*30)} jours.`;
+        if (savings < 99) {
+          msg = "Plan Starter à 99€/mois — rentabilité dès que votre volume de tickets augmente.";
+        } else if (savings < 300) {
+          msg = `Votre ROI est positif dès le 1er mois. Le plan Starter s'autofinance en ${Math.round(99/savings*30)} jours.`;
         } else {
-          msg = `${savings.toLocaleString("fr-FR")}€ économisés = ${(savings/299).toFixed(0)}x le coût du plan Starter. Chaque jour sans l'outil vous coûte ${Math.round(savings/30)}€.`;
+          msg = `${savings.toLocaleString("fr-FR")}€ économisés = ${(savings/99).toFixed(0)}x le coût du plan Starter. Chaque jour sans l'outil vous coûte ${Math.round(savings/30)}€.`;
         }
         document.getElementById("roi-message").textContent = msg;
       }
