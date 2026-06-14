@@ -1,21 +1,43 @@
 <!doctype html>
-<html lang="fr">
+<html lang="fr" id="htmlRoot">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Assistant IA Support IT — PME | KAH Digital</title>
-    <meta name="description" content="Réduisez de 70% le temps de traitement des tickets IT. Assistant IA disponible 24h/24, connecté à GLPI, opérationnel en 15 minutes." />
-    <meta property="og:title" content="Assistant IA Support IT — PME | KAH Digital" />
-    <meta property="og:description" content="Réduisez de 70% le temps de traitement des tickets IT. Réponses instantanées, escalade GLPI automatique, opérationnel en 15 minutes." />
+    <title>AI IT Support Assistant — SME | KAH Digital</title>
+    <meta name="description" content="Reduce IT ticket processing time by 70%. AI assistant available 24/7, connected to GLPI, operational in 15 minutes." />
+    <meta property="og:title" content="AI IT Support Assistant — SME | KAH Digital" />
+    <meta property="og:description" content="Reduce IT ticket processing time by 70%. Instant responses, automatic GLPI escalation, operational in 15 minutes." />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://kah-support.ch/" />
     <meta property="og:image" content="https://kah-support.ch/app/assets/og-cover.png" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Assistant IA Support IT — KAH Digital" />
-    <meta name="twitter:description" content="Réduisez de 70% le temps de traitement des tickets IT. IA 24h/24, GLPI, opérationnel en 15 min." />
+    <meta name="twitter:title" content="AI IT Support Assistant — KAH Digital" />
+    <meta name="twitter:description" content="Reduce IT ticket processing time by 70%. AI 24/7, GLPI, operational in 15 min." />
     <meta name="twitter:image" content="https://kah-support.ch/app/assets/og-cover.png" />
+    <link rel="canonical" href="https://kah-support.ch/" />
     <link rel="icon" type="image/svg+xml" href="/app/favicon.svg" />
-    <!-- Google Analytics GA4 — remplacer G-XXXXXXXXXX par votre ID réel -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Assistant IA Support IT pour PME",
+      "url": "https://kah-support.ch/",
+      "description": "Réduisez le temps de traitement des tickets IT de 70 %. Assistant IA disponible 24h/24, connecté à GLPI, opérationnel en 15 minutes.",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Web",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "EUR",
+        "description": "Essai gratuit disponible"
+      },
+      "creator": {
+        "@type": "Organization",
+        "name": "KAH Digital",
+        "url": "https://kah-digital.ch"
+      }
+    }
+    </script>
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -102,6 +124,15 @@
       .btn.large { padding: 14px 30px; font-size: 0.97rem; border-radius: 10px; }
       .btn.ghost { background: transparent; color: var(--text-muted); border-color: var(--stroke2); }
       .btn.ghost:hover { background: var(--card); color: var(--text); }
+      .lang-btn {
+        display: inline-flex; align-items: center;
+        padding: 5px 12px; border-radius: 6px;
+        font-family: inherit; font-size: 0.78rem; font-weight: 700;
+        cursor: pointer; border: 1px solid var(--stroke2);
+        background: transparent; color: var(--text-muted);
+        letter-spacing: 0.05em; transition: all 0.15s;
+      }
+      .lang-btn:hover { color: var(--text); border-color: var(--accent); }
 
       /* ── HERO ── */
       .hero {
@@ -363,29 +394,33 @@
     <nav>
       <a href="/" class="nav-brand">
         <div class="nav-brand-icon">🤖</div>
-        Assistant IT
+        <span data-fr="Assistant IT" data-en="IT Assistant">Assistant IT</span>
       </a>
       <div class="nav-links">
-        <a href="#features">Fonctionnalités</a>
-        <a href="#pricing">Tarifs</a>
-        <a href="#testimonials">Témoignages</a>
+        <a href="#features" data-fr="Fonctionnalités" data-en="Features">Fonctionnalités</a>
+        <a href="#pricing" data-fr="Tarifs" data-en="Pricing">Tarifs</a>
+        <a href="#testimonials" data-fr="Témoignages" data-en="Testimonials">Témoignages</a>
       </div>
       <div class="nav-cta">
-        <a href="/app/login/" class="btn ghost">Connexion</a>
-        <a href="/app/login.html" class="btn primary">Voir la démo →</a>
+        <button class="lang-btn" id="langToggle" onclick="toggleLang()">EN</button>
+        <a href="/app/login/" class="btn ghost" data-fr="Connexion" data-en="Login">Connexion</a>
+        <a href="/app/login.html" class="btn primary" data-fr="Voir la démo →" data-en="View demo →">Voir la démo →</a>
       </div>
     </nav>
 
     <!-- HERO -->
     <section class="hero">
-      <div class="hero-badge"><span class="dot"></span> IA Support IT • 24h/24 • FR &amp; EN</div>
-      <h1>Votre assistant IA support IT<br /><span>disponible 24h/24</span></h1>
-      <p class="hero-sub">
+      <div class="hero-badge"><span class="dot"></span> <span data-fr="IA Support IT • 24h/24 • FR &amp; EN" data-en="AI IT Support • 24/7 • FR &amp; EN">IA Support IT • 24h/24 • FR &amp; EN</span></div>
+      <h1>
+        <span data-fr="Votre assistant IA support IT" data-en="Your AI IT support assistant">Votre assistant IA support IT</span><br />
+        <span data-fr="disponible 24h/24" data-en="available 24/7" style="background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">disponible 24h/24</span>
+      </h1>
+      <p class="hero-sub" data-fr="Réduisez de 70% le temps de traitement des tickets IT. Réponses instantanées, escalade vers GLPI automatique, base de connaissances indexée." data-en="Reduce IT ticket processing time by 70%. Instant responses, automatic GLPI escalation, indexed knowledge base.">
         Réduisez de 70% le temps de traitement des tickets IT. Réponses instantanées, escalade vers GLPI automatique, base de connaissances indexée.
       </p>
       <div class="hero-actions">
-        <a href="#pricing" class="btn primary large">Démarrer — 14 jours gratuits</a>
-        <a href="/app/login.html" class="btn large">Voir la démo</a>
+        <a href="#pricing" class="btn primary large" data-fr="Démarrer — 14 jours gratuits" data-en="Get started — 14 days free">Démarrer — 14 jours gratuits</a>
+        <a href="/app/login.html" class="btn large" data-fr="Voir la démo" data-en="View demo">Voir la démo</a>
       </div>
     </section>
 
@@ -393,193 +428,186 @@
     <div class="stats-strip">
       <div class="stat">
         <span class="stat-value">70%</span>
-        <span class="stat-label">Tickets résolus sans technicien</span>
+        <span class="stat-label" data-fr="Tickets résolus sans technicien" data-en="Tickets resolved without technician">Tickets résolus sans technicien</span>
       </div>
       <div class="stat">
         <span class="stat-value">8 min</span>
-        <span class="stat-label">Économisées par ticket</span>
+        <span class="stat-label" data-fr="Économisées par ticket" data-en="Saved per ticket">Économisées par ticket</span>
       </div>
       <div class="stat">
         <span class="stat-value">15 min</span>
-        <span class="stat-label">Pour être opérationnel</span>
+        <span class="stat-label" data-fr="Pour être opérationnel" data-en="To go live">Pour être opérationnel</span>
       </div>
     </div>
 
     <!-- GLPI BANNER -->
     <div style="background:linear-gradient(90deg,rgba(99,102,241,0.12),rgba(139,92,246,0.12));border-top:1px solid rgba(99,102,241,0.2);border-bottom:1px solid rgba(99,102,241,0.2);padding:20px 24px;text-align:center;">
-      <span style="font-size:0.85rem;color:var(--text-muted);">Vous utilisez</span>
+      <span style="font-size:0.85rem;color:var(--text-muted);" data-fr="Vous utilisez" data-en="Using">Vous utilisez</span>
       <strong style="color:var(--text);margin:0 8px;">GLPI</strong>
-      <span style="font-size:0.85rem;color:var(--text-muted);">? Connectez-le à l'IA en 5 minutes —</span>
-      <a href="/glpi" style="color:var(--accent);font-weight:700;font-size:0.85rem;text-decoration:underline;margin-left:6px;">Voir l'intégration GLPI →</a>
+      <span style="font-size:0.85rem;color:var(--text-muted);" data-fr="? Connectez-le à l'IA en 5 minutes —" data-en="? Connect it to AI in 5 minutes —">? Connectez-le à l'IA en 5 minutes —</span>
+      <a href="/glpi" style="color:var(--accent);font-weight:700;font-size:0.85rem;text-decoration:underline;margin-left:6px;" data-fr="Voir l'intégration GLPI →" data-en="See GLPI integration →">Voir l'intégration GLPI →</a>
     </div>
 
     <!-- FEATURES -->
     <section id="features">
-      <div class="section-label">Fonctionnalités</div>
-      <h2 class="section-title">Tout pour un support IT moderne</h2>
-      <p class="section-sub">Un outil unique pour vos techniciens et vos utilisateurs.</p>
+      <div class="section-label" data-fr="Fonctionnalités" data-en="Features">Fonctionnalités</div>
+      <h2 class="section-title" data-fr="Tout pour un support IT moderne" data-en="Everything for modern IT support">Tout pour un support IT moderne</h2>
+      <p class="section-sub" data-fr="Un outil unique pour vos techniciens et vos utilisateurs." data-en="One tool for your technicians and your users.">Un outil unique pour vos techniciens et vos utilisateurs.</p>
       <div class="features-grid">
         <div class="feature-card">
           <div class="feature-icon fi-indigo">🤖</div>
-          <h3>IA Support N1/N2</h3>
-          <p>Répond instantanément en français et anglais. Résout les problèmes courants sans intervention humaine.</p>
+          <h3 data-fr="IA Support N1/N2" data-en="AI Support L1/L2">IA Support N1/N2</h3>
+          <p data-fr="Répond instantanément en français et anglais. Résout les problèmes courants sans intervention humaine." data-en="Responds instantly in French and English. Resolves common issues without human intervention.">Répond instantanément en français et anglais. Résout les problèmes courants sans intervention humaine.</p>
         </div>
         <div class="feature-card">
           <div class="feature-icon fi-violet">🎫</div>
-          <h3>Création tickets automatique</h3>
-          <p>Escalade vers GLPI dès que nécessaire. Classification, priorité et catégorie définis par l'IA.</p>
+          <h3 data-fr="Création tickets automatique" data-en="Automatic ticket creation">Création tickets automatique</h3>
+          <p data-fr="Escalade vers GLPI dès que nécessaire. Classification, priorité et catégorie définis par l'IA." data-en="Escalates to GLPI when needed. Classification, priority and category set by AI.">Escalade vers GLPI dès que nécessaire. Classification, priorité et catégorie définis par l'IA.</p>
         </div>
         <div class="feature-card">
           <div class="feature-icon fi-teal">📚</div>
-          <h3>Base de connaissances</h3>
-          <p>Vos procédures internes indexées et utilisées par l'IA. Import CSV en un clic.</p>
+          <h3 data-fr="Base de connaissances" data-en="Knowledge base">Base de connaissances</h3>
+          <p data-fr="Vos procédures internes indexées et utilisées par l'IA. Import CSV en un clic." data-en="Your internal procedures indexed and used by the AI. CSV import in one click.">Vos procédures internes indexées et utilisées par l'IA. Import CSV en un clic.</p>
         </div>
         <div class="feature-card">
           <div class="feature-icon fi-green">📊</div>
-          <h3>Dashboard admin</h3>
-          <p>Suivi en temps réel, KPIs, SLA, exports. Tout ce qu'il faut pour piloter votre support.</p>
+          <h3 data-fr="Dashboard admin" data-en="Admin dashboard">Dashboard admin</h3>
+          <p data-fr="Suivi en temps réel, KPIs, SLA, exports. Tout ce qu'il faut pour piloter votre support." data-en="Real-time monitoring, KPIs, SLA, exports. Everything you need to manage your support.">Suivi en temps réel, KPIs, SLA, exports. Tout ce qu'il faut pour piloter votre support.</p>
         </div>
         <div class="feature-card">
           <div class="feature-icon fi-orange">🏢</div>
-          <h3>Multi-tenant</h3>
-          <p>Une instance pour plusieurs clients ou entités. Isolation complète des données entre tenants.</p>
+          <h3 data-fr="Multi-tenant" data-en="Multi-tenant">Multi-tenant</h3>
+          <p data-fr="Une instance pour plusieurs clients ou entités. Isolation complète des données entre tenants." data-en="One instance for multiple clients or entities. Complete data isolation between tenants.">Une instance pour plusieurs clients ou entités. Isolation complète des données entre tenants.</p>
         </div>
         <div class="feature-card">
           <div class="feature-icon fi-pink">🔗</div>
-          <h3>Intégrations</h3>
-          <p>GLPI natif, webhooks Slack et Teams, Active Directory / LDAP sur les plans avancés.</p>
+          <h3 data-fr="Intégrations" data-en="Integrations">Intégrations</h3>
+          <p data-fr="GLPI natif, webhooks Slack et Teams, Active Directory / LDAP sur les plans avancés." data-en="Native GLPI, Slack and Teams webhooks, Active Directory / LDAP on advanced plans.">GLPI natif, webhooks Slack et Teams, Active Directory / LDAP sur les plans avancés.</p>
         </div>
       </div>
     </section>
 
     <!-- ROI CALCULATOR -->
     <section id="roi" style="background:var(--bg2)">
-      <div class="section-label">Calculateur ROI</div>
-      <h2 class="section-title">Combien économisez-vous par mois ?</h2>
-      <p class="section-sub">Ajustez les curseurs selon votre contexte IT réel.</p>
+      <div class="section-label" data-fr="Calculateur ROI" data-en="ROI Calculator">Calculateur ROI</div>
+      <h2 class="section-title" data-fr="Combien économisez-vous par mois ?" data-en="How much do you save per month?">Combien économisez-vous par mois ?</h2>
+      <p class="section-sub" data-fr="Ajustez les curseurs selon votre contexte IT réel." data-en="Adjust the sliders to match your IT environment.">Ajustez les curseurs selon votre contexte IT réel.</p>
       <div style="max-width:680px;margin:0 auto;background:var(--card);border:1px solid var(--stroke2);border-radius:20px;padding:40px">
         <div style="display:grid;gap:28px">
-
           <div>
             <div style="display:flex;justify-content:space-between;margin-bottom:10px">
-              <label style="font-size:.85rem;font-weight:600;color:var(--text-muted)">Tickets N1/semaine</label>
+              <label style="font-size:.85rem;font-weight:600;color:var(--text-muted)" data-fr="Tickets N1/semaine" data-en="L1 tickets/week">Tickets N1/semaine</label>
               <span id="val-tickets" style="font-weight:700;color:var(--accent)">80</span>
             </div>
             <input type="range" id="slider-tickets" min="10" max="300" value="80" style="width:100%;accent-color:var(--accent);cursor:pointer" oninput="calcRoi()">
             <div style="display:flex;justify-content:space-between;font-size:.72rem;color:var(--text-muted);margin-top:4px"><span>10</span><span>300</span></div>
           </div>
-
           <div>
             <div style="display:flex;justify-content:space-between;margin-bottom:10px">
-              <label style="font-size:.85rem;font-weight:600;color:var(--text-muted)">Temps moyen de traitement manuel (min)</label>
+              <label style="font-size:.85rem;font-weight:600;color:var(--text-muted)" data-fr="Temps moyen de traitement manuel (min)" data-en="Average manual handling time (min)">Temps moyen de traitement manuel (min)</label>
               <span id="val-time" style="font-weight:700;color:var(--accent)">25</span>
             </div>
             <input type="range" id="slider-time" min="5" max="60" value="25" style="width:100%;accent-color:var(--accent);cursor:pointer" oninput="calcRoi()">
             <div style="display:flex;justify-content:space-between;font-size:.72rem;color:var(--text-muted);margin-top:4px"><span>5 min</span><span>60 min</span></div>
           </div>
-
           <div>
             <div style="display:flex;justify-content:space-between;margin-bottom:10px">
-              <label style="font-size:.85rem;font-weight:600;color:var(--text-muted)">Coût horaire technicien N1 (€/h)</label>
+              <label style="font-size:.85rem;font-weight:600;color:var(--text-muted)" data-fr="Coût horaire technicien N1 (€/h)" data-en="L1 technician hourly cost (€/h)">Coût horaire technicien N1 (€/h)</label>
               <span id="val-cost" style="font-weight:700;color:var(--accent)">35</span>
             </div>
             <input type="range" id="slider-cost" min="20" max="80" value="35" style="width:100%;accent-color:var(--accent);cursor:pointer" oninput="calcRoi()">
             <div style="display:flex;justify-content:space-between;font-size:.72rem;color:var(--text-muted);margin-top:4px"><span>20€</span><span>80€</span></div>
           </div>
         </div>
-
         <div style="margin-top:36px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;text-align:center">
           <div style="background:var(--bg3);border-radius:14px;padding:20px">
             <p id="roi-hours" style="font-size:2rem;font-weight:900;color:#fff;line-height:1">—</p>
-            <p style="font-size:.75rem;color:var(--text-muted);margin-top:6px">Heures/mois automatisées</p>
+            <p style="font-size:.75rem;color:var(--text-muted);margin-top:6px" data-fr="Heures/mois automatisées" data-en="Hours/month automated">Heures/mois automatisées</p>
           </div>
           <div style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.3);border-radius:14px;padding:20px">
             <p id="roi-savings" style="font-size:2rem;font-weight:900;color:var(--accent);line-height:1">—</p>
-            <p style="font-size:.75rem;color:var(--text-muted);margin-top:6px">Économies mensuelles</p>
+            <p style="font-size:.75rem;color:var(--text-muted);margin-top:6px" data-fr="Économies mensuelles" data-en="Monthly savings">Économies mensuelles</p>
           </div>
           <div style="background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.2);border-radius:14px;padding:20px">
             <p id="roi-return" style="font-size:2rem;font-weight:900;color:var(--success);line-height:1">—</p>
-            <p style="font-size:.75rem;color:var(--text-muted);margin-top:6px">ROI vs plan Starter</p>
+            <p style="font-size:.75rem;color:var(--text-muted);margin-top:6px" data-fr="ROI vs plan Starter" data-en="ROI vs Starter plan">ROI vs plan Starter</p>
           </div>
         </div>
-
         <div style="margin-top:24px;text-align:center">
           <p id="roi-message" style="font-size:.9rem;color:var(--text-muted);margin-bottom:16px"></p>
-          <button class="btn primary" onclick="openModal('starter')" style="padding:14px 36px">
-            Démarrer l'essai gratuit 14 jours →
-          </button>
+          <button class="btn primary" onclick="openModal('starter')" style="padding:14px 36px" data-fr="Démarrer l'essai gratuit 14 jours →" data-en="Start free 14-day trial →">Démarrer l'essai gratuit 14 jours →</button>
         </div>
       </div>
     </section>
 
     <!-- PRICING -->
     <section id="pricing">
-      <div class="section-label">Tarifs</div>
-      <h2 class="section-title">Tarification claire, sans surprise</h2>
-      <p class="section-sub">Déployé en moins d'une heure. Résiliable à tout moment. Essai 14 jours gratuit sur tous les plans.</p>
+      <div class="section-label" data-fr="Tarifs" data-en="Pricing">Tarifs</div>
+      <h2 class="section-title" data-fr="Tarification claire, sans surprise" data-en="Transparent pricing, no surprises">Tarification claire, sans surprise</h2>
+      <p class="section-sub" data-fr="Déployé en moins d'une heure. Résiliable à tout moment. Essai 14 jours gratuit sur tous les plans." data-en="Deployed in under an hour. Cancel anytime. 14-day free trial on all plans.">Déployé en moins d'une heure. Résiliable à tout moment. Essai 14 jours gratuit sur tous les plans.</p>
       <div class="pricing-grid">
 
         <div class="plan">
           <div class="plan-name">Starter</div>
           <div class="plan-price">
             <span class="plan-amount">99€</span>
-            <span class="plan-period">/mois</span>
+            <span class="plan-period">/mo</span>
           </div>
-          <p class="plan-desc">Pour les PME souhaitant automatiser leur support N1 sans infrastructure lourde.</p>
+          <p class="plan-desc" data-fr="Pour les PME souhaitant automatiser leur support N1 sans infrastructure lourde." data-en="For SMEs looking to automate L1 support without heavy infrastructure.">Pour les PME souhaitant automatiser leur support N1 sans infrastructure lourde.</p>
           <div class="plan-features">
-            <div class="plan-feature"><span class="check">✓</span> Jusqu'à 50 utilisateurs</div>
-            <div class="plan-feature"><span class="check">✓</span> Assistant IA N1/N2 (GPT-4o)</div>
-            <div class="plan-feature"><span class="check">✓</span> Création de tickets automatique</div>
-            <div class="plan-feature"><span class="check">✓</span> Base de connaissances (50 docs)</div>
-            <div class="plan-feature"><span class="check">✓</span> Dashboard &amp; historique tickets</div>
-            <div class="plan-feature"><span class="cross">—</span> Analytics avancés &amp; SLA</div>
-            <div class="plan-feature"><span class="cross">—</span> Intégrations Slack / Teams</div>
+            <div class="plan-feature"><span class="check">✓</span> <span data-fr="Jusqu'à 50 utilisateurs" data-en="Up to 50 users">Jusqu'à 50 utilisateurs</span></div>
+            <div class="plan-feature"><span class="check">✓</span> <span data-fr="Assistant IA N1/N2 (GPT-4o)" data-en="AI Assistant L1/L2 (GPT-4o)">Assistant IA N1/N2 (GPT-4o)</span></div>
+            <div class="plan-feature"><span class="check">✓</span> <span data-fr="Création de tickets automatique" data-en="Automatic ticket creation">Création de tickets automatique</span></div>
+            <div class="plan-feature"><span class="check">✓</span> <span data-fr="Base de connaissances (50 docs)" data-en="Knowledge base (50 docs)">Base de connaissances (50 docs)</span></div>
+            <div class="plan-feature"><span class="check">✓</span> <span data-fr="Dashboard &amp; historique tickets" data-en="Dashboard &amp; ticket history">Dashboard &amp; historique tickets</span></div>
+            <div class="plan-feature"><span class="cross">—</span> <span data-fr="Analytics avancés &amp; SLA" data-en="Advanced analytics &amp; SLA">Analytics avancés &amp; SLA</span></div>
+            <div class="plan-feature"><span class="cross">—</span> <span data-fr="Intégrations Slack / Teams" data-en="Slack / Teams integrations">Intégrations Slack / Teams</span></div>
           </div>
           <div class="plan-cta">
-            <button class="btn" style="width:100%;justify-content:center;" onclick="openModal('starter')">Démarrer l'essai gratuit</button>
+            <button class="btn" style="width:100%;justify-content:center;" onclick="openModal('starter')" data-fr="Démarrer l'essai gratuit" data-en="Start free trial">Démarrer l'essai gratuit</button>
           </div>
         </div>
 
         <div class="plan featured">
-          <div class="plan-badge">Recommandé</div>
+          <div class="plan-badge" data-fr="Recommandé" data-en="Recommended">Recommandé</div>
           <div class="plan-name">Pro</div>
           <div class="plan-price">
             <span class="plan-amount">199€</span>
-            <span class="plan-period">/mois</span>
+            <span class="plan-period">/mo</span>
           </div>
-          <p class="plan-desc">Pour les équipes IT structurées avec GLPI, Active Directory et reportings SLA.</p>
+          <p class="plan-desc" data-fr="Pour les équipes IT structurées avec GLPI, Active Directory et reportings SLA." data-en="For structured IT teams with GLPI, Active Directory and SLA reporting.">Pour les équipes IT structurées avec GLPI, Active Directory et reportings SLA.</p>
           <div class="plan-features">
-            <div class="plan-feature"><span class="check">✓</span> Jusqu'à 200 utilisateurs</div>
-            <div class="plan-feature"><span class="check">✓</span> Tout Starter inclus</div>
-            <div class="plan-feature"><span class="check">✓</span> Intégration GLPI native</div>
-            <div class="plan-feature"><span class="check">✓</span> Analytics avancés &amp; alertes SLA</div>
-            <div class="plan-feature"><span class="check">✓</span> Webhooks Slack / Teams</div>
-            <div class="plan-feature"><span class="check">✓</span> Active Directory / LDAP</div>
-            <div class="plan-feature"><span class="check">✓</span> Support prioritaire 24h</div>
+            <div class="plan-feature"><span class="check">✓</span> <span data-fr="Jusqu'à 200 utilisateurs" data-en="Up to 200 users">Jusqu'à 200 utilisateurs</span></div>
+            <div class="plan-feature"><span class="check">✓</span> <span data-fr="Tout Starter inclus" data-en="All Starter included">Tout Starter inclus</span></div>
+            <div class="plan-feature"><span class="check">✓</span> <span data-fr="Intégration GLPI native" data-en="Native GLPI integration">Intégration GLPI native</span></div>
+            <div class="plan-feature"><span class="check">✓</span> <span data-fr="Analytics avancés &amp; alertes SLA" data-en="Advanced analytics &amp; SLA alerts">Analytics avancés &amp; alertes SLA</span></div>
+            <div class="plan-feature"><span class="check">✓</span> <span data-fr="Webhooks Slack / Teams" data-en="Slack / Teams webhooks">Webhooks Slack / Teams</span></div>
+            <div class="plan-feature"><span class="check">✓</span> <span data-fr="Active Directory / LDAP" data-en="Active Directory / LDAP">Active Directory / LDAP</span></div>
+            <div class="plan-feature"><span class="check">✓</span> <span data-fr="Support prioritaire 24h" data-en="Priority 24h support">Support prioritaire 24h</span></div>
           </div>
           <div class="plan-cta">
-            <button class="btn primary" style="width:100%;justify-content:center;" onclick="openModal('pro')">Démarrer en Pro</button>
+            <button class="btn primary" style="width:100%;justify-content:center;" onclick="openModal('pro')" data-fr="Démarrer en Pro" data-en="Start Pro">Démarrer en Pro</button>
           </div>
         </div>
 
         <div class="plan">
-          <div class="plan-name">Entreprise</div>
+          <div class="plan-name" data-fr="Entreprise" data-en="Enterprise">Entreprise</div>
           <div class="plan-price">
             <span class="plan-amount">399€</span>
-            <span class="plan-period">/mois</span>
+            <span class="plan-period">/mo</span>
           </div>
-          <p class="plan-desc">Pour les ESN, groupes et collectivités gérant plusieurs périmètres IT.</p>
+          <p class="plan-desc" data-fr="Pour les ESN, groupes et collectivités gérant plusieurs périmètres IT." data-en="For IT service providers, groups and organizations managing multiple IT scopes.">Pour les ESN, groupes et collectivités gérant plusieurs périmètres IT.</p>
           <div class="plan-features">
-            <div class="plan-feature"><span class="check">✓</span> Utilisateurs illimités</div>
-            <div class="plan-feature"><span class="check">✓</span> Tout Pro inclus</div>
-            <div class="plan-feature"><span class="check">✓</span> Multi-tenant (plusieurs clients)</div>
-            <div class="plan-feature"><span class="check">✓</span> API complète &amp; webhooks custom</div>
-            <div class="plan-feature"><span class="check">✓</span> Rapports automatiques PDF</div>
-            <div class="plan-feature"><span class="check">✓</span> Hébergement dédié possible</div>
-            <div class="plan-feature"><span class="check">✓</span> SLA contractuel 99,9%</div>
+            <div class="plan-feature"><span class="check">✓</span> <span data-fr="Utilisateurs illimités" data-en="Unlimited users">Utilisateurs illimités</span></div>
+            <div class="plan-feature"><span class="check">✓</span> <span data-fr="Tout Pro inclus" data-en="All Pro included">Tout Pro inclus</span></div>
+            <div class="plan-feature"><span class="check">✓</span> <span data-fr="Multi-tenant (plusieurs clients)" data-en="Multi-tenant (multiple clients)">Multi-tenant (plusieurs clients)</span></div>
+            <div class="plan-feature"><span class="check">✓</span> <span data-fr="API complète &amp; webhooks custom" data-en="Full API &amp; custom webhooks">API complète &amp; webhooks custom</span></div>
+            <div class="plan-feature"><span class="check">✓</span> <span data-fr="Rapports automatiques PDF" data-en="Automatic PDF reports">Rapports automatiques PDF</span></div>
+            <div class="plan-feature"><span class="check">✓</span> <span data-fr="Hébergement dédié possible" data-en="Dedicated hosting available">Hébergement dédié possible</span></div>
+            <div class="plan-feature"><span class="check">✓</span> <span data-fr="SLA contractuel 99,9%" data-en="Contractual SLA 99.9%">SLA contractuel 99,9%</span></div>
           </div>
           <div class="plan-cta">
-            <button class="btn" style="width:100%;justify-content:center;" onclick="openModal('enterprise')">Demander une démo</button>
+            <button class="btn" style="width:100%;justify-content:center;" onclick="openModal('enterprise')" data-fr="Demander une démo" data-en="Request a demo">Demander une démo</button>
           </div>
         </div>
 
@@ -588,40 +616,40 @@
 
     <!-- TESTIMONIALS -->
     <section id="testimonials">
-      <div class="section-label">Témoignages</div>
-      <h2 class="section-title">Ils ont transformé leur support IT</h2>
-      <p class="section-sub">Des PME, mairies et ESN qui utilisent l'assistant au quotidien.</p>
+      <div class="section-label" data-fr="Témoignages" data-en="Testimonials">Témoignages</div>
+      <h2 class="section-title" data-fr="Ils ont transformé leur support IT" data-en="They transformed their IT support">Ils ont transformé leur support IT</h2>
+      <p class="section-sub" data-fr="Des PME, mairies et ESN qui utilisent l'assistant au quotidien." data-en="SMEs, municipalities and IT service providers using the assistant daily.">Des PME, mairies et ESN qui utilisent l'assistant au quotidien.</p>
       <div class="testimonials-grid">
         <div class="testimonial">
           <div class="stars">★★★★★</div>
-          <p class="testimonial-text">"On a réduit de 70% le temps passé à trier et répondre aux tickets. Les utilisateurs sont autonomes pour les problèmes courants."</p>
+          <p class="testimonial-text" data-fr="«&nbsp;On a réduit de 70% le temps passé à trier et répondre aux tickets. Les utilisateurs sont autonomes pour les problèmes courants.&nbsp;»" data-en="«&nbsp;We reduced by 70% the time spent sorting and responding to tickets. Users handle common issues on their own.&nbsp;»">«&nbsp;On a réduit de 70% le temps passé à trier et répondre aux tickets. Les utilisateurs sont autonomes pour les problèmes courants.&nbsp;»</p>
           <div class="testimonial-author">
             <div class="testimonial-avatar">JM</div>
             <div>
               <div class="testimonial-name">Jean-Marc D.</div>
-              <div class="testimonial-role">DSI — PME industrielle, 120 salariés</div>
+              <div class="testimonial-role" data-fr="DSI — PME industrielle, 120 salariés" data-en="CIO — Industrial SME, 120 employees">DSI — PME industrielle, 120 salariés</div>
             </div>
           </div>
         </div>
         <div class="testimonial">
           <div class="stars">★★★★★</div>
-          <p class="testimonial-text">"Connecté à notre GLPI en 10 minutes. L'IA propose des solutions que nos techniciens utilisent directement. ROI immédiat."</p>
+          <p class="testimonial-text" data-fr="«&nbsp;Connecté à notre GLPI en 10 minutes. L'IA propose des solutions que nos techniciens utilisent directement. ROI immédiat.&nbsp;»" data-en="«&nbsp;Connected to our GLPI in 10 minutes. The AI suggests solutions our technicians use directly. Immediate ROI.&nbsp;»">«&nbsp;Connecté à notre GLPI en 10 minutes. L'IA propose des solutions que nos techniciens utilisent directement. ROI immédiat.&nbsp;»</p>
           <div class="testimonial-author">
             <div class="testimonial-avatar">SL</div>
             <div>
               <div class="testimonial-name">Sophie L.</div>
-              <div class="testimonial-role">Responsable IT — Mairie, 80 agents</div>
+              <div class="testimonial-role" data-fr="Responsable IT — Mairie, 80 agents" data-en="IT Manager — Municipality, 80 staff">Responsable IT — Mairie, 80 agents</div>
             </div>
           </div>
         </div>
         <div class="testimonial">
           <div class="stars">★★★★★</div>
-          <p class="testimonial-text">"Simple pour nos enseignants non-tech. Tickets créés en 2 clics, suivis automatiquement, escalade vers l'équipe en cas de besoin."</p>
+          <p class="testimonial-text" data-fr="«&nbsp;Simple pour nos enseignants non-tech. Tickets créés en 2 clics, suivis automatiquement, escalade vers l'équipe en cas de besoin.&nbsp;»" data-en="«&nbsp;Simple for our non-technical teachers. Tickets created in 2 clicks, automatically tracked, escalated to the team when needed.&nbsp;»">«&nbsp;Simple pour nos enseignants non-tech. Tickets créés en 2 clics, suivis automatiquement, escalade vers l'équipe en cas de besoin.&nbsp;»</p>
           <div class="testimonial-author">
             <div class="testimonial-avatar">AC</div>
             <div>
               <div class="testimonial-name">Alexandre C.</div>
-              <div class="testimonial-role">Technicien IT — Lycée, 1 200 élèves</div>
+              <div class="testimonial-role" data-fr="Technicien IT — Lycée, 1 200 élèves" data-en="IT Technician — High School, 1,200 students">Technicien IT — Lycée, 1 200 élèves</div>
             </div>
           </div>
         </div>
@@ -630,71 +658,89 @@
 
     <!-- CTA FINAL -->
     <div class="cta-section">
-      <h2>Prêt à transformer votre support IT ?</h2>
-      <p>14 jours gratuits, sans carte bancaire, opérationnel en 15 minutes.</p>
+      <h2 data-fr="Prêt à transformer votre support IT ?" data-en="Ready to transform your IT support?">Prêt à transformer votre support IT ?</h2>
+      <p data-fr="14 jours gratuits, sans carte bancaire, opérationnel en 15 minutes." data-en="14 days free, no credit card required, live in 15 minutes.">14 jours gratuits, sans carte bancaire, opérationnel en 15 minutes.</p>
       <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
-        <button class="btn primary large" onclick="openModal('pro')">Démarrer gratuitement 14 jours</button>
-        <a href="/app/login.html" class="btn large">Voir la démo en direct</a>
+        <button class="btn primary large" onclick="openModal('pro')" data-fr="Démarrer gratuitement 14 jours" data-en="Start free for 14 days">Démarrer gratuitement 14 jours</button>
+        <a href="/app/login.html" class="btn large" data-fr="Voir la démo en direct" data-en="View live demo">Voir la démo en direct</a>
       </div>
       <p class="cta-note">
-        <span>✓</span> Sans carte bancaire &nbsp;&nbsp;
-        <span>✓</span> Sans engagement &nbsp;&nbsp;
-        <span>✓</span> Setup en 15 minutes
+        <span>✓</span> <span data-fr="Sans carte bancaire" data-en="No credit card">Sans carte bancaire</span> &nbsp;&nbsp;
+        <span>✓</span> <span data-fr="Sans engagement" data-en="No commitment">Sans engagement</span> &nbsp;&nbsp;
+        <span>✓</span> <span data-fr="Setup en 15 minutes" data-en="15-minute setup">Setup en 15 minutes</span>
       </p>
     </div>
 
     <!-- FOOTER -->
     <footer>
-      <div class="footer-brand">🤖 Assistant IT — par KAH Digital</div>
+      <div class="footer-brand">🤖 <span data-fr="Assistant IT — par KAH Digital" data-en="IT Assistant — by KAH Digital">Assistant IT — par KAH Digital</span></div>
       <div class="footer-links">
-        <a href="#features">Fonctionnalités</a>
-        <a href="#pricing">Tarifs</a>
-        <a href="/app/login/">Connexion</a>
-        <a href="mailto:contact@kah-digital.fr">Contact</a>
+        <a href="#features" data-fr="Fonctionnalités" data-en="Features">Fonctionnalités</a>
+        <a href="#pricing" data-fr="Tarifs" data-en="Pricing">Tarifs</a>
+        <a href="/app/login/" data-fr="Connexion" data-en="Login">Connexion</a>
+        <a href="mailto:contact@kah-digital.ch">Contact</a>
       </div>
-      <div class="footer-copy">© 2026 KAH Digital. Tous droits réservés. <a href="/app/legal.html" style="opacity:0.5;color:inherit">Mentions légales</a></div>
+      <div class="footer-copy">© 2026 KAH Digital. <span data-fr="Tous droits réservés." data-en="All rights reserved.">Tous droits réservés.</span> <a href="/app/legal.html" style="opacity:0.5;color:inherit" data-fr="Mentions légales" data-en="Legal notice">Mentions légales</a></div>
     </footer>
 
     <!-- MODAL INSCRIPTION -->
     <div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
       <div class="modal" style="position:relative;">
         <button class="modal-close" onclick="closeModal()" aria-label="Fermer">&times;</button>
-        <h2>Créer votre compte</h2>
-        <p class="modal-sub">Remplissez ce formulaire pour commencer votre essai gratuit.</p>
-        <div class="modal-plan-badge" id="modalPlanBadge">Plan Starter — 99€/mois</div>
+        <h2 data-fr="Créer votre compte" data-en="Create your account">Créer votre compte</h2>
+        <p class="modal-sub" data-fr="Remplissez ce formulaire pour commencer votre essai gratuit." data-en="Fill in this form to start your free trial.">Remplissez ce formulaire pour commencer votre essai gratuit.</p>
+        <div class="modal-plan-badge" id="modalPlanBadge">Plan Starter — 99€/mo</div>
         <form id="checkoutForm" onsubmit="submitCheckout(event)">
           <div class="form-group">
-            <label for="fieldOrg">Nom de l'organisation</label>
+            <label for="fieldOrg" data-fr="Nom de l'organisation" data-en="Organisation name">Nom de l'organisation</label>
             <input type="text" id="fieldOrg" placeholder="Acme Corp" required />
           </div>
           <div class="form-group">
-            <label for="fieldEmail">Email professionnel</label>
-            <input type="email" id="fieldEmail" placeholder="jean@entreprise.fr" required />
+            <label for="fieldEmail" data-fr="Email professionnel" data-en="Professional email">Email professionnel</label>
+            <input type="email" id="fieldEmail" placeholder="jean@company.com" required />
           </div>
           <div class="form-group">
-            <label for="fieldPlan">Plan sélectionné</label>
+            <label for="fieldPlan" data-fr="Plan sélectionné" data-en="Selected plan">Plan sélectionné</label>
             <select id="fieldPlan">
-              <option value="starter">Starter — 99€/mois</option>
-              <option value="pro">Pro — 199€/mois</option>
-              <option value="enterprise">Entreprise — 399€/mois</option>
+              <option value="starter">Starter — 99€/mo</option>
+              <option value="pro">Pro — 199€/mo</option>
+              <option value="enterprise">Enterprise — 399€/mo</option>
             </select>
           </div>
-          <button type="submit" class="modal-submit" id="submitBtn">
-            Payer avec Stripe →
-          </button>
+          <button type="submit" class="modal-submit" id="submitBtn" data-fr="Payer avec Stripe →" data-en="Pay with Stripe →">Payer avec Stripe →</button>
           <div class="modal-error" id="modalError"></div>
         </form>
-        <p style="font-size:0.75rem;color:var(--text-muted);margin-top:14px;text-align:center;">
+        <p style="font-size:0.75rem;color:var(--text-muted);margin-top:14px;text-align:center;" data-fr="Paiement sécurisé par Stripe. Résiliable à tout moment." data-en="Secure payment by Stripe. Cancel anytime.">
           Paiement sécurisé par Stripe. Résiliable à tout moment.
         </p>
       </div>
     </div>
 
     <script>
+      // ── LANGUAGE SYSTEM ──
+      let currentLang = (navigator.language || 'fr').startsWith('en') ? 'en' : 'fr';
+
+      function applyLang(lang) {
+        currentLang = lang;
+        document.getElementById('htmlRoot').lang = lang;
+        document.getElementById('langToggle').textContent = lang === 'fr' ? 'EN' : 'FR';
+        document.querySelectorAll('[data-fr]').forEach(el => {
+          const val = el.getAttribute('data-' + lang);
+          if (val !== null) el.innerHTML = val;
+        });
+        // Update ROI message language
+        calcRoi();
+      }
+
+      function toggleLang() {
+        applyLang(currentLang === 'fr' ? 'en' : 'fr');
+      }
+
+      // ── PLAN LABELS ──
       const PLAN_LABELS = {
-        starter: "Plan Starter — 99€/mois",
-        pro: "Plan Pro — 199€/mois",
-        enterprise: "Plan Entreprise — 399€/mois",
+        starter: "Plan Starter — 99€/mo",
+        pro: "Plan Pro — 199€/mo",
+        enterprise: "Plan Enterprise — 399€/mo",
       };
 
       function openModal(plan) {
@@ -732,27 +778,31 @@
         document.getElementById("val-time").textContent = time;
         document.getElementById("val-cost").textContent = cost;
 
-        // IA gère 70% des tickets N1 automatiquement
-        const automatedTickets = Math.round(tickets * 4 * 0.70); // par mois
+        const automatedTickets = Math.round(tickets * 4 * 0.70);
         const hoursPerMonth = Math.round(automatedTickets * time / 60);
         const savings = Math.round(hoursPerMonth * cost);
-        const roi = savings > 0 ? Math.round((savings - 99) / 99 * 100) : 0;
 
         document.getElementById("roi-hours").textContent = hoursPerMonth + "h";
         document.getElementById("roi-savings").textContent = savings.toLocaleString("fr-FR") + "€";
         document.getElementById("roi-return").textContent = "×" + (savings / 99).toFixed(1);
 
         let msg = "";
+        const isFr = currentLang === 'fr';
         if (savings < 99) {
-          msg = "Plan Starter à 99€/mois — rentabilité dès que votre volume de tickets augmente.";
+          msg = isFr
+            ? "Plan Starter à 99€/mois — rentabilité dès que votre volume de tickets augmente."
+            : "Starter plan at €99/mo — profitable as your ticket volume grows.";
         } else if (savings < 300) {
-          msg = `Votre ROI est positif dès le 1er mois. Le plan Starter s'autofinance en ${Math.round(99/savings*30)} jours.`;
+          msg = isFr
+            ? `Votre ROI est positif dès le 1er mois. Le plan Starter s'autofinance en ${Math.round(99/savings*30)} jours.`
+            : `Your ROI is positive from month 1. The Starter plan pays for itself in ${Math.round(99/savings*30)} days.`;
         } else {
-          msg = `${savings.toLocaleString("fr-FR")}€ économisés = ${(savings/99).toFixed(0)}x le coût du plan Starter. Chaque jour sans l'outil vous coûte ${Math.round(savings/30)}€.`;
+          msg = isFr
+            ? `${savings.toLocaleString("fr-FR")}€ économisés = ${(savings/99).toFixed(0)}x le coût du plan Starter. Chaque jour sans l'outil vous coûte ${Math.round(savings/30)}€.`
+            : `€${savings.toLocaleString()} saved = ${(savings/99).toFixed(0)}x the Starter plan cost. Every day without the tool costs you €${Math.round(savings/30)}.`;
         }
         document.getElementById("roi-message").textContent = msg;
       }
-      calcRoi();
 
       async function submitCheckout(e) {
         e.preventDefault();
@@ -760,7 +810,7 @@
         const errEl = document.getElementById("modalError");
         errEl.classList.remove("show");
         btn.disabled = true;
-        btn.textContent = "Redirection en cours…";
+        btn.textContent = currentLang === 'fr' ? "Redirection en cours…" : "Redirecting…";
 
         const email = document.getElementById("fieldEmail").value.trim();
         const tenantName = document.getElementById("fieldOrg").value.trim();
@@ -774,16 +824,20 @@
           });
           const data = await r.json();
           if (!r.ok || !data.url) {
-            throw new Error(data.error || data.message || "Erreur lors de la création de la session.");
+            throw new Error(data.error || data.message || (currentLang === 'fr' ? "Erreur lors de la création de la session." : "Error creating session."));
           }
           window.location.href = data.url;
         } catch (err) {
-          errEl.textContent = err.message || "Une erreur est survenue. Réessayez.";
+          errEl.textContent = err.message || (currentLang === 'fr' ? "Une erreur est survenue. Réessayez." : "An error occurred. Please try again.");
           errEl.classList.add("show");
           btn.disabled = false;
-          btn.textContent = "Payer avec Stripe →";
+          btn.textContent = currentLang === 'fr' ? "Payer avec Stripe →" : "Pay with Stripe →";
         }
       }
+
+      // Init
+      applyLang(currentLang);
+      calcRoi();
     </script>
   </body>
 </html>

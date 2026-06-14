@@ -1,0 +1,20 @@
+User-agent: *
+Disallow: /admin
+Disallow: /api/
+Disallow: /dashboard
+Disallow: /account
+Disallow: /app/admin
+Disallow: /app/user
+Disallow: /app/reset-password
+Disallow: /success.html
+Disallow: /auth/
+Disallow: /billing/
+Disallow: /chat/
+Disallow: /tickets/
+Disallow: /kb/
+Disallow: /org/
+Disallow: /debug/
+Allow: /
+Allow: /glpi
+
+Sitemap: https://kah-support.ch/sitemap.xml

@@ -148,6 +148,16 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(appDir, "index.html"));
 });
 
+app.get("/robots.txt", (req, res) => {
+  res.setHeader("Content-Type", "text/plain");
+  res.sendFile(path.join(appDir, "robots.txt"));
+});
+
+app.get("/sitemap.xml", (req, res) => {
+  res.setHeader("Content-Type", "application/xml");
+  res.sendFile(path.join(appDir, "sitemap.xml"));
+});
+
 app.get("/glpi", (req, res) => sendNoCache(res, path.join(appDir, "glpi.html")));
 app.get("/glpi/", (req, res) => sendNoCache(res, path.join(appDir, "glpi.html")));
 
