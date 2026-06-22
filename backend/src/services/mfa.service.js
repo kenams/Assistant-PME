@@ -74,12 +74,23 @@ function generateBackupCodes(count = 8) {
 }
 
 // ─── DB OPERATIONS ────────────────────────────────────────────────────────────
-async function setupMFA(userId) {
+async function setupMFA(userId, currentToken = null) {
   const knex = getKnex();
   const secret = generateSecret();
   const backupCodes = generateBackupCodes();
   const existing = await knex("user_mfa").where({ user_id: userId }).first();
   if (existing) {
+    // Re-enrollment requires step-up: validate current TOTP or backup code first
+    if (existing.verified) {
+      if (!currentToken) return { error: "current_token_required" };
+      const tempCheck = await validateMFAToken(userId, currentToken);
+      if (!tempCheck.ok) return { error: "invalid_current_token" };
+    }
+    // Log security event for MFA re-enrollment
+    try {
+      const { logEvent } = require("./audit.service");
+      await logEvent({ tenantId: null, userId, action: "mfa_reenrolled", entity: "user", entityId: userId });
+    } catch {}
     await knex("user_mfa").where({ user_id: userId }).update({
       totp_secret: secret,
       verified: false,

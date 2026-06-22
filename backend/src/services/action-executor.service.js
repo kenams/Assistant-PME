@@ -1,5 +1,4 @@
-// Action Executor — transforme un ticket en action concrète
-// Phase 4: résolution automatique pour les cas simples
+const crypto = require("crypto");
 const { getKnex } = require("./store.service");
 const { logEvent } = require("./audit.service");
 
@@ -9,14 +8,29 @@ const ACTIONS = {
     label: "Réinitialisation mot de passe",
     match: (analysis) => analysis.backlog_group === "N1" && analysis.resolution_type === "auto" && /mot de passe|password|mdp|pwd|oubli/i.test(analysis._title || ""),
     execute: async (ticket, tenantId) => {
-      // In a real deployment: call AD API / Azure AD / Okta
-      // Here: generate temp password + send email via existing email.service
+      // Generate temp password and dispatch out-of-band via email only
+      // Never return the password in the API response
       const tempPassword = generateTempPassword();
+      const knex = getKnex();
+      // Fetch user email from ticket assignment (verified address only)
+      const user = ticket.user_id
+        ? await knex("users").where({ id: ticket.user_id, tenant_id: tenantId }).first()
+        : null;
+      if (user?.email) {
+        try {
+          const { sendEmail } = require("./email.service");
+          await sendEmail({
+            to: user.email,
+            subject: "[AssistantPME] Réinitialisation de votre mot de passe",
+            text: `Votre mot de passe temporaire : ${tempPassword}\n\nChangez-le immédiatement sur le portail SSO. Expire dans 24h.`,
+          });
+        } catch {}
+      }
       return {
         action: "password_reset",
         success: true,
-        response: `Votre mot de passe temporaire est : **${tempPassword}**\n\nConnectez-vous sur le portail SSO et changez-le immédiatement.\nCe mot de passe expire dans 24h.`,
-        data: { tempPassword, expiresIn: "24h" },
+        response: "Un mot de passe temporaire a été envoyé à votre adresse email vérifiée. Connectez-vous sur le portail SSO et changez-le immédiatement.",
+        data: { expiresIn: "24h", sent_to: user?.email ? "verified_email" : "no_email_on_file" },
       };
     },
   },
@@ -65,7 +79,7 @@ function generateTempPassword() {
   const chars = "abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789!@#";
   let pwd = "";
   for (let i = 0; i < 12; i++) {
-    pwd += chars[Math.floor(Math.random() * chars.length)];
+    pwd += chars[crypto.randomInt(0, chars.length)];
   }
   return pwd;
 }
