@@ -33,6 +33,9 @@ const docsRoutes = require("./routes/docs.routes");
 const uploadsRoutes = require("./routes/uploads.routes");
 const prospectRoutes = require("./routes/prospect.routes");
 const onboardingCronRoutes = require("./routes/onboarding-cron.routes");
+const dispatchRoutes = require("./routes/dispatch.routes");
+const simulationRoutes = require("./routes/simulation.routes");
+const mfaRoutes = require("./routes/mfa.routes");
 
 const app = express();
 const logger = createLogger();
@@ -179,6 +182,9 @@ app.use("/docs", docsRoutes);
 app.use("/uploads", uploadsRoutes);
 app.use("/prospect", prospectRoutes);
 app.use("/", onboardingCronRoutes);
+app.use("/api", dispatchRoutes);
+app.use("/api", simulationRoutes);
+app.use("/auth/mfa", mfaRoutes);
 
 app.use((req, res) => {
   return res.status(404).json({ error: "not_found" });

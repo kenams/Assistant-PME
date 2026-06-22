@@ -64,6 +64,19 @@ const env = {
   staleConvDays: parseInt(process.env.STALE_CONV_DAYS || "7", 10),
   uploadRetentionDays: parseInt(process.env.UPLOAD_RETENTION_DAYS || "30", 10),
   autoKbEnabled: (process.env.AUTO_KB_ENABLED || "true").toLowerCase() !== "false",
+  // ─── AI PROVIDER (agnostic) ────────────────────────────────────────────────
+  aiProvider: process.env.AI_PROVIDER || process.env.LLM_MODE || "mock", // openai|anthropic|mistral|ollama|mock
+  aiModel: process.env.AI_MODEL || "",
+  anthropicApiKey: process.env.ANTHROPIC_API_KEY || "",
+  mistralApiKey: process.env.MISTRAL_API_KEY || "",
+  ollamaBaseUrl: process.env.OLLAMA_BASE_URL || "http://localhost:11434",
+  // ─── SMART DISPATCH ────────────────────────────────────────────────────────
+  smartDispatchEnabled: (process.env.SMART_DISPATCH_ENABLED || "true").toLowerCase() !== "false",
+  dispatchAutoResolveEnabled: (process.env.DISPATCH_AUTO_RESOLVE_ENABLED || "true").toLowerCase() !== "false",
+  // ─── PROACTIVE DETECTION ───────────────────────────────────────────────────
+  proactiveDetectionEnabled: (process.env.PROACTIVE_DETECTION_ENABLED || "true").toLowerCase() !== "false",
+  proactivePeakThreshold: parseInt(process.env.PROACTIVE_PEAK_THRESHOLD || "10", 10),
+  proactiveWindowMin: parseInt(process.env.PROACTIVE_WINDOW_MIN || "60", 10),
 };
 
 module.exports = { env };

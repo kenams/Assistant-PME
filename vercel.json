@@ -15,6 +15,7 @@
     { "source": "/docs/:path*", "destination": "https://assistant-pme.onrender.com/docs/:path*" },
     { "source": "/billing/:path*", "destination": "https://assistant-pme.onrender.com/billing/:path*" },
     { "source": "/leads/:path*", "destination": "https://assistant-pme.onrender.com/leads/:path*" },
+    { "source": "/api/:path*", "destination": "https://assistant-pme.onrender.com/api/:path*" },
     { "source": "/", "destination": "/app/index.html" },
     { "source": "/app", "destination": "/app/index.html" },
     { "source": "/app/", "destination": "/app/index.html" },
