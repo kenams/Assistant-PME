@@ -5,6 +5,7 @@ const pinoHttp = require("pino-http");
 const path = require("path");
 
 const { env } = require("./config/env");
+const { hasDb } = require("./config/db");
 const { createLogger } = require("./config/logger");
 const { ensureSeeded } = require("./services/users.service");
 const { runMigrations } = require("./services/store.service");
@@ -40,11 +41,13 @@ const mfaRoutes = require("./routes/mfa.routes");
 const app = express();
 const logger = createLogger();
 
-runMigrations().then(() => {
-  ensureSeeded().catch(err => console.error("Seed error:", err));
-}).catch(err => console.error("Migration error:", err));
+if (hasDb) {
+  runMigrations().then(() => {
+    ensureSeeded().catch(err => console.error("Seed error:", err));
+  }).catch(err => console.error("Migration error:", err));
+}
 
-if (env.nodeEnv !== "test") {
+if (hasDb && env.nodeEnv !== "test") {
   startMailboxPolling();
   startSlaAlertScheduler();
   startAllSchedulers();
