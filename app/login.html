@@ -431,7 +431,7 @@
             });
           } catch (_) {}
 
-          window.location.href = '/auth/demo';
+          window.location.href = '/app/demo.html?name=' + encodeURIComponent(name) + (company ? '&company=' + encodeURIComponent(company) : '');
         });
       }
     });

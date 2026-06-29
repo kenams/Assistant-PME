@@ -1,0 +1,527 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Démo — Assistant Support IT | KAH Digital</title>
+  <link rel="icon" type="image/svg+xml" href="/app/favicon.svg" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
+  <style>
+    :root {
+      --bg:#0B0B0B;--bg2:#111;--bg3:#161616;--card:#161616;
+      --stroke:rgba(255,255,255,0.07);--stroke2:rgba(255,255,255,0.12);
+      --text:#EDEDED;--text-muted:#888;--text-dim:#555;
+      --accent:#5B6AD4;--accent-glow:rgba(91,106,212,0.18);
+      --cta:#FF6B35;--cta-glow:rgba(255,107,53,0.22);
+      --green:#22c55e;--red:#ef4444;--yellow:#f59e0b;
+      --user-bubble:#1e2340;--bot-bubble:#161616;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--text);font-family:Inter,sans-serif;min-height:100vh;display:flex;flex-direction:column}
+
+    /* Header */
+    .header{display:flex;align-items:center;gap:12px;padding:16px 24px;border-bottom:1px solid var(--stroke);background:rgba(11,11,11,0.95);backdrop-filter:blur(10px);position:sticky;top:0;z-index:100}
+    .logo-mark{width:32px;height:32px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;flex-shrink:0}
+    .logo-name{font-size:0.9rem;font-weight:600}
+    .demo-badge{background:rgba(255,107,53,0.12);border:1px solid rgba(255,107,53,0.3);color:var(--cta);font-size:0.7rem;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:0.05em;text-transform:uppercase}
+    .header-right{margin-left:auto;display:flex;align-items:center;gap:12px}
+    .status-dot{width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+    .status-label{font-size:0.75rem;color:var(--text-muted)}
+    .cta-btn{background:var(--cta);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:0.8rem;font-weight:700;cursor:pointer;font-family:inherit;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+    .cta-btn:hover{opacity:0.9}
+
+    /* Layout */
+    .layout{display:flex;flex:1;height:calc(100vh - 65px);overflow:hidden}
+
+    /* Sidebar */
+    .sidebar{width:260px;border-right:1px solid var(--stroke);background:var(--bg2);display:flex;flex-direction:column;flex-shrink:0}
+    @media(max-width:768px){.sidebar{display:none}}
+    .sidebar-section{padding:16px;border-bottom:1px solid var(--stroke)}
+    .sidebar-title{font-size:0.68rem;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px}
+    .ticket-item{display:flex;align-items:flex-start;gap:10px;padding:10px;border-radius:8px;cursor:pointer;transition:background .15s;margin-bottom:4px}
+    .ticket-item:hover,.ticket-item.active{background:var(--bg3)}
+    .ticket-badge{font-size:0.65rem;font-weight:700;padding:2px 6px;border-radius:4px;flex-shrink:0;margin-top:2px}
+    .badge-open{background:rgba(91,106,212,0.15);color:var(--accent)}
+    .badge-resolved{background:rgba(34,197,94,0.1);color:var(--green)}
+    .badge-critical{background:rgba(239,68,68,0.12);color:var(--red)}
+    .ticket-info{flex:1;min-width:0}
+    .ticket-title{font-size:0.8rem;font-weight:500;color:var(--text);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .ticket-meta{font-size:0.7rem;color:var(--text-dim)}
+    .kpi-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px}
+    .kpi{background:var(--bg3);border:1px solid var(--stroke);border-radius:8px;padding:10px 12px;text-align:center}
+    .kpi-val{font-size:1.3rem;font-weight:800;color:var(--text)}
+    .kpi-val.green{color:var(--green)}
+    .kpi-val.yellow{color:var(--yellow)}
+    .kpi-lbl{font-size:0.65rem;color:var(--text-dim);margin-top:2px}
+
+    /* Chat area */
+    .chat-area{flex:1;display:flex;flex-direction:column;overflow:hidden}
+    .chat-header{padding:16px 24px;border-bottom:1px solid var(--stroke);display:flex;align-items:center;gap:12px}
+    .bot-avatar{width:36px;height:36px;background:linear-gradient(135deg,var(--accent),#8B5CF6);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+    .chat-header-info h3{font-size:0.9rem;font-weight:600;margin-bottom:2px}
+    .chat-header-info p{font-size:0.75rem;color:var(--text-muted)}
+    .ai-capabilities{margin-left:auto;display:flex;gap:6px}
+    .cap-tag{font-size:0.65rem;font-weight:600;padding:3px 8px;border-radius:12px;background:var(--bg3);border:1px solid var(--stroke2);color:var(--text-muted)}
+
+    .messages{flex:1;overflow-y:auto;padding:24px;display:flex;flex-direction:column;gap:16px}
+    .messages::-webkit-scrollbar{width:4px}
+    .messages::-webkit-scrollbar-track{background:transparent}
+    .messages::-webkit-scrollbar-thumb{background:var(--stroke2);border-radius:2px}
+
+    .msg{display:flex;gap:10px;align-items:flex-start;animation:fadeIn .3s ease}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+    .msg.user{flex-direction:row-reverse}
+    .msg-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+    .msg.bot .msg-avatar{background:linear-gradient(135deg,var(--accent),#8B5CF6)}
+    .msg.user .msg-avatar{background:rgba(255,107,53,0.2);color:var(--cta);font-weight:700}
+    .msg-content{max-width:70%;display:flex;flex-direction:column;gap:4px}
+    .msg.user .msg-content{align-items:flex-end}
+    .bubble{padding:12px 16px;border-radius:16px;font-size:0.85rem;line-height:1.55}
+    .msg.bot .bubble{background:var(--bot-bubble);border:1px solid var(--stroke2);border-radius:4px 16px 16px 16px}
+    .msg.user .bubble{background:var(--user-bubble);border:1px solid rgba(91,106,212,0.25);border-radius:16px 4px 16px 16px}
+    .msg-time{font-size:0.67rem;color:var(--text-dim)}
+    .typing{display:flex;gap:4px;align-items:center;padding:10px 16px;background:var(--bot-bubble);border:1px solid var(--stroke2);border-radius:4px 16px 16px 16px;width:fit-content}
+    .typing span{width:6px;height:6px;border-radius:50%;background:var(--text-dim);animation:bounce 1.2s ease infinite}
+    .typing span:nth-child(2){animation-delay:0.2s}
+    .typing span:nth-child(3){animation-delay:0.4s}
+    @keyframes bounce{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-6px)}}
+
+    /* Ticket created card */
+    .ticket-card{background:var(--bg3);border:1px solid var(--stroke2);border-radius:12px;padding:14px 16px;font-size:0.82rem;margin-top:4px}
+    .ticket-card-header{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-weight:600}
+    .ticket-card-row{display:flex;justify-content:space-between;margin-bottom:4px;color:var(--text-muted)}
+    .ticket-card-row span:last-child{color:var(--text);font-weight:500}
+
+    /* Action buttons */
+    .action-pills{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+    .action-pill{font-size:0.75rem;padding:5px 12px;border-radius:20px;border:1px solid var(--stroke2);background:transparent;color:var(--text-muted);cursor:pointer;font-family:inherit;transition:all .15s}
+    .action-pill:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-glow)}
+
+    /* Input */
+    .chat-input-area{padding:16px 24px;border-top:1px solid var(--stroke);background:var(--bg)}
+    .input-wrap{display:flex;gap:10px;align-items:flex-end;background:var(--bg3);border:1px solid var(--stroke2);border-radius:12px;padding:12px 16px;transition:border .15s}
+    .input-wrap:focus-within{border-color:var(--accent)}
+    #chatInput{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-family:inherit;font-size:0.88rem;resize:none;max-height:120px;line-height:1.5}
+    #chatInput::placeholder{color:var(--text-dim)}
+    #sendBtn{background:var(--accent);border:none;border-radius:8px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:opacity .15s}
+    #sendBtn:hover{opacity:0.85}
+    #sendBtn:disabled{opacity:0.4;cursor:not-allowed}
+    .input-hints{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+    .hint-chip{font-size:0.72rem;padding:3px 10px;border-radius:12px;border:1px solid var(--stroke);color:var(--text-dim);cursor:pointer;transition:all .15s;background:transparent}
+    .hint-chip:hover{border-color:var(--accent);color:var(--accent)}
+  </style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="header">
+  <div class="logo-mark">K</div>
+  <span class="logo-name">Assistant IT</span>
+  <span class="demo-badge">🎯 Démo gratuite</span>
+  <div class="header-right">
+    <div class="status-dot"></div>
+    <span class="status-label">IA active</span>
+    <a href="https://kah-digital.ch/#contact" class="cta-btn" target="_blank">Obtenir cette solution →</a>
+  </div>
+</header>
+
+<div class="layout">
+
+  <!-- Sidebar : tickets + KPIs -->
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-title">Tickets récents</div>
+      <div class="ticket-item active" onclick="loadTicket(this,'VPN')">
+        <span class="ticket-badge badge-open">OUVERT</span>
+        <div class="ticket-info">
+          <div class="ticket-title">VPN Fortinet inaccessible</div>
+          <div class="ticket-meta">il y a 3 min · Marie D.</div>
+        </div>
+      </div>
+      <div class="ticket-item" onclick="loadTicket(this,'MDP')">
+        <span class="ticket-badge badge-resolved">RÉSOLU</span>
+        <div class="ticket-info">
+          <div class="ticket-title">Réinitialisation mot de passe</div>
+          <div class="ticket-meta">il y a 12 min · Pierre M. · IA auto</div>
+        </div>
+      </div>
+      <div class="ticket-item" onclick="loadTicket(this,'IMPRIMANTE')">
+        <span class="ticket-badge badge-resolved">RÉSOLU</span>
+        <div class="ticket-info">
+          <div class="ticket-title">Imprimante réseau hors ligne</div>
+          <div class="ticket-meta">il y a 28 min · Sarah L. · IA auto</div>
+        </div>
+      </div>
+      <div class="ticket-item" onclick="loadTicket(this,'OUTLOOK')">
+        <span class="ticket-badge badge-critical">CRITIQUE</span>
+        <div class="ticket-info">
+          <div class="ticket-title">Outlook ne se synchronise plus</div>
+          <div class="ticket-meta">il y a 45 min · 3 utilisateurs</div>
+        </div>
+      </div>
+    </div>
+    <div class="kpi-row">
+      <div class="kpi"><div class="kpi-val green">94%</div><div class="kpi-lbl">Résolution N1 IA</div></div>
+      <div class="kpi"><div class="kpi-val">2.4 min</div><div class="kpi-lbl">Temps moyen</div></div>
+      <div class="kpi"><div class="kpi-val green">28</div><div class="kpi-lbl">Tickets résolus</div></div>
+      <div class="kpi"><div class="kpi-val yellow">3</div><div class="kpi-lbl">En attente N2</div></div>
+    </div>
+  </aside>
+
+  <!-- Chat -->
+  <div class="chat-area">
+    <div class="chat-header">
+      <div class="bot-avatar">🤖</div>
+      <div class="chat-header-info">
+        <h3>Assistant IT KAH Digital</h3>
+        <p>Support informatique IA · Niveau 1 automatisé</p>
+      </div>
+      <div class="ai-capabilities">
+        <span class="cap-tag">🔑 Reset MDP</span>
+        <span class="cap-tag">🌐 VPN</span>
+        <span class="cap-tag">📧 Email</span>
+        <span class="cap-tag">🖨 Périph.</span>
+      </div>
+    </div>
+
+    <div class="messages" id="messages">
+      <div class="msg bot">
+        <div class="msg-avatar">🤖</div>
+        <div class="msg-content">
+          <div class="bubble">
+            Bonjour <strong id="demoName">là</strong> 👋<br><br>
+            Je suis votre assistant IT IA. Je peux résoudre <strong>automatiquement</strong> la plupart des problèmes informatiques de votre équipe — réinitialisation de mots de passe, VPN, imprimantes, accès logiciels, et bien plus.<br><br>
+            Décrivez votre problème et je m'en occupe immédiatement.
+          </div>
+          <span class="msg-time">maintenant</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="chat-input-area">
+      <div class="input-wrap">
+        <textarea id="chatInput" placeholder="Décrivez votre problème informatique..." rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+        <button id="sendBtn" onclick="sendMessage()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+      </div>
+      <div class="input-hints">
+        <span class="hint-chip" onclick="useHint(this)">🔑 Mot de passe oublié</span>
+        <span class="hint-chip" onclick="useHint(this)">🌐 VPN ne fonctionne pas</span>
+        <span class="hint-chip" onclick="useHint(this)">📧 Outlook bloqué</span>
+        <span class="hint-chip" onclick="useHint(this)">🖨 Imprimante hors ligne</span>
+        <span class="hint-chip" onclick="useHint(this)">💻 PC lent / qui plante</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  var params = new URLSearchParams(window.location.search);
+  var name = params.get('name') || 'vous';
+  var company = params.get('company') || '';
+  document.getElementById('demoName').textContent = name;
+  if (company) {
+    document.querySelector('.chat-header-info p').textContent = 'Support IT — ' + company;
+  }
+})();
+
+var isTyping = false;
+
+var RESPONSES = {
+  default: [
+    function(input) {
+      if (/mot.de.passe|password|mdp|connexion|login/i.test(input)) return 'MDP';
+      if (/vpn|fortinet|forticlient|tunnel|réseau distant/i.test(input)) return 'VPN';
+      if (/outlook|email|mail|messagerie|exchange/i.test(input)) return 'OUTLOOK';
+      if (/imprimante|printer|imprimer|impression/i.test(input)) return 'IMPRIMANTE';
+      if (/pc|ordinateur|lent|plante|freeze|bloque|écran/i.test(input)) return 'PC';
+      return 'GENERIC';
+    }
+  ],
+  MDP: {
+    thinking: 1200,
+    messages: [
+      {
+        delay: 0,
+        text: '🔑 Je détecte une demande de réinitialisation de mot de passe.\n\nJe prends en charge cette demande automatiquement.',
+        ticket: null
+      },
+      {
+        delay: 1800,
+        text: null,
+        ticket: {
+          id: 'TKT-2847',
+          type: 'Réinitialisation MDP',
+          priority: '🟡 Normale',
+          status: '⚡ Traitement IA',
+          eta: '< 2 minutes'
+        }
+      },
+      {
+        delay: 3500,
+        text: '✅ Votre mot de passe a été réinitialisé avec succès.\n\nUn email contenant votre nouveau mot de passe temporaire vient d\'être envoyé à votre adresse professionnelle.\n\n🔒 **Pensez à le changer** lors de votre prochaine connexion.',
+        ticket: null,
+        actions: ['✅ C\'est bon, merci', '📧 Je n\'ai pas reçu l\'email', '🔄 Autre problème']
+      }
+    ]
+  },
+  VPN: {
+    thinking: 1500,
+    messages: [
+      {
+        delay: 0,
+        text: '🌐 Problème VPN détecté. Je lance un diagnostic automatique...',
+        ticket: null
+      },
+      {
+        delay: 2000,
+        text: null,
+        ticket: {
+          id: 'TKT-2848',
+          type: 'VPN / Accès distant',
+          priority: '🔴 Haute',
+          status: '🔍 Diagnostic IA',
+          eta: '< 5 minutes'
+        }
+      },
+      {
+        delay: 3800,
+        text: '📋 Diagnostic terminé. Voici les causes les plus probables :\n\n1. **Certificat Fortinet expiré** (73% des cas similaires)\n2. Session VPN non fermée proprement\n3. Changement de mot de passe AD non synchronisé\n\nEssayez d\'abord :\n① Fermez FortiClient complètement\n② Redémarrez le service depuis Panneau de config\n③ Reconnectez-vous avec vos identifiants AD',
+        ticket: null,
+        actions: ['✅ Ça marche !', '❌ Toujours bloqué', '📞 Besoin d\'un technicien']
+      }
+    ]
+  },
+  OUTLOOK: {
+    thinking: 1400,
+    messages: [
+      {
+        delay: 0,
+        text: '📧 Problème de messagerie détecté. Analyse en cours...',
+        ticket: null
+      },
+      {
+        delay: 2200,
+        text: '🔍 J\'ai identifié **3 utilisateurs** avec le même problème dans votre entreprise.\n\nCela ressemble à un problème de synchronisation Exchange. Je contacte automatiquement votre administrateur système et j\'ouvre un ticket prioritaire.',
+        ticket: {
+          id: 'TKT-2849',
+          type: 'Messagerie Exchange',
+          priority: '🔴 Critique — 3 users',
+          status: '🔔 Admin notifié',
+          eta: '< 30 minutes'
+        },
+        actions: ['🔔 Me notifier quand résolu', 'ℹ️ Plus d\'infos']
+      }
+    ]
+  },
+  IMPRIMANTE: {
+    thinking: 1000,
+    messages: [
+      {
+        delay: 0,
+        text: '🖨 Imprimante hors ligne détectée. Lancement de la résolution automatique...',
+        ticket: null
+      },
+      {
+        delay: 2500,
+        text: '✅ J\'ai relancé le spouleur d\'impression sur votre poste et réinitialisé la file d\'attente.\n\n**Essayez d\'imprimer à nouveau.** Si le problème persiste, vérifiez que l\'imprimante est bien allumée et connectée au réseau.',
+        ticket: null,
+        actions: ['✅ Ça fonctionne !', '❌ Toujours hors ligne', '🔄 Autre problème']
+      }
+    ]
+  },
+  PC: {
+    thinking: 1300,
+    messages: [
+      {
+        delay: 0,
+        text: '💻 Problème de performance détecté. J\'analyse votre configuration...',
+        ticket: null
+      },
+      {
+        delay: 2800,
+        text: '📊 Analyse terminée. Recommandations IA :\n\n• **RAM utilisée** : probable saturation (>90%)\n• Désactivez les programmes au démarrage inutiles\n• Videz la corbeille et le cache navigateur\n\nJe peux lancer un nettoyage automatique à distance si vous m\'y autorisez.',
+        ticket: null,
+        actions: ['✅ Lancer le nettoyage', '📋 Voir le rapport complet', '📞 Technicien à distance']
+      }
+    ]
+  },
+  GENERIC: {
+    thinking: 1600,
+    messages: [
+      {
+        delay: 0,
+        text: '🤖 Je traite votre demande...',
+        ticket: null
+      },
+      {
+        delay: 2500,
+        text: 'J\'ai bien pris en compte votre demande. Je crée un ticket de support et notifie l\'équipe IT compétente.',
+        ticket: {
+          id: 'TKT-' + (2850 + Math.floor(Math.random()*50)),
+          type: 'Support général',
+          priority: '🟡 Normale',
+          status: '⏳ Assigné',
+          eta: '< 1 heure'
+        },
+        actions: ['🔔 Me notifier', 'ℹ️ Plus d\'infos']
+      }
+    ]
+  }
+};
+
+function getResponseKey(input) {
+  if (/mot.de.passe|password|mdp|connexion.impossible|login/i.test(input)) return 'MDP';
+  if (/vpn|fortinet|forticlient|tunnel/i.test(input)) return 'VPN';
+  if (/outlook|email|mail|messagerie|exchange/i.test(input)) return 'OUTLOOK';
+  if (/imprimante|printer|imprimer|impression/i.test(input)) return 'IMPRIMANTE';
+  if (/pc|ordinateur|lent|plante|freeze|bloque/i.test(input)) return 'PC';
+  return 'GENERIC';
+}
+
+function sendMessage() {
+  if (isTyping) return;
+  var input = document.getElementById('chatInput').value.trim();
+  if (!input) return;
+  document.getElementById('chatInput').value = '';
+  autoResize(document.getElementById('chatInput'));
+  addUserMessage(input);
+  var key = getResponseKey(input);
+  playResponse(RESPONSES[key], key);
+}
+
+function addUserMessage(text) {
+  var msgs = document.getElementById('messages');
+  var el = document.createElement('div');
+  el.className = 'msg user';
+  el.innerHTML = '<div class="msg-avatar">👤</div><div class="msg-content"><div class="bubble">' + escHtml(text) + '</div><span class="msg-time">maintenant</span></div>';
+  msgs.appendChild(el);
+  scrollBottom();
+}
+
+function playResponse(scenario, key) {
+  isTyping = true;
+  document.getElementById('sendBtn').disabled = true;
+  var msgs = document.getElementById('messages');
+
+  // Show typing indicator
+  var typingEl = document.createElement('div');
+  typingEl.className = 'msg bot';
+  typingEl.id = 'typing-indicator';
+  typingEl.innerHTML = '<div class="msg-avatar">🤖</div><div class="msg-content"><div class="typing"><span></span><span></span><span></span></div></div>';
+  msgs.appendChild(typingEl);
+  scrollBottom();
+
+  var steps = scenario.messages;
+  var thinkTime = scenario.thinking || 1200;
+
+  function runStep(i) {
+    if (i >= steps.length) {
+      isTyping = false;
+      document.getElementById('sendBtn').disabled = false;
+      return;
+    }
+    var step = steps[i];
+    var delay = i === 0 ? thinkTime : step.delay;
+    setTimeout(function() {
+      // Remove typing on first real message
+      if (i === 0) {
+        var ti = document.getElementById('typing-indicator');
+        if (ti) ti.remove();
+      }
+      if (step.text) {
+        addBotMessage(step.text, step.actions || null);
+      }
+      if (step.ticket) {
+        addTicketCard(step.ticket);
+      }
+      runStep(i + 1);
+    }, delay);
+  }
+  runStep(0);
+}
+
+function addBotMessage(text, actions) {
+  var msgs = document.getElementById('messages');
+  var formatted = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+  var actionsHtml = '';
+  if (actions) {
+    actionsHtml = '<div class="action-pills">' + actions.map(function(a) {
+      return '<button class="action-pill" onclick="handleAction(this,\'' + escHtml(a) + '\')">' + escHtml(a) + '</button>';
+    }).join('') + '</div>';
+  }
+  var el = document.createElement('div');
+  el.className = 'msg bot';
+  el.innerHTML = '<div class="msg-avatar">🤖</div><div class="msg-content"><div class="bubble">' + formatted + '</div>' + actionsHtml + '<span class="msg-time">maintenant</span></div>';
+  msgs.appendChild(el);
+  scrollBottom();
+}
+
+function addTicketCard(ticket) {
+  var msgs = document.getElementById('messages');
+  var el = document.createElement('div');
+  el.className = 'msg bot';
+  el.innerHTML = '<div class="msg-avatar">🤖</div><div class="msg-content"><div class="ticket-card"><div class="ticket-card-header">🎫 Ticket créé automatiquement</div><div class="ticket-card-row"><span>ID</span><span>' + ticket.id + '</span></div><div class="ticket-card-row"><span>Type</span><span>' + ticket.type + '</span></div><div class="ticket-card-row"><span>Priorité</span><span>' + ticket.priority + '</span></div><div class="ticket-card-row"><span>Statut</span><span>' + ticket.status + '</span></div><div class="ticket-card-row"><span>Résolution</span><span>' + ticket.eta + '</span></div></div></div>';
+  msgs.appendChild(el);
+  scrollBottom();
+}
+
+function handleAction(btn, text) {
+  btn.closest('.action-pills').querySelectorAll('.action-pill').forEach(function(b) { b.disabled = true; });
+  btn.style.background = 'var(--accent-glow)';
+  btn.style.borderColor = 'var(--accent)';
+  btn.style.color = 'var(--accent)';
+  addUserMessage(text);
+  if (/merci|bon|marche|fonctionne/i.test(text)) {
+    setTimeout(function() {
+      addBotMessage('Parfait ! 🎉 Ticket marqué comme résolu.\n\nN\'hésitez pas à revenir si vous avez d\'autres problèmes. Mon temps de réponse moyen est de **2 minutes**, 24h/24.', null);
+    }, 1000);
+  } else if (/bloqué|toujours|persiste|encore/i.test(text)) {
+    setTimeout(function() {
+      addBotMessage('Je comprends. Je transfère votre ticket à un technicien humain N2. Il vous contactera dans les **30 minutes**. 📞', null);
+    }, 1000);
+  } else if (/notifier|notif/i.test(text)) {
+    setTimeout(function() {
+      addBotMessage('✅ Vous serez notifié par email dès la résolution. Ticket en cours de traitement.', null);
+    }, 800);
+  } else {
+    setTimeout(function() {
+      addBotMessage('Compris. Y a-t-il autre chose que je peux faire pour vous ?', null);
+    }, 800);
+  }
+}
+
+function useHint(el) {
+  var text = el.textContent.replace(/^[^\s]+ /, '').trim();
+  document.getElementById('chatInput').value = text;
+  document.getElementById('chatInput').focus();
+}
+
+function loadTicket(el, key) {
+  document.querySelectorAll('.ticket-item').forEach(function(t) { t.classList.remove('active'); });
+  el.classList.add('active');
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+function scrollBottom() {
+  var msgs = document.getElementById('messages');
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
