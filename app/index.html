@@ -399,12 +399,13 @@
       <div class="nav-links">
         <a href="#features" data-fr="Fonctionnalités" data-en="Features">Fonctionnalités</a>
         <a href="#pricing" data-fr="Tarifs" data-en="Pricing">Tarifs</a>
-        <a href="#testimonials" data-fr="Témoignages" data-en="Testimonials">Témoignages</a>
+        <a href="#security" data-fr="Sécurité" data-en="Security">Sécurité</a>
+        <a href="/app/slides.html" data-fr="Présentation" data-en="Deck">Présentation</a>
       </div>
       <div class="nav-cta">
         <button class="lang-btn" id="langToggle" onclick="toggleLang()">EN</button>
         <a href="/app/login/" class="btn ghost" data-fr="Connexion" data-en="Login">Connexion</a>
-        <a href="/app/login.html" class="btn primary" data-fr="Voir la démo →" data-en="View demo →">Voir la démo →</a>
+        <a href="/app/demo-video.html" class="btn primary" data-fr="Voir la démo →" data-en="View demo →">Voir la démo →</a>
       </div>
     </nav>
 
@@ -543,22 +544,39 @@
     <!-- PRICING -->
     <section id="pricing">
       <div class="section-label" data-fr="Tarifs" data-en="Pricing">Tarifs</div>
-      <h2 class="section-title" data-fr="Tarification claire, sans surprise" data-en="Transparent pricing, no surprises">Tarification claire, sans surprise</h2>
-      <p class="section-sub" data-fr="Déployé en moins d'une heure. Résiliable à tout moment. Essai 14 jours gratuit sur tous les plans." data-en="Deployed in under an hour. Cancel anytime. 14-day free trial on all plans.">Déployé en moins d'une heure. Résiliable à tout moment. Essai 14 jours gratuit sur tous les plans.</p>
+      <h2 class="section-title" data-fr="Tarification par licences, sans surprise" data-en="Per-licence pricing, no surprises">Tarification par licences, sans surprise</h2>
+      <p class="section-sub" data-fr="Un prix fixe par palier d'utilisateurs. Pas de coût caché. Essai 14 jours gratuit sur tous les plans." data-en="Fixed price per user tier. No hidden costs. 14-day free trial on all plans.">Un prix fixe par palier d'utilisateurs. Pas de coût caché. Essai 14 jours gratuit sur tous les plans.</p>
+
+      <!-- Comparatif marché -->
+      <div style="max-width:700px;margin:0 auto 40px;background:var(--bg2);border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:20px 28px;">
+        <div style="font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px" data-fr="Vs. la concurrence" data-en="Vs. competitors">Vs. la concurrence</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center;font-size:0.82rem;">
+          <div style="color:var(--text-muted)" data-fr="Solution" data-en="Solution">Solution</div>
+          <div style="color:var(--text-muted)" data-fr="Prix/agent/mois" data-en="Price/agent/mo">Prix/agent/mois</div>
+          <div style="color:var(--text-muted)">GLPI</div>
+          <div style="color:var(--text-muted)" data-fr="IA incluse" data-en="AI included">IA incluse</div>
+          <div style="color:var(--text-strong);font-weight:700">Assistant IT IA</div><div style="color:var(--success);font-weight:700">~4€</div><div style="color:var(--success)">✓ natif</div><div style="color:var(--success)">✓ GPT-4o</div>
+          <div style="color:var(--text-muted)">Freshdesk</div><div style="color:var(--text-muted)">15€</div><div style="color:var(--text-muted)">—</div><div style="color:var(--text-muted)">option +</div>
+          <div style="color:var(--text-muted)">Zendesk</div><div style="color:var(--text-muted)">69€</div><div style="color:var(--text-muted)">—</div><div style="color:var(--text-muted)">option ++</div>
+          <div style="color:var(--text-muted)">GLPI cloud</div><div style="color:var(--text-muted)">19€</div><div style="color:var(--success)">✓</div><div style="color:var(--text-muted)">—</div>
+        </div>
+      </div>
+
       <div class="pricing-grid">
 
         <div class="plan">
           <div class="plan-name">Starter</div>
           <div class="plan-price">
-            <span class="plan-amount">99€</span>
+            <span class="plan-amount">199€</span>
             <span class="plan-period">/mo</span>
           </div>
+          <p style="font-size:0.78rem;color:var(--success);font-weight:600;margin:4px 0 8px" data-fr="Jusqu'à 50 utilisateurs inclus" data-en="Up to 50 users included">Jusqu'à 50 utilisateurs inclus</p>
           <p class="plan-desc" data-fr="Pour les PME souhaitant automatiser leur support N1 sans infrastructure lourde." data-en="For SMEs looking to automate L1 support without heavy infrastructure.">Pour les PME souhaitant automatiser leur support N1 sans infrastructure lourde.</p>
           <div class="plan-features">
-            <div class="plan-feature"><span class="check">✓</span> <span data-fr="Jusqu'à 50 utilisateurs" data-en="Up to 50 users">Jusqu'à 50 utilisateurs</span></div>
+            <div class="plan-feature"><span class="check">✓</span> <span data-fr="50 utilisateurs (+ 4€/user/mois au-delà)" data-en="50 users (+ €4/user/mo beyond)">50 utilisateurs <span style="color:var(--text-muted);font-size:0.78rem">(+ 4€/user/mo au-delà)</span></span></div>
             <div class="plan-feature"><span class="check">✓</span> <span data-fr="Assistant IA N1/N2 (GPT-4o)" data-en="AI Assistant L1/L2 (GPT-4o)">Assistant IA N1/N2 (GPT-4o)</span></div>
-            <div class="plan-feature"><span class="check">✓</span> <span data-fr="Création de tickets automatique" data-en="Automatic ticket creation">Création de tickets automatique</span></div>
-            <div class="plan-feature"><span class="check">✓</span> <span data-fr="Base de connaissances (50 docs)" data-en="Knowledge base (50 docs)">Base de connaissances (50 docs)</span></div>
+            <div class="plan-feature"><span class="check">✓</span> <span data-fr="Tickets automatiques + GLPI natif" data-en="Auto tickets + native GLPI">Tickets automatiques + GLPI natif</span></div>
+            <div class="plan-feature"><span class="check">✓</span> <span data-fr="Base de connaissances auto-apprenante" data-en="Self-learning knowledge base">Base de connaissances auto-apprenante</span></div>
             <div class="plan-feature"><span class="check">✓</span> <span data-fr="Dashboard &amp; historique tickets" data-en="Dashboard &amp; ticket history">Dashboard &amp; historique tickets</span></div>
             <div class="plan-feature"><span class="cross">—</span> <span data-fr="Analytics avancés &amp; SLA" data-en="Advanced analytics &amp; SLA">Analytics avancés &amp; SLA</span></div>
             <div class="plan-feature"><span class="cross">—</span> <span data-fr="Intégrations Slack / Teams" data-en="Slack / Teams integrations">Intégrations Slack / Teams</span></div>
@@ -572,18 +590,19 @@
           <div class="plan-badge" data-fr="Recommandé" data-en="Recommended">Recommandé</div>
           <div class="plan-name">Pro</div>
           <div class="plan-price">
-            <span class="plan-amount">199€</span>
+            <span class="plan-amount">399€</span>
             <span class="plan-period">/mo</span>
           </div>
+          <p style="font-size:0.78rem;color:var(--success);font-weight:600;margin:4px 0 8px" data-fr="Jusqu'à 200 utilisateurs inclus" data-en="Up to 200 users included">Jusqu'à 200 utilisateurs inclus</p>
           <p class="plan-desc" data-fr="Pour les équipes IT structurées avec GLPI, Active Directory et reportings SLA." data-en="For structured IT teams with GLPI, Active Directory and SLA reporting.">Pour les équipes IT structurées avec GLPI, Active Directory et reportings SLA.</p>
           <div class="plan-features">
-            <div class="plan-feature"><span class="check">✓</span> <span data-fr="Jusqu'à 200 utilisateurs" data-en="Up to 200 users">Jusqu'à 200 utilisateurs</span></div>
+            <div class="plan-feature"><span class="check">✓</span> <span>200 utilisateurs <span style="color:var(--text-muted);font-size:0.78rem">(+ 3€/user/mo au-delà)</span></span></div>
             <div class="plan-feature"><span class="check">✓</span> <span data-fr="Tout Starter inclus" data-en="All Starter included">Tout Starter inclus</span></div>
-            <div class="plan-feature"><span class="check">✓</span> <span data-fr="Intégration GLPI native" data-en="Native GLPI integration">Intégration GLPI native</span></div>
             <div class="plan-feature"><span class="check">✓</span> <span data-fr="Analytics avancés &amp; alertes SLA" data-en="Advanced analytics &amp; SLA alerts">Analytics avancés &amp; alertes SLA</span></div>
             <div class="plan-feature"><span class="check">✓</span> <span data-fr="Webhooks Slack / Teams" data-en="Slack / Teams webhooks">Webhooks Slack / Teams</span></div>
             <div class="plan-feature"><span class="check">✓</span> <span data-fr="Active Directory / LDAP" data-en="Active Directory / LDAP">Active Directory / LDAP</span></div>
             <div class="plan-feature"><span class="check">✓</span> <span data-fr="Support prioritaire 24h" data-en="Priority 24h support">Support prioritaire 24h</span></div>
+            <div class="plan-feature"><span class="check">✓</span> <span data-fr="Rapports SLA automatiques PDF" data-en="Automatic SLA PDF reports">Rapports SLA automatiques PDF</span></div>
           </div>
           <div class="plan-cta">
             <button class="btn primary" style="width:100%;justify-content:center;" onclick="openModal('pro')" data-fr="Démarrer en Pro" data-en="Start Pro">Démarrer en Pro</button>
@@ -593,22 +612,69 @@
         <div class="plan">
           <div class="plan-name" data-fr="Entreprise" data-en="Enterprise">Entreprise</div>
           <div class="plan-price">
-            <span class="plan-amount">399€</span>
-            <span class="plan-period">/mo</span>
+            <span class="plan-amount" data-fr="Sur devis" data-en="Custom">Sur devis</span>
           </div>
+          <p style="font-size:0.78rem;color:var(--success);font-weight:600;margin:4px 0 8px" data-fr="Utilisateurs illimités" data-en="Unlimited users">Utilisateurs illimités</p>
           <p class="plan-desc" data-fr="Pour les ESN, groupes et collectivités gérant plusieurs périmètres IT." data-en="For IT service providers, groups and organizations managing multiple IT scopes.">Pour les ESN, groupes et collectivités gérant plusieurs périmètres IT.</p>
           <div class="plan-features">
-            <div class="plan-feature"><span class="check">✓</span> <span data-fr="Utilisateurs illimités" data-en="Unlimited users">Utilisateurs illimités</span></div>
+            <div class="plan-feature"><span class="check">✓</span> <span data-fr="Utilisateurs illimités — prix fixe" data-en="Unlimited users — fixed price">Utilisateurs illimités — prix fixe</span></div>
             <div class="plan-feature"><span class="check">✓</span> <span data-fr="Tout Pro inclus" data-en="All Pro included">Tout Pro inclus</span></div>
             <div class="plan-feature"><span class="check">✓</span> <span data-fr="Multi-tenant (plusieurs clients)" data-en="Multi-tenant (multiple clients)">Multi-tenant (plusieurs clients)</span></div>
             <div class="plan-feature"><span class="check">✓</span> <span data-fr="API complète &amp; webhooks custom" data-en="Full API &amp; custom webhooks">API complète &amp; webhooks custom</span></div>
-            <div class="plan-feature"><span class="check">✓</span> <span data-fr="Rapports automatiques PDF" data-en="Automatic PDF reports">Rapports automatiques PDF</span></div>
-            <div class="plan-feature"><span class="check">✓</span> <span data-fr="Hébergement dédié possible" data-en="Dedicated hosting available">Hébergement dédié possible</span></div>
+            <div class="plan-feature"><span class="check">✓</span> <span data-fr="Hébergement dédié on-premise possible" data-en="Dedicated on-premise hosting available">Hébergement dédié on-premise possible</span></div>
             <div class="plan-feature"><span class="check">✓</span> <span data-fr="SLA contractuel 99,9%" data-en="Contractual SLA 99.9%">SLA contractuel 99,9%</span></div>
+            <div class="plan-feature"><span class="check">✓</span> <span data-fr="Accompagnement RSSI &amp; audit sécurité" data-en="CISO support &amp; security audit">Accompagnement RSSI &amp; audit sécurité</span></div>
           </div>
           <div class="plan-cta">
-            <button class="btn" style="width:100%;justify-content:center;" onclick="openModal('enterprise')" data-fr="Demander une démo" data-en="Request a demo">Demander une démo</button>
+            <button class="btn" style="width:100%;justify-content:center;" onclick="openModal('enterprise')" data-fr="Demander un devis" data-en="Request a quote">Demander un devis</button>
           </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- SÉCURITÉ & RGPD -->
+    <section id="security" style="background:var(--bg);">
+      <div class="section-label" data-fr="Sécurité &amp; Conformité" data-en="Security &amp; Compliance">Sécurité &amp; Conformité</div>
+      <h2 class="section-title" data-fr="Vos données restent les vôtres" data-en="Your data stays yours">Vos données restent les vôtres</h2>
+      <p class="section-sub" data-fr="Architecture pensée dès le départ pour les exigences des DSI et RSSI en environnement PME." data-en="Architecture designed from the ground up for CIO and CISO requirements in SME environments.">Architecture pensée dès le départ pour les exigences des DSI et RSSI en environnement PME.</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px;max-width:1000px;margin:0 auto;">
+
+        <div style="background:var(--bg2);border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:28px;">
+          <div style="font-size:2rem;margin-bottom:12px">🔐</div>
+          <h3 style="font-size:1rem;font-weight:700;color:var(--text-strong);margin-bottom:8px" data-fr="Données anonymisées" data-en="Anonymised data">Données anonymisées</h3>
+          <p style="font-size:0.84rem;color:var(--text-muted);line-height:1.6" data-fr="Les tickets et conversations sont pseudonymisés à l'ingestion. Aucun nom, email ou identifiant personnel n'est transmis aux modèles IA. Seul le contenu technique voyage." data-en="Tickets and conversations are pseudonymised at ingestion. No name, email or personal identifier is sent to AI models. Only technical content travels.">Les tickets et conversations sont pseudonymisés à l'ingestion. Aucun nom, email ou identifiant personnel n'est transmis aux modèles IA. Seul le contenu technique voyage.</p>
+        </div>
+
+        <div style="background:var(--bg2);border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:28px;">
+          <div style="font-size:2rem;margin-bottom:12px">🇪🇺</div>
+          <h3 style="font-size:1rem;font-weight:700;color:var(--text-strong);margin-bottom:8px">RGPD &amp; Hébergement EU</h3>
+          <p style="font-size:0.84rem;color:var(--text-muted);line-height:1.6" data-fr="Données hébergées en Europe (Scaleway / OVH selon le plan). Aucun transfert hors UE. Conformité RGPD article 25 (privacy by design). DPA disponible sur demande." data-en="Data hosted in Europe (Scaleway / OVH depending on plan). No transfer outside EU. GDPR article 25 compliant (privacy by design). DPA available on request.">Données hébergées en Europe (Scaleway / OVH selon le plan). Aucun transfert hors UE. Conformité RGPD article 25 (privacy by design). DPA disponible sur demande.</p>
+        </div>
+
+        <div style="background:var(--bg2);border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:28px;">
+          <div style="font-size:2rem;margin-bottom:12px">🛡️</div>
+          <h3 style="font-size:1rem;font-weight:700;color:var(--text-strong);margin-bottom:8px" data-fr="Chiffrement de bout en bout" data-en="End-to-end encryption">Chiffrement de bout en bout</h3>
+          <p style="font-size:0.84rem;color:var(--text-muted);line-height:1.6" data-fr="TLS 1.3 en transit, AES-256 au repos. Authentification par token JWT à durée limitée. Accès admin tracé et auditable. Séparation totale des données par tenant." data-en="TLS 1.3 in transit, AES-256 at rest. JWT time-limited token authentication. Traced and auditable admin access. Full data separation per tenant.">TLS 1.3 en transit, AES-256 au repos. Authentification par token JWT à durée limitée. Accès admin tracé et auditable. Séparation totale des données par tenant.</p>
+        </div>
+
+        <div style="background:var(--bg2);border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:28px;">
+          <div style="font-size:2rem;margin-bottom:12px">🏠</div>
+          <h3 style="font-size:1rem;font-weight:700;color:var(--text-strong);margin-bottom:8px" data-fr="On-premise disponible" data-en="On-premise available">On-premise disponible</h3>
+          <p style="font-size:0.84rem;color:var(--text-muted);line-height:1.6" data-fr="Déploiement sur vos serveurs Linux ou Windows Server (Docker). Vos données ne quittent jamais votre infrastructure. Compatible avec les politiques de sécurité les plus strictes (banque, santé, défense)." data-en="Deploy on your Linux or Windows Server infrastructure (Docker). Your data never leaves your network. Compatible with the strictest security policies (banking, healthcare, defence).">Déploiement sur vos serveurs Linux ou Windows Server (Docker). Vos données ne quittent jamais votre infrastructure. Compatible avec les politiques de sécurité les plus strictes (banque, santé, défense).</p>
+        </div>
+
+        <div style="background:var(--bg2);border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:28px;">
+          <div style="font-size:2rem;margin-bottom:12px">📋</div>
+          <h3 style="font-size:1rem;font-weight:700;color:var(--text-strong);margin-bottom:8px" data-fr="Pratiques ISO 27001" data-en="ISO 27001 practices">Pratiques ISO 27001</h3>
+          <p style="font-size:0.84rem;color:var(--text-muted);line-height:1.6" data-fr="Politique de sécurité documentée alignée ISO 27001. Gestion des accès par rôles (RBAC), logs d'audit complets, plan de continuité d'activité. Fiche sécurité RSSI disponible sur demande." data-en="Documented security policy aligned with ISO 27001. Role-based access control (RBAC), full audit logs, business continuity plan. CISO security sheet available on request.">Politique de sécurité documentée alignée ISO 27001. Gestion des accès par rôles (RBAC), logs d'audit complets, plan de continuité d'activité. Fiche sécurité RSSI disponible sur demande.</p>
+        </div>
+
+        <div style="background:var(--bg2);border:1px solid rgba(99,102,241,0.15);border-radius:16px;padding:28px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;">
+          <div style="font-size:2rem;margin-bottom:12px">📄</div>
+          <h3 style="font-size:1rem;font-weight:700;color:var(--text-strong);margin-bottom:8px" data-fr="Fiche technique RSSI" data-en="CISO Technical Sheet">Fiche technique RSSI</h3>
+          <p style="font-size:0.84rem;color:var(--text-muted);line-height:1.6;margin-bottom:16px" data-fr="Architecture complète, flux de données, politique de rétention, contacts DPO." data-en="Full architecture, data flows, retention policy, DPO contacts.">Architecture complète, flux de données, politique de rétention, contacts DPO.</p>
+          <a href="mailto:contact@kah-digital.ch?subject=Fiche sécurité RSSI" class="btn ghost" style="font-size:0.84rem" data-fr="Télécharger la fiche →" data-en="Download sheet →">Télécharger la fiche →</a>
         </div>
 
       </div>
@@ -662,7 +728,7 @@
       <p data-fr="14 jours gratuits, sans carte bancaire, opérationnel en 15 minutes." data-en="14 days free, no credit card required, live in 15 minutes.">14 jours gratuits, sans carte bancaire, opérationnel en 15 minutes.</p>
       <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
         <button class="btn primary large" onclick="openModal('pro')" data-fr="Démarrer gratuitement 14 jours" data-en="Start free for 14 days">Démarrer gratuitement 14 jours</button>
-        <a href="/app/login.html" class="btn large" data-fr="Voir la démo en direct" data-en="View live demo">Voir la démo en direct</a>
+        <a href="/app/demo-video.html" class="btn large" data-fr="Voir la démo" data-en="View demo">Voir la démo</a>
       </div>
       <p class="cta-note">
         <span>✓</span> <span data-fr="Sans carte bancaire" data-en="No credit card">Sans carte bancaire</span> &nbsp;&nbsp;

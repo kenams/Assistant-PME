@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Démo — Assistant IT IA | KAH Digital</title>
+<style>
+  :root {
+    --bg: #0d0d14; --bg2: #13131e; --bg3: #1a1a2a;
+    --text: #c8c8d8; --text-strong: #fff; --text-muted: #6b6b80;
+    --primary: #6366f1; --success: #22c55e;
+    --border: rgba(255,255,255,0.07);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, sans-serif; }
+  nav { display: flex; align-items: center; justify-content: space-between; padding: 16px 32px; border-bottom: 1px solid var(--border); }
+  .nav-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text-strong); font-weight: 700; }
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 10px 20px; border-radius: 8px; font-size: 0.88rem; font-weight: 600; text-decoration: none; cursor: pointer; border: 1px solid var(--border); background: transparent; color: var(--text); transition: all .2s; }
+  .btn.primary { background: var(--primary); border-color: var(--primary); color: #fff; }
+  .btn:hover { opacity: .85; }
+  .hero { text-align: center; padding: 80px 24px 48px; }
+  .hero-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(99,102,241,.1); border: 1px solid rgba(99,102,241,.25); color: var(--primary); font-size: .78rem; font-weight: 600; padding: 6px 14px; border-radius: 99px; margin-bottom: 24px; }
+  h1 { font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 900; color: var(--text-strong); line-height: 1.1; margin-bottom: 16px; }
+  .sub { font-size: 1.05rem; color: var(--text-muted); max-width: 560px; margin: 0 auto 36px; line-height: 1.6; }
+  /* Video placeholder */
+  .video-wrap { max-width: 900px; margin: 0 auto 64px; border-radius: 20px; overflow: hidden; border: 1px solid var(--border); background: var(--bg2); aspect-ratio: 16/9; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; }
+  .video-icon { font-size: 4rem; }
+  .video-label { font-size: 1rem; color: var(--text-muted); }
+  .video-note { font-size: .8rem; color: var(--text-muted); opacity: .6; }
+  /* Workflow steps */
+  .steps { max-width: 900px; margin: 0 auto; padding: 0 24px 80px; }
+  .steps-title { font-size: 1.4rem; font-weight: 800; color: var(--text-strong); text-align: center; margin-bottom: 48px; }
+  .step { display: grid; grid-template-columns: 60px 1fr; gap: 24px; margin-bottom: 56px; align-items: start; }
+  .step:nth-child(even) { direction: rtl; }
+  .step:nth-child(even) > * { direction: ltr; }
+  .step-num { width: 52px; height: 52px; border-radius: 50%; background: rgba(99,102,241,.15); border: 2px solid rgba(99,102,241,.4); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; font-weight: 900; color: var(--primary); flex-shrink: 0; }
+  .step-body { background: var(--bg2); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+  .step-content { padding: 20px 24px; }
+  .step-tag { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--primary); margin-bottom: 6px; }
+  .step-title { font-size: 1.05rem; font-weight: 800; color: var(--text-strong); margin-bottom: 8px; }
+  .step-desc { font-size: .88rem; color: var(--text-muted); line-height: 1.6; }
+  .step-gains { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .gain { font-size: .75rem; font-weight: 600; padding: 4px 10px; border-radius: 99px; background: rgba(34,197,94,.1); border: 1px solid rgba(34,197,94,.2); color: var(--success); }
+  .step-screenshot { width: 100%; display: block; border-top: 1px solid var(--border); max-height: 420px; object-fit: cover; object-position: top; }
+  /* CTA */
+  .cta-box { background: linear-gradient(135deg, rgba(99,102,241,.15), rgba(99,102,241,.05)); border: 1px solid rgba(99,102,241,.25); border-radius: 24px; padding: 48px 32px; text-align: center; max-width: 700px; margin: 0 auto 64px; }
+  .cta-box h2 { font-size: 1.6rem; font-weight: 900; color: var(--text-strong); margin-bottom: 12px; }
+  .cta-box p { color: var(--text-muted); margin-bottom: 28px; }
+  .cta-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-brand">🤖 Assistant IT</a>
+  <div style="display:flex;gap:12px;">
+    <a href="/#pricing" class="btn">Tarifs</a>
+    <a href="/#security" class="btn">Sécurité</a>
+    <button class="btn primary" onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'})">Demander un essai</button>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="hero-badge">🎬 Démo complète — workflow A→Z</div>
+  <h1>Tout le workflow en action</h1>
+  <p class="sub">De la demande utilisateur à la clôture du ticket GLPI — en moins de 3 minutes. Sans technicien humain.</p>
+</div>
+
+<!-- VIDEO PLACEHOLDER -->
+<div style="max-width:900px;margin:0 auto 64px;padding:0 24px;">
+  <div class="video-wrap" id="videoWrap">
+    <div class="video-icon">▶️</div>
+    <div class="video-label" style="font-size:1.1rem;font-weight:700;color:var(--text-strong)">Vidéo démo — bientôt disponible</div>
+    <div class="video-note">En attendant, découvrez le workflow étape par étape ci-dessous</div>
+  </div>
+</div>
+
+<!-- WORKFLOW STEPS -->
+<div class="steps">
+  <div class="steps-title">Le workflow de A à Z</div>
+
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-body">
+      <div class="step-content">
+        <div class="step-tag">Point d'entrée</div>
+        <div class="step-title">L'utilisateur décrit son problème en langage naturel</div>
+        <div class="step-desc">Pas de formulaire à remplir, pas de catégorie à choisir. L'utilisateur tape son problème comme il le ferait à un collègue : "Mon Outlook ne synchronise plus depuis ce matin".</div>
+        <div class="step-gains">
+          <span class="gain">⏱ Zéro friction</span>
+          <span class="gain">📱 Mobile &amp; desktop</span>
+          <span class="gain">🌐 FR &amp; EN</span>
+        </div>
+      </div>
+      <img class="step-screenshot" src="/mockups/step3_chat_empty.png" alt="Interface chat utilisateur" />
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-body">
+      <div class="step-content">
+        <div class="step-tag">IA N1 — Résolution instantanée</div>
+        <div class="step-title">L'IA diagnostique et résout en temps réel</div>
+        <div class="step-desc">GPT-4o analyse le problème, consulte la base de connaissances de l'entreprise et propose une solution guidée étape par étape. 94% des problèmes N1 sont résolus sans technicien humain.</div>
+        <div class="step-gains">
+          <span class="gain">✅ 94% résolution N1</span>
+          <span class="gain">⚡ Réponse &lt; 3 sec</span>
+          <span class="gain">🧠 Base de co auto-apprenante</span>
+        </div>
+      </div>
+      <img class="step-screenshot" src="/mockups/step4_chat_response.png" alt="Réponse IA avec solution guidée" />
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">3</div>
+    <div class="step-body">
+      <div class="step-content">
+        <div class="step-tag">Escalade automatique N2 → GLPI</div>
+        <div class="step-title">Si trop complexe : ticket GLPI créé automatiquement</div>
+        <div class="step-desc">L'IA détecte les cas qui dépassent son périmètre et crée automatiquement un ticket GLPI avec : catégorie, priorité, description structurée, et ID utilisateur. Le technicien N2 reçoit un ticket pré-rempli et priorisé.</div>
+        <div class="step-gains">
+          <span class="gain">🎫 Ticket GLPI auto</span>
+          <span class="gain">📊 Priorité IA</span>
+          <span class="gain">🔔 Notif Slack/Teams</span>
+        </div>
+      </div>
+      <img class="step-screenshot" src="/mockups/step5_glpi_escalade.png" alt="Escalade GLPI automatique" />
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">4</div>
+    <div class="step-body">
+      <div class="step-content">
+        <div class="step-tag">Tableau de bord admin / DSI</div>
+        <div class="step-title">Visibilité totale en temps réel pour le DSI</div>
+        <div class="step-desc">Dashboard en temps réel : taux de résolution IA, temps moyen de traitement, tickets en attente N2, alertes SLA, rapports PDF automatiques. Toutes les métriques pour piloter le support IT.</div>
+        <div class="step-gains">
+          <span class="gain">📈 KPIs temps réel</span>
+          <span class="gain">📄 Rapports PDF auto</span>
+          <span class="gain">🚨 Alertes SLA</span>
+        </div>
+      </div>
+      <img class="step-screenshot" src="/mockups/step6_admin.png" alt="Dashboard admin DSI" />
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">5</div>
+    <div class="step-body">
+      <div class="step-content">
+        <div class="step-tag">Base de connaissances autonome</div>
+        <div class="step-title">L'outil apprend de chaque résolution</div>
+        <div class="step-desc">Chaque ticket résolu enrichit automatiquement la base de connaissances. Les solutions validées par les techniciens N2 sont indexées et deviennent disponibles à l'IA pour les prochains utilisateurs. Plus vous l'utilisez, plus il est efficace.</div>
+        <div class="step-gains">
+          <span class="gain">🔄 Auto-apprentissage</span>
+          <span class="gain">📚 Base de co indexée</span>
+          <span class="gain">📤 Import docs existants</span>
+        </div>
+      </div>
+      <div style="padding:32px 24px;background:rgba(99,102,241,.05);">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;text-align:center;">
+          <div><div style="font-size:2rem;font-weight:900;color:var(--primary)">+38%</div><div style="font-size:.8rem;color:var(--text-muted)">précision à 3 mois</div></div>
+          <div><div style="font-size:2rem;font-weight:900;color:var(--success)">Auto</div><div style="font-size:.8rem;color:var(--text-muted)">enrichissement KB</div></div>
+          <div><div style="font-size:2rem;font-weight:900;color:var(--primary)">0</div><div style="font-size:.8rem;color:var(--text-muted)">maintenance manuelle</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- CTA -->
+<div style="padding:0 24px;" id="contact">
+  <div class="cta-box">
+    <h2>Prêt à voir ça sur vos données ?</h2>
+    <p>Démo personnalisée en 30 min avec vos cas d'usage réels. Setup en 15 minutes si vous souhaitez démarrer.</p>
+    <div class="cta-btns">
+      <a href="mailto:contact@kah-digital.ch?subject=Demande démo Assistant IT" class="btn primary" style="padding:14px 28px;font-size:1rem">Demander une démo personnalisée →</a>
+      <a href="/#pricing" class="btn" style="padding:14px 28px;font-size:1rem">Voir les tarifs</a>
+    </div>
+    <p style="font-size:.8rem;color:var(--text-muted);margin-top:16px">✓ Sans engagement &nbsp; ✓ Réponse sous 24h &nbsp; ✓ 14 jours gratuits</p>
+  </div>
+</div>
+
+</body>
+</html>
