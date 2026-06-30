@@ -68,11 +68,15 @@
 
 <!-- VIDEO PLACEHOLDER -->
 <div style="max-width:900px;margin:0 auto 64px;padding:0 24px;">
-  <div class="video-wrap" id="videoWrap">
-    <div class="video-icon">▶️</div>
-    <div class="video-label" style="font-size:1.1rem;font-weight:700;color:var(--text-strong)">Vidéo démo — bientôt disponible</div>
-    <div class="video-note">En attendant, découvrez le workflow étape par étape ci-dessous</div>
-  </div>
+  <video
+    controls
+    preload="metadata"
+    poster=""
+    style="width:100%;border-radius:20px;border:1px solid rgba(255,255,255,0.08);display:block;"
+  >
+    <source src="/demo.mp4" type="video/mp4" />
+    Votre navigateur ne supporte pas la lecture vidéo.
+  </video>
 </div>
 
 <!-- WORKFLOW STEPS -->
