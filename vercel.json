@@ -1,4 +1,5 @@
 {
+  "cleanUrls": false,
   "rewrites": [
     { "source": "/health", "destination": "https://assistant-pme.onrender.com/health" },
     { "source": "/auth/:path*", "destination": "https://assistant-pme.onrender.com/auth/:path*" },
