@@ -10,7 +10,6 @@ router.use(authRequired);
 const mfaRateLimit = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 10,
-  keyGenerator: (req) => `mfa:${req.user?.id || req.ip}`,
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: "too_many_attempts" },
