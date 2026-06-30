@@ -134,6 +134,12 @@ app.get("/app/admin/", (req, res) => sendNoCache(res, path.join(appDir, "admin.h
 app.get("/app/admin/index.html", (req, res) => sendNoCache(res, path.join(appDir, "admin.html")));
 app.get("/app/reset-password", (req, res) => sendNoCache(res, path.join(appDir, "reset-password.html")));
 app.get("/app/reset-password/", (req, res) => sendNoCache(res, path.join(appDir, "reset-password.html")));
+app.get("/app/demo-video", (req, res) => sendNoCache(res, path.join(appDir, "demo-video.html")));
+app.get("/app/demo-video/", (req, res) => sendNoCache(res, path.join(appDir, "demo-video.html")));
+app.get("/app/demo-video.html", (req, res) => sendNoCache(res, path.join(appDir, "demo-video.html")));
+app.get("/app/slides", (req, res) => sendNoCache(res, path.join(appDir, "slides.html")));
+app.get("/app/slides/", (req, res) => sendNoCache(res, path.join(appDir, "slides.html")));
+app.get("/app/slides.html", (req, res) => sendNoCache(res, path.join(appDir, "slides.html")));
 app.use("/app", express.static(appDir, staticOptions));
 // Routes racine pour les pages standalone (success post-paiement, reset mdp)
 app.get("/success.html", (req, res) => sendNoCache(res, path.join(appDir, "success.html")));
