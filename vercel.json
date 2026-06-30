@@ -25,7 +25,17 @@
     { "source": "/app/user", "destination": "/app/user.html" },
     { "source": "/app/user/", "destination": "/app/user.html" },
     { "source": "/app/admin", "destination": "/app/admin.html" },
-    { "source": "/app/admin/", "destination": "/app/admin.html" }
+    { "source": "/app/admin/", "destination": "/app/admin.html" },
+    { "source": "/app/demo-video", "destination": "/app/demo-video.html" },
+    { "source": "/app/demo-video/", "destination": "/app/demo-video.html" },
+    { "source": "/app/demo-video.html", "destination": "/app/demo-video.html" },
+    { "source": "/app/slides", "destination": "/app/slides.html" },
+    { "source": "/app/slides/", "destination": "/app/slides.html" },
+    { "source": "/app/slides.html", "destination": "/app/slides.html" },
+    { "source": "/app/glpi", "destination": "/app/glpi.html" },
+    { "source": "/app/glpi/", "destination": "/app/glpi.html" },
+    { "source": "/app/demo", "destination": "/app/demo.html" },
+    { "source": "/app/demo/", "destination": "/app/demo.html" }
   ],
   "headers": [
     {
