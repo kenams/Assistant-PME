@@ -41,11 +41,7 @@ const mfaRoutes = require("./routes/mfa.routes");
 const app = express();
 const logger = createLogger();
 
-if (hasDb) {
-  runMigrations().then(() => {
-    ensureSeeded().catch(err => console.error("Seed error:", err));
-  }).catch(err => console.error("Migration error:", err));
-}
+// Migrations and seed now run synchronously in index.js before server starts
 
 if (hasDb && env.nodeEnv !== "test") {
   startMailboxPolling();
