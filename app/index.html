@@ -401,6 +401,7 @@
         <a href="#pricing" data-fr="Tarifs" data-en="Pricing">Tarifs</a>
         <a href="#security" data-fr="Sécurité" data-en="Security">Sécurité</a>
         <a href="/app/slides.html" data-fr="Présentation" data-en="Deck">Présentation</a>
+        <a href="#contact" data-fr="Demander une démo" data-en="Get a demo" style="color:var(--accent);font-weight:600;">Demander une démo</a>
       </div>
       <div class="nav-cta">
         <button class="lang-btn" id="langToggle" onclick="toggleLang()">EN</button>
@@ -421,7 +422,7 @@
       </p>
       <div class="hero-actions">
         <a href="#pricing" class="btn primary large" data-fr="Démarrer — 14 jours gratuits" data-en="Get started — 14 days free">Démarrer — 14 jours gratuits</a>
-        <a href="/app/login.html" class="btn large" data-fr="Voir la démo" data-en="View demo">Voir la démo</a>
+        <a href="/app/demo-video" class="btn large" data-fr="Voir la démo" data-en="View demo">Voir la démo</a>
       </div>
     </section>
 
@@ -440,6 +441,68 @@
         <span class="stat-label" data-fr="Pour être opérationnel" data-en="To go live">Pour être opérationnel</span>
       </div>
     </div>
+
+    <!-- DEMO VIDEO EMBED -->
+    <section id="demo" style="background:var(--bg2);padding:80px 5vw;">
+      <div class="section-label" data-fr="Démo en direct" data-en="Live demo">Démo en direct</div>
+      <h2 class="section-title" data-fr="Voyez l'IA en action — 43 secondes" data-en="See the AI in action — 43 seconds">Voyez l'IA en action — 43 secondes</h2>
+      <p class="section-sub" data-fr="Un utilisateur pose une question, l'IA répond en 3 secondes, le ticket GLPI est créé automatiquement." data-en="A user asks a question, the AI responds in 3 seconds, the GLPI ticket is created automatically.">Un utilisateur pose une question, l'IA répond en 3 secondes, le ticket GLPI est créé automatiquement.</p>
+      <div style="max-width:780px;margin:0 auto;position:relative;border-radius:16px;overflow:hidden;border:1px solid var(--stroke2);box-shadow:0 8px 48px rgba(0,0,0,0.5);">
+        <video
+          id="demoVideo"
+          src="/demo.mp4"
+          poster=""
+          playsinline
+          style="width:100%;display:block;background:#0f1117;cursor:pointer;"
+          onclick="this.paused ? this.play() : this.pause()"
+        ></video>
+        <div id="playOverlay" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.35);cursor:pointer;transition:background 0.2s;">
+          <div style="width:72px;height:72px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 0 40px rgba(99,102,241,0.5);">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+          </div>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:20px;">
+        <a href="/app/demo-video" class="btn ghost" style="font-size:0.85rem;" data-fr="Voir la démo complète avec détails →" data-en="See full demo with details →">Voir la démo complète avec détails →</a>
+      </div>
+    </section>
+
+    <!-- FORMULAIRE DEMO -->
+    <section id="contact" style="padding:80px 5vw;">
+      <div class="section-label" data-fr="Parler à un humain" data-en="Talk to a human">Parler à un humain</div>
+      <h2 class="section-title" data-fr="Demander une démo personnalisée" data-en="Request a personalised demo">Demander une démo personnalisée</h2>
+      <p class="section-sub" data-fr="Vous préférez voir l'outil sur vos cas d'usage réels ? Je vous rappelle sous 24h." data-en="Prefer to see the tool on your real use cases? I'll call you back within 24h.">Vous préférez voir l'outil sur vos cas d'usage réels ? Je vous rappelle sous 24h.</p>
+
+      <div style="max-width:540px;margin:0 auto;background:var(--card);border:1px solid var(--stroke2);border-radius:20px;padding:40px;">
+        <form id="demoRequestForm" onsubmit="submitDemoRequest(event)">
+          <input type="text" name="company_website" style="display:none" tabindex="-1" autocomplete="off">
+          <div class="form-group">
+            <label data-fr="Votre prénom et nom" data-en="Your name">Votre prénom et nom</label>
+            <input type="text" id="drName" placeholder="Jean Dupont" required>
+          </div>
+          <div class="form-group">
+            <label data-fr="Email professionnel" data-en="Work email">Email professionnel</label>
+            <input type="email" id="drEmail" placeholder="jean@entreprise.fr" required>
+          </div>
+          <div class="form-group">
+            <label data-fr="Entreprise" data-en="Company">Entreprise</label>
+            <input type="text" id="drCompany" placeholder="Acme Corp" required>
+          </div>
+          <div class="form-group">
+            <label data-fr="Votre contexte (optionnel)" data-en="Your context (optional)">Votre contexte (optionnel)</label>
+            <input type="text" id="drMessage" placeholder="On utilise GLPI, ~80 tickets/semaine...">
+          </div>
+          <button type="submit" id="drBtn" style="width:100%;padding:14px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:10px;font-family:inherit;font-size:0.95rem;font-weight:700;cursor:pointer;box-shadow:0 0 24px var(--accent-glow);transition:opacity 0.15s;" data-fr="Demander une démo →" data-en="Request a demo →">
+            Demander une démo →
+          </button>
+          <div id="drSuccess" style="display:none;margin-top:16px;padding:14px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.25);border-radius:8px;color:#4ade80;font-size:0.88rem;text-align:center;" data-fr="✓ Reçu ! Je vous réponds sous 24h." data-en="✓ Got it! I'll reply within 24h.">
+            ✓ Reçu ! Je vous réponds sous 24h.
+          </div>
+          <div id="drError" style="display:none;margin-top:12px;padding:12px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);border-radius:8px;color:#f87171;font-size:0.83rem;"></div>
+        </form>
+        <p style="text-align:center;font-size:0.75rem;color:var(--text-muted);margin-top:16px;" data-fr="Ou directement : contact@kah-digital.ch" data-en="Or directly: contact@kah-digital.ch">Ou directement : <a href="mailto:contact@kah-digital.ch" style="color:var(--accent);">contact@kah-digital.ch</a></p>
+      </div>
+    </section>
 
     <!-- GLPI BANNER -->
     <div style="background:linear-gradient(90deg,rgba(99,102,241,0.12),rgba(139,92,246,0.12));border-top:1px solid rgba(99,102,241,0.2);border-bottom:1px solid rgba(99,102,241,0.2);padding:20px 24px;text-align:center;">
@@ -743,6 +806,7 @@
       <div class="footer-links">
         <a href="#features" data-fr="Fonctionnalités" data-en="Features">Fonctionnalités</a>
         <a href="#pricing" data-fr="Tarifs" data-en="Pricing">Tarifs</a>
+        <a href="#contact" data-fr="Démo" data-en="Demo">Démo</a>
         <a href="/app/login/" data-fr="Connexion" data-en="Login">Connexion</a>
         <a href="mailto:contact@kah-digital.ch">Contact</a>
       </div>
@@ -898,6 +962,62 @@
           errEl.classList.add("show");
           btn.disabled = false;
           btn.textContent = currentLang === 'fr' ? "Payer avec Stripe →" : "Pay with Stripe →";
+        }
+      }
+
+      // ── VIDEO PLAYER ──
+      (function() {
+        const video = document.getElementById("demoVideo");
+        const overlay = document.getElementById("playOverlay");
+        if (!video || !overlay) return;
+        overlay.addEventListener("click", function() {
+          video.play();
+          overlay.style.display = "none";
+        });
+        video.addEventListener("pause", function() {
+          overlay.style.display = "flex";
+        });
+        video.addEventListener("ended", function() {
+          overlay.style.display = "flex";
+        });
+      })();
+
+      // ── DEMO REQUEST FORM ──
+      async function submitDemoRequest(e) {
+        e.preventDefault();
+        const btn = document.getElementById("drBtn");
+        const successEl = document.getElementById("drSuccess");
+        const errorEl = document.getElementById("drError");
+        errorEl.style.display = "none";
+        btn.disabled = true;
+        btn.textContent = currentLang === "fr" ? "Envoi en cours…" : "Sending…";
+
+        const payload = {
+          name: document.getElementById("drName").value.trim(),
+          email: document.getElementById("drEmail").value.trim(),
+          company: document.getElementById("drCompany").value.trim(),
+          message: document.getElementById("drMessage").value.trim() || undefined,
+        };
+
+        try {
+          const r = await fetch("/leads", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          if (!r.ok) {
+            const d = await r.json().catch(() => ({}));
+            throw new Error(d.error || "Erreur serveur");
+          }
+          document.getElementById("demoRequestForm").style.display = "none";
+          successEl.style.display = "block";
+        } catch(err) {
+          errorEl.textContent = currentLang === "fr"
+            ? "Une erreur est survenue. Contactez-nous à contact@kah-digital.ch"
+            : "An error occurred. Contact us at contact@kah-digital.ch";
+          errorEl.style.display = "block";
+          btn.disabled = false;
+          btn.textContent = currentLang === "fr" ? "Demander une démo →" : "Request a demo →";
         }
       }
 
