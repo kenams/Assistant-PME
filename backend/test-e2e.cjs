@@ -5,13 +5,26 @@
 const https = require('https');
 const http = require('http');
 
-// E2E test script — SSL verify disabled for local test runner only
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+// TLS: only disabled when caller explicitly sets ALLOW_INSECURE_TLS=1
+if (process.env.ALLOW_INSECURE_TLS === '1') {
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+}
 
-const BASE = process.env.BACKEND || 'https://assistant-pme.onrender.com';
-const GLPI_URL = process.env.GLPI_URL || 'https://1b74315abafd84.lhr.life';
-const APP_TOKEN = 'dgrFDLKpaM3eNE2dhJyne9S1LKy7iulBROaMkWoa';
-const USER_TOKEN = 'SrN0NFiOdZKB6b9foiwfXZcVXr9I9gF75EscEh95hcAKVTUvnxJXnXHbDOzIGdwpqGqFP0PFqVL1ZqVul7PpbvSDVBDl3PG6jrECyFttvec=';
+const BASE = process.env.BACKEND || 'http://localhost:3004';
+const GLPI_URL = process.env.GLPI_URL || 'http://localhost:8082';
+
+const APP_TOKEN = process.env.GLPI_APP_TOKEN;
+const ADMIN_EMAIL = process.env.TEST_ADMIN_EMAIL;
+const ADMIN_PASSWORD = process.env.TEST_ADMIN_PASSWORD;
+
+if (!ADMIN_EMAIL || !ADMIN_PASSWORD) {
+  console.error('Missing env vars: TEST_ADMIN_EMAIL, TEST_ADMIN_PASSWORD');
+  process.exit(1);
+}
+if (!APP_TOKEN) {
+  console.error('Missing env var: GLPI_APP_TOKEN');
+  process.exit(1);
+}
 
 const results = [];
 let jwt = null, orgId = null, tenantId = null;
@@ -39,7 +52,7 @@ async function req(method, url, body, headers = {}) {
         ...(data ? { 'Content-Length': Buffer.byteLength(data) } : {}),
         ...headers
       },
-      rejectUnauthorized: false
+      rejectUnauthorized: process.env.ALLOW_INSECURE_TLS !== '1'
     };
     const r = lib.request(opts, (res) => {
       let body = '';
@@ -79,7 +92,7 @@ async function run() {
   // ── 3. LOGIN ADMIN ────────────────────────────────────
   console.log('\n── Phase 3 : Login admin ──');
   try {
-    const r = await req('POST', BASE + '/auth/login', { email: 'kahdigital42@gmail.com', password: 'Niamorode22342!!' });
+    const r = await req('POST', BASE + '/auth/login', { email: ADMIN_EMAIL, password: ADMIN_PASSWORD });
     if (r.status === 200 && r.data.token) {
       jwt = r.data.token;
       orgId = r.data.user?.organizationId;
