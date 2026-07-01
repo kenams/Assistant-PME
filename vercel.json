@@ -2,7 +2,11 @@
   "rewrites": [
     { "source": "/health", "destination": "https://assistant-pme.onrender.com/health" },
     { "source": "/auth/:path*", "destination": "https://assistant-pme.onrender.com/auth/:path*" },
+    { "source": "/chat", "destination": "https://assistant-pme.onrender.com/chat" },
+    { "source": "/chat/", "destination": "https://assistant-pme.onrender.com/chat/" },
     { "source": "/chat/:path*", "destination": "https://assistant-pme.onrender.com/chat/:path*" },
+    { "source": "/tickets", "destination": "https://assistant-pme.onrender.com/tickets/" },
+    { "source": "/tickets/", "destination": "https://assistant-pme.onrender.com/tickets/" },
     { "source": "/tickets/:path*", "destination": "https://assistant-pme.onrender.com/tickets/:path*" },
     { "source": "/kb/:path*", "destination": "https://assistant-pme.onrender.com/kb/:path*" },
     { "source": "/users/:path*", "destination": "https://assistant-pme.onrender.com/users/:path*" },
