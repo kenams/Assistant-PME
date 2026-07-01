@@ -14,14 +14,18 @@ router.get("/", (req, res) => {
 });
 
 router.get("/db", async (req, res) => {
-  if (!hasDb) return res.json({ hasDb: false, tables: [] });
+  const secret = req.headers["x-debug-secret"];
+  if (!secret || secret !== process.env.DEBUG_SECRET) {
+    return res.status(403).json({ error: "forbidden" });
+  }
+  if (!hasDb) return res.json({ hasDb: false });
   try {
+    await db.raw("SELECT 1");
     const rows = await db.raw("SELECT tablename FROM pg_tables WHERE schemaname='public' ORDER BY tablename");
-    const tables = rows.rows.map(r => r.tablename);
-    const userCount = tables.includes("users") ? (await db("users").count("id as c").first()).c : null;
-    return res.json({ ok: true, hasDb: true, tables, userCount });
+    return res.json({ ok: true, hasDb: true, tables: rows.rows.map(r => r.tablename) });
   } catch (err) {
-    return res.status(500).json({ ok: false, error: err.message });
+    req.log?.error({ err }, "health/db failed");
+    return res.status(500).json({ ok: false, error: "db_check_failed" });
   }
 });
 
