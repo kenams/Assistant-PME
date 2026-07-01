@@ -17,7 +17,7 @@ else {
 }
 if (-not $RENDER_API_KEY) { Write-ERR "RENDER_API_KEY manquant — creer demo-config.ps1"; exit 1 }
 $GLPI_LOCAL_PORT = 8082
-$APP_URL         = "https://assistant-pme.onrender.com"
+$APP_URL         = "https://kah-support.ch"
 
 function Write-Step { param($msg) Write-Host "`n>>> $msg" -ForegroundColor Cyan }
 function Write-OK   { param($msg) Write-Host "    [OK] $msg" -ForegroundColor Green }
