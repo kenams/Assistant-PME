@@ -10,6 +10,7 @@ const SECRET_FIELDS = new Set([
   "oauth_outlook_client_secret",
   "glpi_app_token",
   "glpi_user_token",
+  "glpi_password",
   "ad_bind_password"
 ]);
 

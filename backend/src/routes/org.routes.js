@@ -65,6 +65,8 @@ const settingsSchema = z.object({
   glpi_base_url: z.string().url().optional().or(z.literal("")),
   glpi_app_token: z.string().min(1).optional().or(z.literal("")),
   glpi_user_token: z.string().min(1).optional().or(z.literal("")),
+  glpi_login: z.string().min(1).optional().or(z.literal("")),
+  glpi_password: z.string().min(1).optional().or(z.literal("")),
   ad_enabled: z.boolean().optional(),
   ad_url: z.string().url().optional().or(z.literal("")),
   ad_domain: z.string().min(1).optional().or(z.literal("")),

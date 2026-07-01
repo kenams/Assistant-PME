@@ -16,14 +16,18 @@ function resolveConfig(overrides) {
       enabled: Boolean(env.glpiEnabled),
       baseUrl: env.glpiBaseUrl || "",
       appToken: env.glpiAppToken || "",
-      userToken: env.glpiUserToken || ""
+      userToken: env.glpiUserToken || "",
+      login: env.glpiLogin || "",
+      password: env.glpiPassword || ""
     };
   }
   return {
     enabled: Boolean(overrides.enabled),
     baseUrl: overrides.baseUrl || "",
     appToken: overrides.appToken || "",
-    userToken: overrides.userToken || ""
+    userToken: overrides.userToken || "",
+    login: overrides.login || "",
+    password: overrides.password || ""
   };
 }
 
@@ -40,13 +44,16 @@ function getHeaders(extra = {}, config) {
   }
   if (config.userToken) {
     headers["Authorization"] = `user_token ${config.userToken}`;
+  } else if (config.login && config.password) {
+    headers["Authorization"] = `Basic ${Buffer.from(`${config.login}:${config.password}`).toString("base64")}`;
   }
   return headers;
 }
 
 function isGlpiEnabled(configOverride) {
   const config = resolveConfig(configOverride);
-  return Boolean(config.enabled && config.baseUrl && config.userToken);
+  const hasAuth = Boolean(config.userToken || (config.login && config.password));
+  return Boolean(config.enabled && config.baseUrl && hasAuth);
 }
 
 async function initSession(configOverride) {
