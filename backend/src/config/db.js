@@ -15,9 +15,17 @@ const db = knex({
     ? { connectionString: env.databaseUrl, ssl: isProd ? { rejectUnauthorized: false } : false }
     : "postgresql://nodb@127.0.0.1:1/nodb",
   pool: hasDb
-    ? { min: 2, max: 10, afterCreate: (conn, done) => { conn.query("SET client_encoding = 'UTF8'", (err) => done(err, conn)); } }
+    ? {
+        min: 0,
+        max: 10,
+        acquireTimeoutMillis: 30000,
+        createTimeoutMillis: 30000,
+        idleTimeoutMillis: 30000,
+        reapIntervalMillis: 1000,
+        afterCreate: (conn, done) => { conn.query("SET client_encoding = 'UTF8'", (err) => done(err, conn)); }
+      }
     : { min: 0, max: 0 },
-  acquireConnectionTimeout: hasDb ? 10000 : 100
+  acquireConnectionTimeout: hasDb ? 30000 : 100
 });
 
 module.exports = { db, hasDb };
