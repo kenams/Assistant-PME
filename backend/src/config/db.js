@@ -12,20 +12,34 @@ const isProd = hasDb && (env.nodeEnv === "production" || env.databaseUrl.include
 const db = knex({
   client: "pg",
   connection: hasDb
-    ? { connectionString: env.databaseUrl, ssl: isProd ? { rejectUnauthorized: false } : false }
+    ? {
+        connectionString: env.databaseUrl,
+        ssl: isProd ? { rejectUnauthorized: false } : false,
+        keepAlive: true,
+        keepAliveInitialDelayMillis: 10000
+      }
     : "postgresql://nodb@127.0.0.1:1/nodb",
   pool: hasDb
     ? {
         min: 0,
-        max: 10,
+        max: 5,
         acquireTimeoutMillis: 30000,
         createTimeoutMillis: 30000,
-        idleTimeoutMillis: 30000,
-        reapIntervalMillis: 1000,
-        afterCreate: (conn, done) => { conn.query("SET client_encoding = 'UTF8'", (err) => done(err, conn)); }
+        idleTimeoutMillis: 20000,
+        reapIntervalMillis: 5000,
+        afterCreate: (conn, done) => {
+          conn.query("SET client_encoding = 'UTF8'", (err) => done(err, conn));
+        }
       }
     : { min: 0, max: 0 },
   acquireConnectionTimeout: hasDb ? 30000 : 100
 });
+
+// Prevent unhandled pool errors from crashing the process
+if (hasDb) {
+  db.client.pool.on("error", (err) => {
+    console.error("[db] pool error (ignored):", err.message);
+  });
+}
 
 module.exports = { db, hasDb };
