@@ -50,6 +50,8 @@ const env = {
   glpiBaseUrl: process.env.GLPI_BASE_URL || "",
   glpiAppToken: process.env.GLPI_APP_TOKEN || "",
   glpiUserToken: process.env.GLPI_USER_TOKEN || "",
+  glpiLogin: process.env.GLPI_LOGIN || "",
+  glpiPassword: process.env.GLPI_PASSWORD || "",
   glpiEnabled: (process.env.GLPI_ENABLED || "").toLowerCase() === "true",
   stripeSecretKey: process.env.STRIPE_SECRET_KEY || "",
   stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET || "",

@@ -42,10 +42,10 @@ function getHeaders(extra = {}, config) {
   if (config.appToken) {
     headers["App-Token"] = config.appToken;
   }
-  if (config.userToken) {
-    headers["Authorization"] = `user_token ${config.userToken}`;
-  } else if (config.login && config.password) {
+  if (config.login && config.password) {
     headers["Authorization"] = `Basic ${Buffer.from(`${config.login}:${config.password}`).toString("base64")}`;
+  } else if (config.userToken) {
+    headers["Authorization"] = `user_token ${config.userToken}`;
   }
   return headers;
 }

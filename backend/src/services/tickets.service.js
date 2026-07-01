@@ -193,7 +193,9 @@ async function resolveGlpiConfig({ tenantId }) {
     enabled: Boolean(settings.glpi_enabled),
     baseUrl: settings.glpi_base_url || "",
     appToken: settings.glpi_app_token || "",
-    userToken: settings.glpi_user_token || ""
+    userToken: settings.glpi_user_token || "",
+    login: settings.glpi_login || "",
+    password: settings.glpi_password || ""
   };
 }
 

@@ -645,7 +645,9 @@ router.get("/glpi/test", authRequired, requireAdmin, async (req, res, next) => {
       enabled: Boolean(settings.glpi_enabled),
       baseUrl: settings.glpi_base_url || "",
       appToken: settings.glpi_app_token || "",
-      userToken: settings.glpi_user_token || ""
+      userToken: settings.glpi_user_token || "",
+      login: settings.glpi_login || "",
+      password: settings.glpi_password || ""
     };
     if (!isGlpiEnabled(glpiConfig)) {
       return res.status(400).json({ ok: false, error: "glpi_not_configured" });
