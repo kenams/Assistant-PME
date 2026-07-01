@@ -13,3 +13,4 @@ backend/logs/
 .env
 .env.local
 .env.campaign
+demo-config.ps1

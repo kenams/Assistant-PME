@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head><title>Icon Generator</title></head>
+<body>
+<canvas id="c192" width="192" height="192"></canvas>
+<canvas id="c512" width="512" height="512"></canvas>
+<script>
+function drawIcon(canvas) {
+  const s = canvas.width;
+  const ctx = canvas.getContext('2d');
+  const r = s * 0.22;
+  // Background
+  ctx.fillStyle = '#6366f1';
+  ctx.beginPath();
+  ctx.roundRect(0, 0, s, s, r);
+  ctx.fill();
+  // Chat bubble body
+  ctx.fillStyle = 'rgba(255,255,255,0.95)';
+  const bx = s*0.22, by = s*0.34, bw = s*0.56, bh = s*0.41, br = s*0.09;
+  ctx.beginPath();
+  ctx.roundRect(bx, by, bw, bh, br);
+  ctx.fill();
+  // Chat bubble tail
+  ctx.fillStyle = '#6366f1';
+  // Dots inside bubble
+  const dot = s*0.06;
+  [s*0.39, s*0.5, s*0.61].forEach(x => {
+    ctx.beginPath();
+    ctx.arc(x, s*0.545, dot, 0, Math.PI*2);
+    ctx.fillStyle = '#6366f1';
+    ctx.fill();
+  });
+  // Headset arc
+  ctx.strokeStyle = 'rgba(255,255,255,0.8)';
+  ctx.lineWidth = s * 0.045;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.arc(s*0.5, s*0.28, s*0.13, Math.PI, 0);
+  ctx.stroke();
+  // Headset ears
+  ctx.beginPath();
+  ctx.arc(s*0.37, s*0.28, s*0.055, Math.PI*0.5, Math.PI*1.5);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(s*0.63, s*0.28, s*0.055, -Math.PI*0.5, Math.PI*0.5);
+  ctx.stroke();
+}
+
+['c192','c512'].forEach(id => {
+  const canvas = document.getElementById(id);
+  drawIcon(canvas);
+  const a = document.createElement('a');
+  a.download = 'icon-' + canvas.width + '.png';
+  a.href = canvas.toDataURL('image/png');
+  a.textContent = 'Download ' + canvas.width;
+  a.style = 'display:block;margin:10px';
+  document.body.appendChild(a);
+});
+</script>
+</body>
+</html>

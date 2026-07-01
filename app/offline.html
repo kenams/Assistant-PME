@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Hors ligne — Assistant IT</title>
+  <link rel="manifest" href="/app/manifest.json"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Inter',system-ui,sans-serif;background:#0B0B0B;color:#EDEDED;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center}
+    .icon{width:72px;height:72px;background:#1a1a2e;border-radius:20px;display:flex;align-items:center;justify-content:center;margin:0 auto 24px;font-size:36px}
+    h1{font-size:22px;font-weight:700;margin-bottom:10px;color:#fff}
+    p{color:#888;font-size:15px;line-height:1.6;max-width:320px;margin:0 auto 32px}
+    .pill{display:inline-block;background:#6366f115;border:1px solid #6366f140;color:#818cf8;border-radius:999px;padding:6px 16px;font-size:13px;margin-bottom:32px}
+    .form{background:#111;border:1px solid rgba(255,255,255,0.06);border-radius:16px;padding:24px;width:100%;max-width:400px;text-align:left}
+    .form h2{font-size:16px;font-weight:600;margin-bottom:16px;color:#fff}
+    label{display:block;font-size:13px;color:#888;margin-bottom:6px}
+    input,textarea,select{width:100%;background:#1a1a1a;border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:#ededed;font-size:14px;padding:10px 14px;margin-bottom:14px;font-family:inherit;resize:vertical}
+    input:focus,textarea:focus,select:focus{outline:none;border-color:#6366f1}
+    textarea{min-height:90px}
+    .btn{width:100%;background:#6366f1;color:#fff;border:none;border-radius:10px;padding:12px;font-size:15px;font-weight:600;cursor:pointer;margin-top:4px}
+    .btn:disabled{opacity:0.5;cursor:not-allowed}
+    .success{background:#0d2618;border:1px solid #166534;border-radius:12px;padding:16px;color:#4ade80;font-size:14px;display:none;margin-top:12px}
+    .retry{background:transparent;border:1px solid rgba(255,255,255,0.1);color:#888;border-radius:10px;padding:10px 20px;font-size:14px;cursor:pointer;margin-top:12px}
+  </style>
+</head>
+<body>
+  <div class="icon">📡</div>
+  <span class="pill">Mode hors ligne</span>
+  <h1>Vous êtes hors ligne</h1>
+  <p>Pas de connexion internet détectée. Décrivez votre problème ci-dessous — il sera automatiquement envoyé dès que le réseau sera rétabli.</p>
+
+  <div class="form">
+    <h2>🎫 Signaler un problème</h2>
+
+    <label>Catégorie</label>
+    <select id="cat">
+      <option value="hardware">Matériel (PC, écran, imprimante…)</option>
+      <option value="network">Réseau / Connexion</option>
+      <option value="software">Logiciel / Application</option>
+      <option value="account">Compte / Accès</option>
+      <option value="security">Sécurité</option>
+      <option value="other">Autre</option>
+    </select>
+
+    <label>Titre du problème</label>
+    <input id="title" type="text" placeholder="Ex: Mon PC ne démarre plus"/>
+
+    <label>Description</label>
+    <textarea id="desc" placeholder="Décrivez le problème en détail : quand ça a commencé, ce que vous avez essayé…"></textarea>
+
+    <label>Votre email (optionnel)</label>
+    <input id="email" type="email" placeholder="prenom.nom@entreprise.fr"/>
+
+    <button class="btn" id="saveBtn" onclick="saveTicket()">Sauvegarder pour envoi automatique</button>
+
+    <div class="success" id="okMsg">
+      ✅ Ticket sauvegardé ! Il sera envoyé automatiquement quand le réseau reviendra.
+    </div>
+
+    <button class="retry" onclick="window.location.reload()">↺ Réessayer la connexion</button>
+  </div>
+
+  <script>
+    // Afficher nb de tickets en attente
+    function getDB() {
+      return new Promise((res, rej) => {
+        const r = indexedDB.open('offline-tickets', 1);
+        r.onupgradeneeded = e => e.target.result.createObjectStore('tickets', {keyPath:'id',autoIncrement:true});
+        r.onsuccess = e => res(e.target.result);
+        r.onerror = e => rej(e.target.error);
+      });
+    }
+
+    async function saveTicket() {
+      const title = document.getElementById('title').value.trim();
+      const desc  = document.getElementById('desc').value.trim();
+      const cat   = document.getElementById('cat').value;
+      const email = document.getElementById('email').value.trim();
+
+      if (!title || !desc) {
+        alert('Merci de renseigner au moins le titre et la description.');
+        return;
+      }
+
+      const btn = document.getElementById('saveBtn');
+      btn.disabled = true;
+      btn.textContent = 'Sauvegarde…';
+
+      try {
+        const payload = {
+          data: { title, summary: desc, category: cat, priority: 'medium', offline_email: email },
+          token: localStorage.getItem('auth_token') || '',
+          savedAt: new Date().toISOString()
+        };
+
+        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+          navigator.serviceWorker.controller.postMessage({ type: 'SAVE_OFFLINE_TICKET', payload });
+        } else {
+          const db = await getDB();
+          const tx = db.transaction('tickets', 'readwrite');
+          tx.objectStore('tickets').add(payload);
+        }
+
+        document.getElementById('okMsg').style.display = 'block';
+        document.getElementById('title').value = '';
+        document.getElementById('desc').value  = '';
+        btn.textContent = 'Ticket sauvegardé ✓';
+
+        // Demande de sync quand réseau revient
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.ready.then(reg => {
+            if (reg.sync) reg.sync.register('sync-tickets').catch(() => {});
+          });
+        }
+      } catch(e) {
+        alert('Erreur de sauvegarde : ' + e.message);
+        btn.disabled = false;
+        btn.textContent = 'Sauvegarder pour envoi automatique';
+      }
+    }
+
+    // Auto-retry connexion
+    window.addEventListener('online', () => {
+      setTimeout(() => window.location.href = '/app/user/', 1000);
+    });
+  </script>
+</body>
+</html>

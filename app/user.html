@@ -6,6 +6,11 @@
     <title>Assistant IT — Support</title>
     <meta name="robots" content="noindex, nofollow" />
     <link rel="icon" type="image/svg+xml" href="/app/favicon.svg" />
+    <link rel="manifest" href="/app/manifest.json" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Support IT" />
+    <link rel="apple-touch-icon" href="/app/icons/icon-192.svg" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
     <link rel="stylesheet" href="/app/styles.css?v=20260515" />
     <style>
@@ -1903,6 +1908,84 @@
           micBtn.dataset.state = '';
           micBtn.disabled = false;
           micBtn.title = 'Dicter un message vocal';
+        });
+      }
+    })();
+    </script>
+
+    <!-- PWA : Service Worker + banner offline + install prompt -->
+    <script>
+    (function() {
+      // ── Service Worker registration ──
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/app/sw.js', { scope: '/app/' })
+          .then(function(reg) {
+            // Déclenche sync des tickets offline si réseau revient
+            window.addEventListener('online', function() {
+              if (reg.sync) reg.sync.register('sync-tickets').catch(function(){});
+            });
+          })
+          .catch(function(){});
+      }
+
+      // ── Banner offline ──
+      var offlineBanner = document.createElement('div');
+      offlineBanner.id = 'offline-banner';
+      offlineBanner.innerHTML = '📡 Vous êtes hors ligne — <a href="/app/offline.html" style="color:#fbbf24;text-decoration:underline">Signaler un problème</a>';
+      offlineBanner.style.cssText = [
+        'display:none','position:fixed','top:0','left:0','right:0','z-index:9999',
+        'background:#7c2d12','color:#fed7aa','text-align:center',
+        'padding:10px 16px','font-size:14px','font-family:inherit'
+      ].join(';');
+      document.body.appendChild(offlineBanner);
+
+      function updateOnlineStatus() {
+        offlineBanner.style.display = navigator.onLine ? 'none' : 'block';
+      }
+      window.addEventListener('online',  updateOnlineStatus);
+      window.addEventListener('offline', updateOnlineStatus);
+      updateOnlineStatus();
+
+      // ── Install prompt (Android Chrome) ──
+      var deferredPrompt = null;
+      window.addEventListener('beforeinstallprompt', function(e) {
+        e.preventDefault();
+        deferredPrompt = e;
+        showInstallBanner();
+      });
+
+      function showInstallBanner() {
+        if (sessionStorage.getItem('pwa-dismissed')) return;
+        var banner = document.createElement('div');
+        banner.id = 'install-banner';
+        banner.innerHTML = '<span>📲 Installez l\'app sur votre téléphone pour y accéder hors ligne</span>'
+          + '<button id="installBtn" style="background:#6366f1;color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:13px;cursor:pointer;margin-left:12px">Installer</button>'
+          + '<button id="dismissBtn" style="background:transparent;color:#888;border:none;padding:6px;cursor:pointer;margin-left:8px;font-size:18px">×</button>';
+        banner.style.cssText = [
+          'position:fixed','bottom:16px','left:50%','transform:translateX(-50%)',
+          'background:#1a1a2e','border:1px solid #6366f140','border-radius:12px',
+          'padding:12px 16px','display:flex','align-items:center','gap:4px',
+          'z-index:9998','font-size:13px','color:#ededed','max-width:calc(100% - 32px)',
+          'box-shadow:0 4px 20px rgba(0,0,0,0.4)'
+        ].join(';');
+        document.body.appendChild(banner);
+
+        document.getElementById('installBtn').addEventListener('click', function() {
+          if (deferredPrompt) {
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then(function() { banner.remove(); });
+          }
+        });
+        document.getElementById('dismissBtn').addEventListener('click', function() {
+          sessionStorage.setItem('pwa-dismissed', '1');
+          banner.remove();
+        });
+      }
+
+      // ── Sync tickets en attente au chargement si online ──
+      if (navigator.onLine && 'serviceWorker' in navigator) {
+        navigator.serviceWorker.ready.then(function(reg) {
+          if (reg.sync) reg.sync.register('sync-tickets').catch(function(){});
         });
       }
     })();

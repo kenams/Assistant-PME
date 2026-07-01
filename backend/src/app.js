@@ -71,6 +71,7 @@ app.use(
         ],
         fontSrc: ["'self'", "data:", "https://fonts.gstatic.com"],
         frameSrc: ["https://js.stripe.com", "https://hooks.stripe.com"],
+        workerSrc: ["'self'"],
       }
     },
     crossOriginEmbedderPolicy: false,
@@ -117,6 +118,16 @@ function sendNoCache(res, file) {
   res.sendFile(file);
 }
 
+// Service Worker : max-age=0 pour vérification à chaque visite, mais pas no-store
+app.get("/app/sw.js", (req, res) => {
+  res.setHeader("Cache-Control", "public, max-age=0");
+  res.setHeader("Service-Worker-Allowed", "/app/");
+  res.sendFile(path.join(appDir, "sw.js"));
+});
+app.get("/app/manifest.json", (req, res) => {
+  res.setHeader("Cache-Control", "public, max-age=3600");
+  res.sendFile(path.join(appDir, "manifest.json"));
+});
 app.get("/app", (req, res) => sendNoCache(res, path.join(appDir, "login.html")));
 app.get("/app/", (req, res) => sendNoCache(res, path.join(appDir, "login.html")));
 app.get("/app/index.html", (req, res) => sendNoCache(res, path.join(appDir, "index.html")));

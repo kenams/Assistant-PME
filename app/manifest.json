@@ -1,0 +1,34 @@
+{
+  "name": "Assistant IT Support",
+  "short_name": "Support IT",
+  "description": "Votre assistant IT disponible 24h/24, même hors ligne",
+  "start_url": "/app/user/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0B0B0B",
+  "theme_color": "#6366f1",
+  "lang": "fr",
+  "icons": [
+    {
+      "src": "/app/icons/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/app/icons/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Signaler un problème",
+      "short_name": "Problème IT",
+      "url": "/app/user/",
+      "icons": [{ "src": "/app/icons/icon-192.svg", "sizes": "192x192" }]
+    }
+  ],
+  "categories": ["productivity", "utilities"]
+}

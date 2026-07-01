@@ -12,6 +12,11 @@
     <meta property="og:image" content="https://kah-support.ch/app/assets/og-cover.png" />
     <meta name="robots" content="noindex, nofollow" />
     <link rel="icon" type="image/svg+xml" href="/app/favicon.svg" />
+    <link rel="manifest" href="/app/manifest.json" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Support IT" />
+    <link rel="apple-touch-icon" href="/app/icons/icon-192.svg" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
     <link rel="stylesheet" href="/app/styles.css?v=20260512" />
     <style>
@@ -497,6 +502,12 @@
         });
       }
     });
+    </script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/app/sw.js', { scope: '/app/' })
+          .catch(function(){});
+      }
     </script>
   </body>
 </html>
