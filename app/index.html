@@ -421,7 +421,7 @@
         Réduisez de 70% le temps de traitement des tickets IT. Réponses instantanées, escalade vers GLPI automatique, base de connaissances indexée.
       </p>
       <div class="hero-actions">
-        <a href="#pricing" class="btn primary large" data-fr="Démarrer — 14 jours gratuits" data-en="Get started — 14 days free">Démarrer — 14 jours gratuits</a>
+        <a href="#demo" class="btn primary large" data-fr="Demander une démo" data-en="Request a demo">Demander une démo</a>
         <a href="/app/demo-video" class="btn large" data-fr="Voir la démo" data-en="View demo">Voir la démo</a>
       </div>
     </section>
@@ -599,7 +599,7 @@
         </div>
         <div style="margin-top:24px;text-align:center">
           <p id="roi-message" style="font-size:.9rem;color:var(--text-muted);margin-bottom:16px"></p>
-          <button class="btn primary" onclick="openModal('starter')" style="padding:14px 36px" data-fr="Démarrer l'essai gratuit 14 jours →" data-en="Start free 14-day trial →">Démarrer l'essai gratuit 14 jours →</button>
+          <button class="btn primary" onclick="document.getElementById('demo')?.scrollIntoView({behavior:'smooth'})" style="padding:14px 36px" data-fr="Demander une démo →" data-en="Request a demo →">Demander une démo →</button>
         </div>
       </div>
     </section>
@@ -608,7 +608,7 @@
     <section id="pricing">
       <div class="section-label" data-fr="Tarifs" data-en="Pricing">Tarifs</div>
       <h2 class="section-title" data-fr="Tarification par licences, sans surprise" data-en="Per-licence pricing, no surprises">Tarification par licences, sans surprise</h2>
-      <p class="section-sub" data-fr="Un prix fixe par palier d'utilisateurs. Pas de coût caché. Essai 14 jours gratuit sur tous les plans." data-en="Fixed price per user tier. No hidden costs. 14-day free trial on all plans.">Un prix fixe par palier d'utilisateurs. Pas de coût caché. Essai 14 jours gratuit sur tous les plans.</p>
+      <p class="section-sub" data-fr="Un prix fixe par palier d'utilisateurs. Pas de coût caché. Démo gratuite sur tous les plans." data-en="Fixed price per user tier. No hidden costs. Free demo on all plans.">Un prix fixe par palier d'utilisateurs. Pas de coût caché. Démo gratuite sur tous les plans.</p>
 
       <!-- Comparatif marché -->
       <div style="max-width:700px;margin:0 auto 40px;background:var(--bg2);border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:20px 28px;">
@@ -645,7 +645,7 @@
             <div class="plan-feature"><span class="cross">—</span> <span data-fr="Intégrations Slack / Teams" data-en="Slack / Teams integrations">Intégrations Slack / Teams</span></div>
           </div>
           <div class="plan-cta">
-            <button class="btn" style="width:100%;justify-content:center;" onclick="openModal('starter')" data-fr="Démarrer l'essai gratuit" data-en="Start free trial">Démarrer l'essai gratuit</button>
+            <button class="btn" style="width:100%;justify-content:center;" onclick="openModal('starter')" data-fr="Demander une démo" data-en="Request a demo">Demander une démo</button>
           </div>
         </div>
 
@@ -668,7 +668,7 @@
             <div class="plan-feature"><span class="check">✓</span> <span data-fr="Rapports SLA automatiques PDF" data-en="Automatic SLA PDF reports">Rapports SLA automatiques PDF</span></div>
           </div>
           <div class="plan-cta">
-            <button class="btn primary" style="width:100%;justify-content:center;" onclick="openModal('pro')" data-fr="Démarrer en Pro" data-en="Start Pro">Démarrer en Pro</button>
+            <button class="btn primary" style="width:100%;justify-content:center;" onclick="openModal('pro')" data-fr="Demander une démo" data-en="Request a demo">Demander une démo</button>
           </div>
         </div>
 
@@ -788,15 +788,15 @@
     <!-- CTA FINAL -->
     <div class="cta-section">
       <h2 data-fr="Prêt à transformer votre support IT ?" data-en="Ready to transform your IT support?">Prêt à transformer votre support IT ?</h2>
-      <p data-fr="14 jours gratuits, sans carte bancaire, opérationnel en 15 minutes." data-en="14 days free, no credit card required, live in 15 minutes.">14 jours gratuits, sans carte bancaire, opérationnel en 15 minutes.</p>
+      <p data-fr="Démo personnalisée sur votre infrastructure, opérationnel en 15 minutes." data-en="Personalised demo on your infrastructure, live in 15 minutes.">Démo personnalisée sur votre infrastructure, opérationnel en 15 minutes.</p>
       <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
-        <button class="btn primary large" onclick="openModal('pro')" data-fr="Démarrer gratuitement 14 jours" data-en="Start free for 14 days">Démarrer gratuitement 14 jours</button>
+        <a href="#demo" class="btn primary large" data-fr="Demander une démo" data-en="Request a demo">Demander une démo</a>
         <a href="/app/demo-video.html" class="btn large" data-fr="Voir la démo" data-en="View demo">Voir la démo</a>
       </div>
       <p class="cta-note">
-        <span>✓</span> <span data-fr="Sans carte bancaire" data-en="No credit card">Sans carte bancaire</span> &nbsp;&nbsp;
+        <span>✓</span> <span data-fr="Démo gratuite" data-en="Free demo">Démo gratuite</span> &nbsp;&nbsp;
         <span>✓</span> <span data-fr="Sans engagement" data-en="No commitment">Sans engagement</span> &nbsp;&nbsp;
-        <span>✓</span> <span data-fr="Setup en 15 minutes" data-en="15-minute setup">Setup en 15 minutes</span>
+        <span>✓</span> <span data-fr="Opérationnel en 15 minutes" data-en="Live in 15 minutes">Opérationnel en 15 minutes</span>
       </p>
     </div>
 
@@ -817,8 +817,8 @@
     <div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
       <div class="modal" style="position:relative;">
         <button class="modal-close" onclick="closeModal()" aria-label="Fermer">&times;</button>
-        <h2 data-fr="Créer votre compte" data-en="Create your account">Créer votre compte</h2>
-        <p class="modal-sub" data-fr="Remplissez ce formulaire pour commencer votre essai gratuit." data-en="Fill in this form to start your free trial.">Remplissez ce formulaire pour commencer votre essai gratuit.</p>
+        <h2 data-fr="Demander une démo" data-en="Request a demo">Demander une démo</h2>
+        <p class="modal-sub" data-fr="Remplissez ce formulaire, nous vous contacterons sous 24h." data-en="Fill in this form, we'll get back to you within 24h.">Remplissez ce formulaire, nous vous contacterons sous 24h.</p>
         <div class="modal-plan-badge" id="modalPlanBadge">Plan Starter — 99€/mo</div>
         <form id="checkoutForm" onsubmit="submitCheckout(event)">
           <div class="form-group">
