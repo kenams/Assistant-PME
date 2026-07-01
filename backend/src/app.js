@@ -104,6 +104,7 @@ app.use(defaultLimiter());
 
 const publicRoot = path.join(__dirname, "..", "..");
 const appDir = path.join(publicRoot, "app");
+const publicAssetsDir = path.join(publicRoot, "public");
 const uploadDir = path.join(process.cwd(), "data", "uploads");
 const staticOptions = {
   index: "index.html",
@@ -141,6 +142,7 @@ app.get("/app/slides", (req, res) => sendNoCache(res, path.join(appDir, "slides.
 app.get("/app/slides/", (req, res) => sendNoCache(res, path.join(appDir, "slides.html")));
 app.get("/app/slides.html", (req, res) => sendNoCache(res, path.join(appDir, "slides.html")));
 app.use("/app", express.static(appDir, staticOptions));
+app.use("/", express.static(publicAssetsDir, { maxAge: "1d" }));
 // Routes racine pour les pages standalone (success post-paiement, reset mdp)
 app.get("/success.html", (req, res) => sendNoCache(res, path.join(appDir, "success.html")));
 // Removed legacy static apps (landing/crm/dashboard/superadmin) to keep a single app surface.
