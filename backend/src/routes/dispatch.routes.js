@@ -11,8 +11,8 @@ const router = express.Router();
 router.use(authRequired);
 
 // JWT compat: /auth/login signs tenant_id (snake), quick-admin signs tenantId (camel)
-function getTenantId(req) { return req.user.tenant_id || getTenantId(req); }
-function getUserId(req) { return req.user.sub || getUserId(req); }
+function getTenantId(req) { return req.user.tenant_id || req.user.tenantId; }
+function getUserId(req) { return req.user.sub || req.user.id; }
 
 // POST /api/tickets/analyze — analyze without saving
 router.post("/tickets/analyze", async (req, res) => {
