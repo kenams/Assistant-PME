@@ -1910,6 +1910,8 @@
         if (ind) ind.style.display = 'inline';
       } else if (name === 'queue') {
         ticketsRefreshTimer = setInterval(() => { loadTicketQueue(); loadKpis(); }, 30000);
+      } else if (name === 'dispatch') {
+        if (typeof window.__loadDispatchPanel === 'function') window.__loadDispatchPanel();
       }
     }
 
@@ -3439,6 +3441,7 @@
       if (diagReloadBtn) diagReloadBtn.addEventListener('click', loadDiagnostics);
 
       // Smart Dispatch — helper XSS
+      let _loadDispatchPanel = null; // référence globale exposée après init
       function escHtml(s) {
         return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
       }
@@ -3607,6 +3610,10 @@
           loadDispatchPanel();
         } catch(ex) { btn.disabled = false; btn.textContent = 'Acquitter'; }
       });
+
+      // Exposer globalement pour showPanel inline onclick
+      _loadDispatchPanel = loadDispatchPanel;
+      window.__loadDispatchPanel = loadDispatchPanel;
 
       const dispatchBtn = document.querySelector('[data-panel="dispatch"]');
       if (dispatchBtn) dispatchBtn.addEventListener('click', () => loadDispatchPanel());

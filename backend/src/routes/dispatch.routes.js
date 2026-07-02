@@ -10,12 +10,16 @@ const { getKnex } = require("../services/store.service");
 const router = express.Router();
 router.use(authRequired);
 
+// JWT compat: /auth/login signs tenant_id (snake), quick-admin signs tenantId (camel)
+function getTenantId(req) { return req.user.tenant_id || getTenantId(req); }
+function getUserId(req) { return req.user.sub || getUserId(req); }
+
 // POST /api/tickets/analyze — analyze without saving
 router.post("/tickets/analyze", async (req, res) => {
   const { title, description } = req.body;
   if (!title || !description) return res.status(400).json({ error: "title and description required" });
   try {
-    const analysis = await analyzeTicket({ title, description }, req.user.tenantId);
+    const analysis = await analyzeTicket({ title, description }, getTenantId(req));
     return res.json(analysis);
   } catch (err) {
     return res.status(500).json({ error: err.message });
@@ -26,11 +30,11 @@ router.post("/tickets/analyze", async (req, res) => {
 router.post("/tickets/classify", requireStaff, async (req, res) => {
   const { ticket_id } = req.body;
   const knex = getKnex();
-  const ticket = await knex("tickets").where({ id: ticket_id, tenant_id: req.user.tenantId }).first();
+  const ticket = await knex("tickets").where({ id: ticket_id, tenant_id: getTenantId(req) }).first();
   if (!ticket) return res.status(404).json({ error: "ticket_not_found" });
   try {
-    const result = await processTicket(ticket, req.user.tenantId);
-    await logEvent({ tenantId: req.user.tenantId, userId: req.user.id, action: "ticket_classified", entity: "ticket", entityId: ticket_id, newValue: result });
+    const result = await processTicket(ticket, getTenantId(req));
+    await logEvent({ tenantId: getTenantId(req), userId: getUserId(req), action: "ticket_classified", entity: "ticket", entityId: ticket_id, newValue: result });
     return res.json(result);
   } catch (err) {
     return res.status(500).json({ error: err.message });
@@ -42,13 +46,13 @@ router.post("/tickets/dispatch", requireStaff, async (req, res) => {
   const { ticket_id, backlog_group_code } = req.body;
   if (!ticket_id || !backlog_group_code) return res.status(400).json({ error: "ticket_id and backlog_group_code required" });
   const knex = getKnex();
-  const ticket = await knex("tickets").where({ id: ticket_id, tenant_id: req.user.tenantId }).first();
+  const ticket = await knex("tickets").where({ id: ticket_id, tenant_id: getTenantId(req) }).first();
   if (!ticket) return res.status(404).json({ error: "ticket_not_found" });
   const validGroups = BACKLOG_GROUPS.map((g) => g.code);
   if (!validGroups.includes(backlog_group_code)) return res.status(400).json({ error: "invalid_backlog_group" });
   await knex("tickets").where({ id: ticket_id }).update({ backlog_group_code, updated_at: new Date() });
-  await knex("backlog_assignments").insert({ id: require("crypto").randomUUID(), ticket_id, tenant_id: req.user.tenantId, backlog_group_code, assigned_by: "manual", assigned_by_user_id: req.user.id, assigned_at: new Date() });
-  await logEvent({ tenantId: req.user.tenantId, userId: req.user.id, action: "ticket_dispatched", entity: "ticket", entityId: ticket_id, newValue: { backlog_group_code } });
+  await knex("backlog_assignments").insert({ id: require("crypto").randomUUID(), ticket_id, tenant_id: getTenantId(req), backlog_group_code, assigned_by: "manual", assigned_by_user_id: getUserId(req), assigned_at: new Date() });
+  await logEvent({ tenantId: getTenantId(req), userId: getUserId(req), action: "ticket_dispatched", entity: "ticket", entityId: ticket_id, newValue: { backlog_group_code } });
   return res.json({ ok: true, backlog_group_code });
 });
 
@@ -56,11 +60,11 @@ router.post("/tickets/dispatch", requireStaff, async (req, res) => {
 router.post("/tickets/resolve", requireStaff, async (req, res) => {
   const { ticket_id } = req.body;
   const knex = getKnex();
-  const ticket = await knex("tickets").where({ id: ticket_id, tenant_id: req.user.tenantId }).first();
+  const ticket = await knex("tickets").where({ id: ticket_id, tenant_id: getTenantId(req) }).first();
   if (!ticket) return res.status(404).json({ error: "ticket_not_found" });
   const analysis = await knex("ticket_analysis").where({ ticket_id }).first();
   if (!analysis) return res.status(400).json({ error: "ticket_not_analyzed" });
-  const result = await executeAction(ticket, analysis, req.user.tenantId, req.user.id);
+  const result = await executeAction(ticket, analysis, getTenantId(req), getUserId(req));
   if (!result) return res.status(400).json({ error: "no_action_available" });
   return res.json(result);
 });
@@ -68,7 +72,7 @@ router.post("/tickets/resolve", requireStaff, async (req, res) => {
 // GET /api/backlogs — list backlogs with ticket counts
 router.get("/backlogs", async (req, res) => {
   const knex = getKnex();
-  const tenantId = req.user.tenantId;
+  const tenantId = getTenantId(req);
 
   // Seed if needed
   try { await seedBacklogGroups(tenantId); } catch {}
@@ -92,7 +96,7 @@ router.get("/backlogs", async (req, res) => {
 // GET /api/rules — list dispatch rules
 router.get("/rules", requireStaff, async (req, res) => {
   const knex = getKnex();
-  const rules = await knex("dispatch_rules").where({ tenant_id: req.user.tenantId }).orderBy("sort_order");
+  const rules = await knex("dispatch_rules").where({ tenant_id: getTenantId(req) }).orderBy("sort_order");
   return res.json(rules);
 });
 
@@ -103,7 +107,7 @@ router.post("/rules", requireStaff, async (req, res) => {
   const knex = getKnex();
   const rule = {
     id: require("crypto").randomUUID(),
-    tenant_id: req.user.tenantId,
+    tenant_id: getTenantId(req),
     name: String(name).slice(0, 200),
     keywords: Array.isArray(keywords) ? keywords.slice(0, 50).map((k) => String(k).slice(0, 100)) : [],
     backlog_group_code: String(backlog_group_code).slice(0, 50),
@@ -120,7 +124,7 @@ router.post("/rules", requireStaff, async (req, res) => {
 // GET /api/kpi — KPI dashboard data
 router.get("/kpi", async (req, res) => {
   const knex = getKnex();
-  const tenantId = req.user.tenantId;
+  const tenantId = getTenantId(req);
   const days = Math.min(parseInt(req.query.days || "30", 10), 90);
   const since = new Date(Date.now() - days * 86400000);
 
@@ -169,13 +173,13 @@ router.get("/kpi", async (req, res) => {
 
 // GET /api/alerts — proactive alerts
 router.get("/alerts", async (req, res) => {
-  const alerts = await getUnacknowledgedAlerts(req.user.tenantId);
+  const alerts = await getUnacknowledgedAlerts(getTenantId(req));
   return res.json(alerts);
 });
 
 // POST /api/alerts/:id/acknowledge
 router.post("/alerts/:id/acknowledge", requireStaff, async (req, res) => {
-  await acknowledgeAlert(req.params.id, req.user.id);
+  await acknowledgeAlert(req.params.id, getUserId(req));
   return res.json({ ok: true });
 });
 
@@ -188,7 +192,7 @@ router.post("/tickets/ingest-analyze", async (req, res) => {
   const ticketId = require("crypto").randomUUID();
   const ticket = {
     id: ticketId,
-    tenant_id: req.user.tenantId,
+    tenant_id: getTenantId(req),
     title: String(title).slice(0, 500),
     description: String(description || "").slice(0, 5000),
     source: source || "api",
@@ -204,10 +208,10 @@ router.post("/tickets/ingest-analyze", async (req, res) => {
   };
 
   await knex("tickets").insert(ticket);
-  const analysis = await processTicket(ticket, req.user.tenantId);
+  const analysis = await processTicket(ticket, getTenantId(req));
 
   // Run proactive detection
-  try { await detectIncidentPeaks(req.user.tenantId); } catch {}
+  try { await detectIncidentPeaks(getTenantId(req)); } catch {}
 
   return res.status(201).json({ ticket: { id: ticketId }, analysis });
 });
