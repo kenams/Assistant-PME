@@ -20,6 +20,7 @@
     { "source": "/billing/:path*", "destination": "https://assistant-pme.onrender.com/billing/:path*" },
     { "source": "/leads/:path*", "destination": "https://assistant-pme.onrender.com/leads/:path*" },
     { "source": "/api/:path*", "destination": "https://assistant-pme.onrender.com/api/:path*" },
+    { "source": "/dispatch/:path*", "destination": "https://assistant-pme.onrender.com/dispatch/:path*" },
     { "source": "/", "destination": "https://assistant-pme.onrender.com/app/index.html" },
     { "source": "/app", "destination": "https://assistant-pme.onrender.com/app/login.html" },
     { "source": "/app/", "destination": "https://assistant-pme.onrender.com/app/login.html" },
