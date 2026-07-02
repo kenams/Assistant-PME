@@ -3438,9 +3438,15 @@
       const diagReloadBtn = document.getElementById('diagnosticsReloadBtn');
       if (diagReloadBtn) diagReloadBtn.addEventListener('click', loadDiagnostics);
 
-      // Smart Dispatch
+      // Smart Dispatch — helper XSS
+      function escHtml(s) {
+        return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+      }
+      const SAFE_PCOLORS = { high: 'var(--danger)', medium: 'var(--accent)', low: 'var(--success)', critical: '#ff4444' };
+      const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
       async function loadDispatchPanel() {
-        const days = document.getElementById('dispatchPeriodSelect')?.value || 30;
+        const days = parseInt(document.getElementById('dispatchPeriodSelect')?.value || '30', 10);
 
         // KPIs
         try {
@@ -3456,120 +3462,151 @@
             set('dkpiDispatchRate', (t.dispatch_rate ?? '—') + '%');
             set('dkpiDispatchCount', (t.dispatched ?? '—') + ' dispatchés — cible: 90%');
             set('dkpiConfidence', (d.confidence?.avg ?? '—') + '%');
-            const alertsCount = d.alerts?.unacknowledged ?? 0;
+            const alertsCount = +(d.alerts?.unacknowledged ?? 0);
             set('dkpiAlerts', alertsCount);
             set('dkpiAlertsLabel', alertsCount > 0 ? 'pics d\'incidents détectés' : 'aucune alerte active');
-            // Sidebar badge
             const badge = document.getElementById('sidebarAlertsBadge');
             if (badge) { badge.style.display = alertsCount > 0 ? '' : 'none'; badge.textContent = alertsCount; }
 
-            // KPI bar colors via CSS variable
             const setKpiPct = (id, pct) => {
               const card = document.getElementById(id)?.closest('.kpi-card');
-              if (card) card.style.setProperty('--kpi-pct', Math.min(pct, 100) + '%');
+              if (card) card.style.setProperty('--kpi-pct', Math.min(Math.max(+pct || 0, 0), 100) + '%');
             };
             setKpiPct('dkpiAutoRate', t.auto_resolve_rate || 0);
             setKpiPct('dkpiDispatchRate', t.dispatch_rate || 0);
             setKpiPct('dkpiConfidence', d.confidence?.avg || 0);
 
-            // Backlog bars
+            // Backlog bars — nombres stricts + labels escapés
             const backlogBars = document.getElementById('dispatchBacklogBars');
-            if (backlogBars && d.by_backlog?.length) {
-              const max = Math.max(...d.by_backlog.map(b => b.count), 1);
-              backlogBars.innerHTML = d.by_backlog.map(b => `
-                <div class="bar-row">
-                  <div class="bar-label">${b.backlog}</div>
-                  <div class="bar-track"><div class="bar-fill" style="width:${Math.round(b.count/max*100)}%;background:var(--accent)"></div></div>
-                  <div class="bar-val">${b.count}</div>
-                </div>`).join('');
-            } else if (backlogBars) {
-              backlogBars.innerHTML = '<div style="color:var(--text-muted);font-size:0.83rem;padding:8px">Aucune donnée</div>';
+            if (backlogBars) {
+              if (d.by_backlog?.length) {
+                const max = Math.max(...d.by_backlog.map(b => +b.count || 0), 1);
+                backlogBars.innerHTML = d.by_backlog.map(b => {
+                  const cnt = +b.count || 0;
+                  const pct = Math.round(cnt / max * 100);
+                  return `<div class="bar-row"><div class="bar-label">${escHtml(b.backlog)}</div><div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:var(--accent)"></div></div><div class="bar-val">${cnt}</div></div>`;
+                }).join('');
+              } else {
+                backlogBars.innerHTML = '<div style="color:var(--text-muted);font-size:0.83rem;padding:8px">Aucune donnée</div>';
+              }
             }
 
-            // Priority bars
+            // Priority bars — couleur depuis allowlist, labels escapés
             const priorityBars = document.getElementById('dispatchPriorityBars');
-            if (priorityBars && d.by_priority?.length) {
-              const pColors = { high: 'var(--danger)', medium: 'var(--accent)', low: 'var(--success)', critical: '#ff4444' };
-              const maxP = Math.max(...d.by_priority.map(p => p.count), 1);
-              priorityBars.innerHTML = d.by_priority.map(p => `
-                <div class="bar-row">
-                  <div class="bar-label">${p.priority}</div>
-                  <div class="bar-track"><div class="bar-fill" style="width:${Math.round(p.count/maxP*100)}%;background:${pColors[p.priority]||'var(--accent)'}"></div></div>
-                  <div class="bar-val">${p.count}</div>
-                </div>`).join('');
-            } else if (priorityBars) {
-              priorityBars.innerHTML = '<div style="color:var(--text-muted);font-size:0.83rem;padding:8px">Aucune donnée</div>';
+            if (priorityBars) {
+              if (d.by_priority?.length) {
+                const maxP = Math.max(...d.by_priority.map(p => +p.count || 0), 1);
+                priorityBars.innerHTML = d.by_priority.map(p => {
+                  const cnt = +p.count || 0;
+                  const pct = Math.round(cnt / maxP * 100);
+                  const color = SAFE_PCOLORS[p.priority] || 'var(--accent)';
+                  return `<div class="bar-row"><div class="bar-label">${escHtml(p.priority)}</div><div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${color}"></div></div><div class="bar-val">${cnt}</div></div>`;
+                }).join('');
+              } else {
+                priorityBars.innerHTML = '<div style="color:var(--text-muted);font-size:0.83rem;padding:8px">Aucune donnée</div>';
+              }
             }
           }
         } catch(e) {}
 
-        // Backlogs
+        // Backlogs — DOM construction, pas de template literals sur données API
         try {
           const r = await fetch('/api/backlogs', { headers: authHeaders() });
           if (r.ok) {
             const items = await r.json();
             const tbody = document.getElementById('dispatchBacklogsTbody');
             if (tbody) {
-              tbody.innerHTML = items.length ? items.map(b => `
-                <tr>
-                  <td><code style="font-size:0.78rem;background:var(--bg3);padding:2px 6px;border-radius:4px">${b.code}</code></td>
-                  <td style="font-weight:600">${b.label || b.name || b.code}</td>
-                  <td><span class="${b.open_count > 0 ? 'status-badge open' : 'status-badge resolved'}">${b.open_count}</span></td>
-                  <td><span class="status-badge ${b.active ? 'open' : 'pending'}">${b.active ? '✅ Actif' : '⏸ Inactif'}</span></td>
-                </tr>`).join('') :
-                '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:20px">Aucun backlog configuré</td></tr>';
+              tbody.innerHTML = '';
+              if (!items.length) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:20px">Aucun backlog configuré</td></tr>';
+              } else {
+                items.forEach(b => {
+                  const cnt = +b.open_count || 0;
+                  const label = b.label || b.name || b.code || '';
+                  const tr = document.createElement('tr');
+                  tr.innerHTML = `<td><code style="font-size:0.78rem;background:var(--bg3);padding:2px 6px;border-radius:4px">${escHtml(b.code)}</code></td><td style="font-weight:600">${escHtml(label)}</td><td><span class="${cnt > 0 ? 'status-badge open' : 'status-badge resolved'}">${cnt}</span></td><td><span class="status-badge ${b.active ? 'open' : 'pending'}">${b.active ? '✅ Actif' : '⏸ Inactif'}</span></td>`;
+                  tbody.appendChild(tr);
+                });
+              }
             }
           }
         } catch(e) {}
 
-        // Règles
+        // Règles — escHtml sur tous les champs texte
         try {
           const r = await fetch('/api/rules', { headers: authHeaders() });
           if (r.ok) {
             const rules = await r.json();
             const tbody = document.getElementById('dispatchRulesTbody');
             if (tbody) {
-              tbody.innerHTML = rules.length ? rules.map(rule => `
-                <tr>
-                  <td style="font-weight:600">${rule.name}</td>
-                  <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-muted);font-size:0.8rem">${(rule.keywords||[]).join(', ')}</td>
-                  <td><code style="font-size:0.78rem;background:var(--bg3);padding:2px 6px;border-radius:4px">${rule.backlog_group_code}</code></td>
-                  <td>${rule.can_auto_resolve ? '<span class="status-badge resolved">✅ Oui</span>' : '<span class="status-badge pending">Non</span>'}</td>
-                  <td style="color:var(--text-muted)">${rule.confidence_threshold ?? 70}%</td>
-                </tr>`).join('') :
-                '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:20px">Aucune règle — cliquez sur "+ Nouvelle règle"</td></tr>';
+              tbody.innerHTML = '';
+              if (!rules.length) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:20px">Aucune règle — cliquez sur "+ Nouvelle règle"</td></tr>';
+              } else {
+                rules.forEach(rule => {
+                  const kws = (rule.keywords || []).map(k => escHtml(k)).join(', ');
+                  const conf = +rule.confidence_threshold || 70;
+                  const tr = document.createElement('tr');
+                  tr.innerHTML = `<td style="font-weight:600">${escHtml(rule.name)}</td><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-muted);font-size:0.8rem">${kws}</td><td><code style="font-size:0.78rem;background:var(--bg3);padding:2px 6px;border-radius:4px">${escHtml(rule.backlog_group_code)}</code></td><td>${rule.can_auto_resolve ? '<span class="status-badge resolved">✅ Oui</span>' : '<span class="status-badge pending">Non</span>'}</td><td style="color:var(--text-muted)">${conf}%</td>`;
+                  tbody.appendChild(tr);
+                });
+              }
             }
           }
         } catch(e) {}
 
-        // Alertes
+        // Alertes — event delegation, data-id UUID validé, pas d'inline onclick
         try {
           const r = await fetch('/api/alerts', { headers: authHeaders() });
           if (r.ok) {
             const alerts = await r.json();
             const list = document.getElementById('dispatchAlertsList');
             if (list) {
-              list.innerHTML = alerts.length ? alerts.map(a => `
-                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.2);border-radius:10px">
-                  <div>
-                    <div style="font-weight:600;font-size:0.88rem;color:var(--text)">${a.message || a.type || 'Alerte'}</div>
-                    <div style="font-size:0.75rem;color:var(--text-muted);margin-top:2px">${a.created_at ? new Date(a.created_at).toLocaleString('fr-FR') : ''}</div>
-                  </div>
-                  <button onclick="acknowledgeAlert('${a.id}',this)" class="btn ghost" style="font-size:0.78rem;padding:5px 12px;flex-shrink:0">Acquitter</button>
-                </div>`).join('') :
-                '<div style="text-align:center;padding:20px;color:var(--text-muted)">✅ Aucune alerte active</div>';
+              list.innerHTML = '';
+              if (!alerts.length) {
+                list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted)">✅ Aucune alerte active</div>';
+              } else {
+                alerts.forEach(a => {
+                  const safeId = UUID_RE.test(String(a.id || '')) ? a.id : '';
+                  const msg = String(a.message || a.type || 'Alerte').slice(0, 300);
+                  const ts = a.created_at ? new Date(a.created_at).toLocaleString('fr-FR') : '';
+                  const wrap = document.createElement('div');
+                  wrap.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.2);border-radius:10px';
+                  const info = document.createElement('div');
+                  const title = document.createElement('div');
+                  title.style.cssText = 'font-weight:600;font-size:0.88rem;color:var(--text)';
+                  title.textContent = msg;
+                  const sub = document.createElement('div');
+                  sub.style.cssText = 'font-size:0.75rem;color:var(--text-muted);margin-top:2px';
+                  sub.textContent = ts;
+                  info.append(title, sub);
+                  const btn = document.createElement('button');
+                  btn.className = 'btn ghost ack-alert';
+                  btn.dataset.id = safeId;
+                  btn.style.cssText = 'font-size:0.78rem;padding:5px 12px;flex-shrink:0';
+                  btn.textContent = 'Acquitter';
+                  if (!safeId) btn.disabled = true;
+                  wrap.append(info, btn);
+                  list.appendChild(wrap);
+                });
+              }
             }
           }
         } catch(e) {}
       }
 
-      async function acknowledgeAlert(id, btn) {
-        if (btn) { btn.disabled = true; btn.textContent = '…'; }
+      // Event delegation pour acquittement — pas d'inline onclick
+      document.getElementById('dispatchAlertsList')?.addEventListener('click', async e => {
+        const btn = e.target.closest('.ack-alert');
+        if (!btn || btn.disabled) return;
+        const id = btn.dataset.id;
+        if (!UUID_RE.test(id)) return;
+        btn.disabled = true; btn.textContent = '…';
         try {
-          await fetch('/api/alerts/' + id + '/acknowledge', { method: 'POST', headers: authHeaders() });
+          await fetch('/api/alerts/' + encodeURIComponent(id) + '/acknowledge', { method: 'POST', headers: authHeaders() });
           loadDispatchPanel();
-        } catch(e) { if (btn) { btn.disabled = false; btn.textContent = 'Acquitter'; } }
-      }
+        } catch(ex) { btn.disabled = false; btn.textContent = 'Acquitter'; }
+      });
 
       const dispatchBtn = document.querySelector('[data-panel="dispatch"]');
       if (dispatchBtn) dispatchBtn.addEventListener('click', () => loadDispatchPanel());
