@@ -934,6 +934,10 @@
           <span class="icon">💳</span> Abonnement
         </button>
 
+        <button class="sidebar-link superadmin-only" data-panel="superadmin" onclick="showPanel('superadmin',this)" style="display:none">
+          <span class="icon">🏢</span> Clients & Tenants
+        </button>
+
         <div style="flex:1"></div>
         <button id="logoutBtnSidebar" class="sidebar-link" style="margin-top:auto">
           <span class="icon">↗️</span> Déconnexion
@@ -1230,6 +1234,57 @@
             <div id="dispatchAlertsList" style="display:flex;flex-direction:column;gap:6px;padding:8px 4px">
               <div style="text-align:center;padding:20px;color:var(--text-muted)">Chargement…</div>
             </div>
+          </div>
+        </div>
+
+        <!-- ══ SUPER ADMIN — CLIENTS & TENANTS ══ -->
+        <div class="admin-panel" id="panel-superadmin">
+          <h2 class="panel-title">🏢 Clients & Tenants</h2>
+
+          <!-- KPIs globaux -->
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;margin-bottom:28px" id="saOverviewGrid">
+            <div class="kpi-card"><div class="kpi-value" id="saKpiTenants">—</div><div class="kpi-label">Clients</div></div>
+            <div class="kpi-card"><div class="kpi-value" id="saKpiUsers">—</div><div class="kpi-label">Utilisateurs</div></div>
+            <div class="kpi-card"><div class="kpi-value" id="saKpiTickets">—</div><div class="kpi-label">Tickets total</div></div>
+            <div class="kpi-card"><div class="kpi-value" id="saKpiConversations">—</div><div class="kpi-label">Conversations</div></div>
+            <div class="kpi-card"><div class="kpi-value" id="saKpiLeads">—</div><div class="kpi-label">Leads</div></div>
+          </div>
+
+          <!-- Créer un client -->
+          <div style="background:rgba(99,102,241,0.05);border:1px solid rgba(99,102,241,0.2);border-radius:12px;padding:20px;margin-bottom:24px">
+            <h3 style="font-size:0.95rem;font-weight:700;margin-bottom:14px;color:#c7d0f0">+ Nouveau client</h3>
+            <form id="saCreateForm" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <input id="saName" placeholder="Nom de la société *" required style="padding:9px 12px;background:#0f1117;border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#e2e6f3;font-family:inherit;font-size:0.88rem;outline:none;grid-column:1/-1" />
+              <input id="saCode" placeholder="Code tenant (ex: ACME)" style="padding:9px 12px;background:#0f1117;border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#e2e6f3;font-family:inherit;font-size:0.88rem;outline:none" />
+              <select id="saPlan" style="padding:9px 12px;background:#0f1117;border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#e2e6f3;font-family:inherit;font-size:0.88rem;outline:none">
+                <option value="starter">Starter</option>
+                <option value="pro">Pro</option>
+                <option value="enterprise">Enterprise</option>
+              </select>
+              <input id="saAdminEmail" type="email" placeholder="Email admin *" required style="padding:9px 12px;background:#0f1117;border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#e2e6f3;font-family:inherit;font-size:0.88rem;outline:none" />
+              <input id="saAdminPass" type="password" placeholder="Mot de passe admin *" required minlength="6" style="padding:9px 12px;background:#0f1117;border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#e2e6f3;font-family:inherit;font-size:0.88rem;outline:none" />
+              <p id="saCreateStatus" style="font-size:0.82rem;min-height:16px;margin:0;grid-column:1/-1"></p>
+              <button type="submit" class="btn primary" style="grid-column:1/-1">Créer le client</button>
+            </form>
+          </div>
+
+          <!-- Liste tenants -->
+          <h3 style="font-size:0.95rem;font-weight:700;margin-bottom:12px;color:#c7d0f0">Clients actifs</h3>
+          <div style="overflow-x:auto">
+            <table style="width:100%;border-collapse:collapse;font-size:0.85rem">
+              <thead>
+                <tr style="color:#6b7796;text-align:left;border-bottom:1px solid rgba(255,255,255,0.06)">
+                  <th style="padding:8px 10px">Société</th>
+                  <th style="padding:8px 10px">Code</th>
+                  <th style="padding:8px 10px">Plan</th>
+                  <th style="padding:8px 10px">Créé</th>
+                  <th style="padding:8px 10px">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="saTenantsList">
+                <tr><td colspan="5" style="padding:20px;text-align:center;color:#6b7796">Chargement...</td></tr>
+              </tbody>
+            </table>
           </div>
         </div>
 
@@ -1912,6 +1967,8 @@
         ticketsRefreshTimer = setInterval(() => { loadTicketQueue(); loadKpis(); }, 30000);
       } else if (name === 'dispatch') {
         if (typeof window.__loadDispatchPanel === 'function') window.__loadDispatchPanel();
+      } else if (name === 'superadmin') {
+        loadSuperAdminPanel();
       }
     }
 
@@ -1929,6 +1986,7 @@
         loadTicketQueue();
         loadKpis();
         startAutoRefresh();
+        if (typeof window.__showSuperAdminUI === 'function') window.__showSuperAdminUI();
         // Show onboarding banner if quicksetup never completed
         if (!localStorage.getItem('qs_completed')) {
           fetch('/org/settings', { headers: authHeaders() }).then(r => r.json()).then(s => {
@@ -3795,6 +3853,118 @@
           }
         });
       });
+    })();
+
+    // ─── SUPER ADMIN — Clients & Tenants ─────────────────────────────────────
+    (function() {
+      function getRole() {
+        try {
+          const t = localStorage.getItem('assistant_token') || localStorage.getItem('admin_token') || localStorage.getItem('token');
+          if (!t) return null;
+          return JSON.parse(atob(t.split('.')[1])).role;
+        } catch { return null; }
+      }
+
+      function showSuperAdminUI() {
+        const role = getRole();
+        if (role === 'superadmin') {
+          document.querySelectorAll('.superadmin-only').forEach(el => el.style.display = '');
+        }
+      }
+
+      // Run after login too
+      window.__showSuperAdminUI = showSuperAdminUI;
+
+      async function loadSuperAdminPanel() {
+        // Overview
+        try {
+          const r = await fetch('/tenants/overview', { headers: authHeaders() });
+          if (r.ok) {
+            const d = await r.json();
+            const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v ?? '—'; };
+            set('saKpiTenants', d.tenants);
+            set('saKpiUsers', d.users);
+            set('saKpiTickets', d.tickets);
+            set('saKpiConversations', d.conversations);
+            set('saKpiLeads', d.leads);
+          }
+        } catch {}
+
+        // Tenant list
+        try {
+          const r = await fetch('/tenants/', { headers: authHeaders() });
+          const tbody = document.getElementById('saTenantsList');
+          if (!tbody) return;
+          if (!r.ok) { tbody.innerHTML = '<tr><td colspan="5" style="padding:20px;text-align:center;color:var(--danger)">Accès refusé (rôle superadmin requis)</td></tr>'; return; }
+          const { items } = await r.json();
+          if (!items?.length) { tbody.innerHTML = '<tr><td colspan="5" style="padding:20px;text-align:center;color:#6b7796">Aucun client</td></tr>'; return; }
+          tbody.innerHTML = items.map(t => `
+            <tr style="border-bottom:1px solid rgba(255,255,255,0.04)">
+              <td style="padding:10px">${escHtml(t.name)}</td>
+              <td style="padding:10px;font-family:monospace;font-size:0.82rem;color:#a5b4fc">${escHtml(t.code || '—')}</td>
+              <td style="padding:10px"><span style="font-size:0.75rem;padding:2px 8px;border-radius:20px;background:rgba(99,102,241,0.15);color:#a5b4fc">${escHtml(t.plan || 'starter')}</span></td>
+              <td style="padding:10px;color:#6b7796;font-size:0.82rem">${t.created_at ? new Date(t.created_at).toLocaleDateString('fr-FR') : '—'}</td>
+              <td style="padding:10px">
+                <button class="btn ghost" style="font-size:0.78rem;padding:4px 10px" onclick="copySaToken('${escHtml(t.id)}','${escHtml(t.admin_email || '')}')">🔑 Token</button>
+              </td>
+            </tr>
+          `).join('');
+        } catch (e) {
+          const tbody = document.getElementById('saTenantsList');
+          if (tbody) tbody.innerHTML = `<tr><td colspan="5" style="padding:20px;text-align:center;color:var(--danger)">${escHtml(e.message)}</td></tr>`;
+        }
+      }
+      window.loadSuperAdminPanel = loadSuperAdminPanel;
+
+      window.copySaToken = async function(tenantId, email) {
+        if (!email) { email = prompt('Email de l\'utilisateur à impersonifier :'); if (!email) return; }
+        try {
+          const r = await fetch('/tenants/' + encodeURIComponent(tenantId) + '/token', {
+            method: 'POST', headers: authHeaders(), body: JSON.stringify({ email })
+          });
+          const d = await r.json();
+          if (d.token) { await navigator.clipboard.writeText(d.token); alert('Token copié ! Durée : 1h'); }
+          else alert('Erreur : ' + (d.error || 'inconnu'));
+        } catch (e) { alert('Erreur : ' + e.message); }
+      };
+
+      document.getElementById('saCreateForm')?.addEventListener('submit', async e => {
+        e.preventDefault();
+        const status = document.getElementById('saCreateStatus');
+        const btn = e.target.querySelector('[type=submit]');
+        const body = {
+          name: document.getElementById('saName').value.trim(),
+          code: document.getElementById('saCode').value.trim() || undefined,
+          plan: document.getElementById('saPlan').value,
+          admin_email: document.getElementById('saAdminEmail').value.trim(),
+          admin_password: document.getElementById('saAdminPass').value
+        };
+        status.textContent = 'Création en cours...'; status.style.color = '#a5b4fc';
+        btn.disabled = true;
+        try {
+          const r = await fetch('/tenants/', { method: 'POST', headers: authHeaders(), body: JSON.stringify(body) });
+          const d = await r.json();
+          if (r.ok) {
+            status.textContent = '✅ Client créé — code: ' + (d.tenant?.code || body.code || '?');
+            status.style.color = 'var(--success)';
+            e.target.reset();
+            loadSuperAdminPanel();
+          } else {
+            const msgs = { email_exists: 'Email déjà utilisé.', code_exists: 'Code tenant déjà pris.' };
+            status.textContent = '❌ ' + (msgs[d.error] || d.error || 'Erreur');
+            status.style.color = 'var(--danger)';
+          }
+        } catch (err) {
+          status.textContent = '❌ ' + err.message;
+          status.style.color = 'var(--danger)';
+        }
+        btn.disabled = false;
+      });
+
+      // Init visibility on page load
+      document.addEventListener('DOMContentLoaded', showSuperAdminUI);
+      // Also call after auth (auth sets token before calling initPage)
+      setTimeout(showSuperAdminUI, 500);
     })();
     </script>
 

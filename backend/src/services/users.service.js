@@ -55,7 +55,7 @@ async function ensureSeeded() {
         tenant_id: tenant.id,
         email: env.seedAdminEmail,
         password_hash: hashPassword(env.seedAdminPassword),
-        role: "admin",
+        role: "superadmin",
         created_at: now,
         updated_at: now
       });
@@ -63,7 +63,7 @@ async function ensureSeeded() {
       await trx("users").where({ id: adminExists.id }).update({
         password_hash: hashPassword(env.seedAdminPassword),
         tenant_id: tenant.id,
-        role: "admin",
+        role: "superadmin",
         updated_at: now
       });
     }
