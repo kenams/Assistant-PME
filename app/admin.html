@@ -876,10 +876,6 @@
           <button class="btn primary" type="submit" id="loginSubmitBtn" style="width:100%;padding:12px;font-size:0.9rem;margin-top:4px">Se connecter →</button>
           <p id="loginStatus" class="status"></p>
         </form>
-        <div class="quick-login" id="quickLoginAdmin" style="text-align:center;display:flex;flex-direction:column;gap:6px">
-          <button id="demoAdminBtn" class="btn primary" type="button" style="width:100%;font-size:0.88rem">⚡ Connexion démo admin</button>
-          <a id="quickAdminBtn" class="btn ghost" href="/auth/quick-admin?redirect=/app/admin/" style="width:100%;justify-content:center;opacity:0.5;font-size:0.8rem">Connexion rapide (local)</a>
-        </div>
       </div>
     </section>
 
@@ -3282,14 +3278,6 @@
           const statusEl = document.getElementById('loginStatus');
           if (!email || !password) return;
           doLogin(email, password, btn, statusEl);
-        });
-      }
-
-      // Demo button
-      const demoBtn = document.getElementById('demoAdminBtn');
-      if (demoBtn) {
-        demoBtn.addEventListener('click', () => {
-          doLogin('admin@assistant.local', 'admin123', demoBtn, document.getElementById('loginStatus'));
         });
       }
 
