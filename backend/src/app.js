@@ -58,6 +58,7 @@ app.use(
       directives: {
         defaultSrc: ["'self'"],
         scriptSrc: ["'self'", "'unsafe-inline'", "https://js.stripe.com"],
+        scriptSrcAttr: ["'unsafe-inline'"],
         styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
         imgSrc: ["'self'", "data:", "https:"],
         connectSrc: [
@@ -67,9 +68,11 @@ app.use(
           "http://localhost:47878",
           "http://127.0.0.1:47878",
           "https://api.stripe.com",
-          "https://api.openai.com"
+          "https://api.openai.com",
+          "https://fonts.googleapis.com",
+          "https://fonts.gstatic.com"
         ],
-        fontSrc: ["'self'", "data:", "https://fonts.gstatic.com"],
+        fontSrc: ["'self'", "data:", "https://fonts.gstatic.com", "https://fonts.googleapis.com"],
         frameSrc: ["https://js.stripe.com", "https://hooks.stripe.com"],
         workerSrc: ["'self'"],
       }
