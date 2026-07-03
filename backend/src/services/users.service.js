@@ -275,8 +275,104 @@ async function createUser({ tenantId, email, password, role }) {
 async function listUsers({ tenantId }) {
   const rows = await db("users")
     .where({ tenant_id: tenantId })
-    .select("id", "email", "role", "tenant_id", "created_at");
-  return rows;
+    .select("id", "email", "role", "tenant_id", "created_at", "active");
+  return rows.map(r => ({ ...r, active: r.active !== false }));
+}
+
+async function getLicenseStatus(tenantId) {
+  const tenant = await db("tenants").where({ id: tenantId }).first();
+  if (!tenant) return null;
+  const plan = tenant.subscription_plan || tenant.plan || "starter";
+  const limit = PLAN_USER_LIMITS[plan] ?? PLAN_USER_LIMITS.starter;
+  const [{ count }] = await db("users")
+    .where({ tenant_id: tenantId })
+    .whereNot({ active: false })
+    .count("id as count");
+  const used = parseInt(count, 10);
+  const pct = limit ? Math.round((used / limit) * 100) : 0;
+  return { used, limit, plan, pct, tenant_name: tenant.name };
+}
+
+async function setUserActive(tenantId, userId, active) {
+  const updated = await db("users")
+    .where({ id: userId, tenant_id: tenantId })
+    .update({ active, updated_at: new Date().toISOString() });
+  return updated > 0;
+}
+
+async function importUsersFromCsv({ tenantId, rows }) {
+  const { sendLicenseAlert } = require("./email.service");
+  const now = new Date().toISOString();
+  const results = { created: 0, skipped: 0, errors: [] };
+
+  const tenant = await db("tenants").where({ id: tenantId }).first();
+  const plan = tenant ? (tenant.subscription_plan || tenant.plan || "starter") : "starter";
+  const limit = PLAN_USER_LIMITS[plan] ?? PLAN_USER_LIMITS.starter;
+
+  for (const row of rows) {
+    const email = (row.email || "").trim().toLowerCase();
+    const role = ["admin", "agent", "user"].includes(row.role) ? row.role : "user";
+    const password = row.password || crypto.randomUUID().slice(0, 12);
+
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      results.errors.push({ email, reason: "email_invalide" });
+      continue;
+    }
+
+    const [{ count }] = await db("users")
+      .where({ tenant_id: tenantId })
+      .whereNot({ active: false })
+      .count("id as count");
+    const used = parseInt(count, 10);
+
+    if (limit && used >= limit) {
+      results.errors.push({ email, reason: "limite_licences_atteinte" });
+      continue;
+    }
+
+    const exists = await db("users")
+      .where({ tenant_id: tenantId })
+      .whereRaw("LOWER(email) = ?", [email])
+      .first();
+    if (exists) {
+      results.skipped++;
+      continue;
+    }
+
+    await db("users").insert({
+      id: crypto.randomUUID(),
+      tenant_id: tenantId,
+      email,
+      password_hash: hashPassword(password),
+      role,
+      active: true,
+      created_at: now,
+      updated_at: now
+    });
+    results.created++;
+
+    // Alerte 90% si on vient de franchir le seuil
+    if (limit && tenant) {
+      const newUsed = used + 1;
+      const pct = Math.round((newUsed / limit) * 100);
+      if (pct >= 90 && Math.round((used / limit) * 100) < 90) {
+        const admin = await db("users")
+          .where({ tenant_id: tenantId, role: "admin", active: true })
+          .first();
+        if (admin) {
+          sendLicenseAlert({
+            adminEmail: admin.email,
+            tenantName: tenant.name,
+            used: newUsed,
+            limit,
+            plan
+          }).catch(() => {});
+        }
+      }
+    }
+  }
+
+  return results;
 }
 
 async function clearMustChangePassword(userId) {
@@ -296,5 +392,8 @@ module.exports = {
   createUser,
   listUsers,
   checkUserLimit,
-  clearMustChangePassword
+  clearMustChangePassword,
+  getLicenseStatus,
+  setUserActive,
+  importUsersFromCsv
 };

@@ -471,6 +471,43 @@ async function sendOnboardingJ7({ email, tenantName, loginUrl, ticketCount, save
   });
 }
 
+async function sendLicenseAlert({ adminEmail, tenantName, used, limit, plan }) {
+  const pct = Math.round((used / limit) * 100);
+  const html = `<!DOCTYPE html>
+<html lang="fr"><head><meta charset="UTF-8"><title>Alerte licences</title></head>
+<body style="font-family:Arial,sans-serif;background:#f3f4f6;margin:0;padding:24px;">
+  <div style="max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.08);">
+    <div style="background:#f59e0b;padding:24px 32px;">
+      <h1 style="color:#fff;margin:0;font-size:20px;">⚠️ Alerte licences — ${escapeHtml(tenantName)}</h1>
+    </div>
+    <div style="padding:32px;">
+      <p style="color:#374151;margin:0 0 16px;">Bonjour,</p>
+      <p style="color:#374151;margin:0 0 24px;">Votre espace <strong>${escapeHtml(tenantName)}</strong> utilise <strong>${used} / ${limit} licences (${pct}%)</strong> sur le plan <strong>${plan}</strong>.</p>
+      <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:16px;margin-bottom:24px;">
+        <div style="height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+          <div style="height:100%;width:${pct}%;background:#f59e0b;border-radius:4px;"></div>
+        </div>
+        <p style="margin:8px 0 0;color:#92400e;font-size:13px;">${used} licences utilisées sur ${limit}</p>
+      </div>
+      <p style="color:#374151;margin:0 0 24px;">Pour éviter tout blocage, vous pouvez désactiver des comptes inactifs ou passer au plan supérieur.</p>
+      <a href="https://kah-support.ch/app/admin" style="display:inline-block;background:#6366f1;color:#fff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:600;">Gérer mes licences →</a>
+    </div>
+    <div style="background:#f9fafb;padding:16px 32px;border-top:1px solid #e5e7eb;">
+      <p style="margin:0;color:#9ca3af;font-size:12px;">Assistant IA Support Informatique — alerte automatique licences</p>
+    </div>
+  </div>
+</body></html>`;
+
+  return sendEmail({
+    to: adminEmail,
+    subject: `[Alerte] ${pct}% de vos licences utilisées — ${tenantName}`,
+    html,
+    replyTo: "kahdigital42@gmail.com"
+  });
+}
+
+function esc(str) { return escapeHtml(str || ""); }
+
 module.exports = {
   sendEmail,
   notifyTicketCreated,
@@ -482,5 +519,6 @@ module.exports = {
   sendOnboardingJ0,
   sendOnboardingJ3,
   sendOnboardingJ7,
+  sendLicenseAlert,
   isConfigured
 };

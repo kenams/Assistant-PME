@@ -3,7 +3,10 @@ const { z } = require("zod");
 const { authRequired } = require("../middleware/auth");
 const { requireAdmin } = require("../middleware/roles");
 const { validateOr400 } = require("../utils/validate");
-const { createUser, listUsers, checkUserLimit } = require("../services/users.service");
+const { createUser, listUsers, checkUserLimit, getLicenseStatus, setUserActive, importUsersFromCsv } = require("../services/users.service");
+const multer = require("multer");
+const { parse: parseCsv } = require("csv-parse/sync");
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
 const {
   createInvite,
   listInvites,
@@ -175,6 +178,53 @@ router.put("/me/password", authRequired, async (req, res, next) => {
   } catch (err) {
     next(err);
   }
+});
+
+router.get("/license-status", authRequired, requireAdmin, async (req, res, next) => {
+  try {
+    const status = await getLicenseStatus(req.user.tenant_id);
+    if (!status) return res.status(404).json({ error: "tenant_not_found" });
+    return res.json(status);
+  } catch (err) { next(err); }
+});
+
+router.put("/:id/deactivate", authRequired, requireAdmin, async (req, res, next) => {
+  try {
+    const ok = await setUserActive(req.user.tenant_id, req.params.id, false);
+    if (!ok) return res.status(404).json({ error: "user_not_found" });
+    await logEvent({ tenantId: req.user.tenant_id, userId: req.user.sub, action: "user_deactivated", meta: { user_id: req.params.id } });
+    return res.json({ ok: true });
+  } catch (err) { next(err); }
+});
+
+router.put("/:id/activate", authRequired, requireAdmin, async (req, res, next) => {
+  try {
+    const limitCheck = await checkUserLimit(req.user.tenant_id);
+    if (limitCheck.error === "user_limit_reached") {
+      return res.status(403).json({ error: "user_limit_reached", plan: limitCheck.plan, limit: limitCheck.limit, current: limitCheck.current });
+    }
+    const ok = await setUserActive(req.user.tenant_id, req.params.id, true);
+    if (!ok) return res.status(404).json({ error: "user_not_found" });
+    await logEvent({ tenantId: req.user.tenant_id, userId: req.user.sub, action: "user_activated", meta: { user_id: req.params.id } });
+    return res.json({ ok: true });
+  } catch (err) { next(err); }
+});
+
+router.post("/import-csv", authRequired, requireAdmin, upload.single("file"), async (req, res, next) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: "Fichier CSV manquant" });
+    let rows;
+    try {
+      rows = parseCsv(req.file.buffer.toString("utf8"), {
+        columns: true, skip_empty_lines: true, trim: true
+      });
+    } catch {
+      return res.status(400).json({ error: "CSV invalide" });
+    }
+    const result = await importUsersFromCsv({ tenantId: req.user.tenant_id, rows });
+    await logEvent({ tenantId: req.user.tenant_id, userId: req.user.sub, action: "users_csv_import", meta: result });
+    return res.json(result);
+  } catch (err) { next(err); }
 });
 
 router.post("/invite/accept", async (req, res, next) => {

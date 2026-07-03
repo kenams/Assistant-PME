@@ -917,6 +917,10 @@
         <button class="sidebar-link" data-panel="users" onclick="showPanel('users',this)">
           <span class="icon">👥</span> Utilisateurs
         </button>
+        <button class="sidebar-link" data-panel="licenses" onclick="showPanel('licenses',this)">
+          <span class="icon">🔑</span> Licences
+          <span class="sidebar-badge" id="sidebarLicBadge" style="display:none">!</span>
+        </button>
 
         <button class="sidebar-link" data-panel="leads" onclick="showPanel('leads',this)">
           <span class="icon">📈</span> CRM / Leads
@@ -1234,6 +1238,70 @@
             <div id="dispatchAlertsList" style="display:flex;flex-direction:column;gap:6px;padding:8px 4px">
               <div style="text-align:center;padding:20px;color:var(--text-muted)">Chargement…</div>
             </div>
+          </div>
+        </div>
+
+        <!-- ══ LICENCES & UTILISATEURS ══ -->
+        <div class="admin-panel" id="panel-licenses">
+          <h2 class="panel-title">🔑 Gestion des Licences</h2>
+
+          <!-- Compteur licences -->
+          <div class="card" id="licCard" style="padding:28px;margin-bottom:24px;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
+              <div>
+                <div style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:4px;">Licences utilisées</div>
+                <div style="font-size:2.4rem;font-weight:900;color:var(--text-strong);line-height:1;" id="licCount">—</div>
+                <div style="font-size:0.84rem;color:var(--text-muted);margin-top:4px;" id="licSubtitle">Chargement…</div>
+              </div>
+              <div style="text-align:right;">
+                <div id="licPlanBadge" style="display:inline-flex;align-items:center;gap:6px;background:rgba(91,106,212,0.12);border:1px solid rgba(91,106,212,0.25);border-radius:20px;padding:5px 14px;font-size:0.78rem;font-weight:700;color:var(--accent);">—</div>
+                <div style="font-size:0.76rem;color:var(--text-muted);margin-top:8px;" id="licExtra"></div>
+              </div>
+            </div>
+            <div style="background:rgba(255,255,255,0.06);border-radius:6px;height:10px;overflow:hidden;">
+              <div id="licProgressBar" style="height:100%;border-radius:6px;background:linear-gradient(90deg,var(--accent),#8b5cf6);width:0%;transition:width 0.6s ease;"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:var(--text-muted);margin-top:6px;">
+              <span>0</span>
+              <span id="licPct" style="font-weight:700;">0%</span>
+              <span id="licMax">—</span>
+            </div>
+          </div>
+
+          <!-- Import CSV -->
+          <div class="card" style="padding:24px;margin-bottom:24px;">
+            <div style="font-size:1rem;font-weight:700;color:var(--text-strong);margin-bottom:6px;">📤 Import CSV — Créer des utilisateurs en masse</div>
+            <p style="font-size:0.83rem;color:var(--text-muted);margin-bottom:16px;">Format attendu : <code style="background:rgba(255,255,255,0.07);padding:2px 6px;border-radius:4px;font-size:0.8rem;">email,role,password</code> (une ligne par utilisateur). Rôles valides : <code>user</code>, <code>agent</code>, <code>admin</code>. Le mot de passe est optionnel (généré si absent).</p>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+              <label for="csvFileInput" style="display:inline-flex;align-items:center;gap:7px;padding:9px 18px;background:var(--card);border:1px solid var(--stroke2);border-radius:8px;font-size:0.84rem;font-weight:600;color:var(--text);cursor:pointer;transition:all 0.15s;">
+                📂 Choisir un fichier CSV
+                <input type="file" id="csvFileInput" accept=".csv,text/csv" style="display:none;" onchange="previewCsv(this)">
+              </label>
+              <span id="csvFileName" style="font-size:0.8rem;color:var(--text-muted);">Aucun fichier sélectionné</span>
+              <button id="csvImportBtn" onclick="importCsv()" disabled style="padding:9px 20px;background:linear-gradient(135deg,var(--accent),#8b5cf6);border:none;border-radius:8px;font-family:inherit;font-size:0.84rem;font-weight:700;color:#fff;cursor:pointer;opacity:0.4;transition:all 0.15s;">Importer →</button>
+            </div>
+            <div id="csvPreview" style="display:none;margin-top:16px;background:rgba(255,255,255,0.03);border:1px solid var(--stroke);border-radius:8px;padding:14px;">
+              <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:8px;" id="csvPreviewLabel"></div>
+              <div id="csvPreviewRows" style="display:flex;flex-direction:column;gap:4px;max-height:140px;overflow-y:auto;"></div>
+            </div>
+            <div id="csvResult" style="display:none;margin-top:16px;border-radius:8px;padding:14px;font-size:0.84rem;"></div>
+          </div>
+
+          <!-- Modèle CSV à télécharger -->
+          <div style="margin-bottom:24px;">
+            <button onclick="downloadCsvTemplate()" class="btn ghost" style="font-size:0.82rem;">⬇ Télécharger le modèle CSV</button>
+          </div>
+
+          <!-- Liste utilisateurs -->
+          <div class="card" style="padding:0;overflow:hidden;">
+            <div style="padding:18px 20px;border-bottom:1px solid var(--stroke);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+              <div style="font-size:0.95rem;font-weight:700;color:var(--text-strong);">Tous les utilisateurs</div>
+              <div style="display:flex;gap:8px;">
+                <input id="licUserSearch" type="text" placeholder="Rechercher…" oninput="filterLicUsers()" style="padding:7px 12px;background:var(--bg2);border:1px solid var(--stroke2);border-radius:7px;color:var(--text);font-family:inherit;font-size:0.82rem;width:160px;outline:none;">
+                <button onclick="loadLicensePanel()" class="btn ghost" style="font-size:0.78rem;">↻ Actualiser</button>
+              </div>
+            </div>
+            <div id="licUserTable" style="min-height:120px;"></div>
           </div>
         </div>
 
@@ -1969,6 +2037,8 @@
         if (typeof window.__loadDispatchPanel === 'function') window.__loadDispatchPanel();
       } else if (name === 'superadmin') {
         loadSuperAdminPanel();
+      } else if (name === 'licenses') {
+        loadLicensePanel();
       }
     }
 
@@ -3965,6 +4035,162 @@
       document.addEventListener('DOMContentLoaded', showSuperAdminUI);
       // Also call after auth (auth sets token before calling initPage)
       setTimeout(showSuperAdminUI, 500);
+    })();
+
+    // ══ PANEL LICENCES ══════════════════════════════════════════════════════
+    (function() {
+      const PLAN_LABELS = { starter: 'Starter', pro: 'Pro', enterprise: 'Entreprise' };
+      let allUsers = [];
+
+      function getToken() { return localStorage.getItem('assistant_token') || localStorage.getItem('admin_token'); }
+
+      async function loadLicensePanel() {
+        await Promise.all([loadLicenseStatus(), loadLicenseUsers()]);
+      }
+      window.loadLicensePanel = loadLicensePanel;
+
+      async function loadLicenseStatus() {
+        try {
+          const r = await fetch('/users/license-status', { headers: { Authorization: 'Bearer ' + getToken() } });
+          if (!r.ok) return;
+          const d = await r.json();
+          const { used, limit, plan, pct, tenant_name } = d;
+          document.getElementById('licCount').textContent = used + (limit ? ' / ' + limit : '');
+          document.getElementById('licSubtitle').textContent = tenant_name || '';
+          document.getElementById('licPlanBadge').textContent = PLAN_LABELS[plan] || plan || '—';
+          document.getElementById('licPct').textContent = limit ? pct + '%' : 'illimité';
+          document.getElementById('licMax').textContent = limit ? limit + ' max' : '∞';
+          document.getElementById('licExtra').textContent = limit ? (limit - used) + ' licence(s) disponible(s)' : 'Licences illimitées';
+          const bar = document.getElementById('licProgressBar');
+          const barPct = limit ? Math.min(100, pct) : 0;
+          bar.style.width = barPct + '%';
+          bar.style.background = pct >= 90 ? 'linear-gradient(90deg,#ef4444,#f97316)' : pct >= 70 ? 'linear-gradient(90deg,#f59e0b,#f97316)' : 'linear-gradient(90deg,var(--accent),#8b5cf6)';
+          // Badge sidebar
+          const badge = document.getElementById('sidebarLicBadge');
+          if (badge) { badge.style.display = (limit && pct >= 90) ? '' : 'none'; }
+        } catch(e) {}
+      }
+
+      async function loadLicenseUsers() {
+        const container = document.getElementById('licUserTable');
+        if (!container) return;
+        container.innerHTML = '<div style="padding:20px;color:var(--text-muted);font-size:0.84rem;">Chargement…</div>';
+        try {
+          const r = await fetch('/users/', { headers: { Authorization: 'Bearer ' + getToken() } });
+          if (!r.ok) throw new Error();
+          const d = await r.json();
+          allUsers = d.items || [];
+          renderLicenseUsers(allUsers);
+        } catch {
+          container.innerHTML = '<div style="padding:20px;color:var(--danger);font-size:0.84rem;">Erreur de chargement</div>';
+        }
+      }
+
+      function renderLicenseUsers(users) {
+        const container = document.getElementById('licUserTable');
+        if (!users.length) { container.innerHTML = '<div style="padding:20px;color:var(--text-muted);font-size:0.84rem;">Aucun utilisateur</div>'; return; }
+        const roleColor = { admin: '#8b5cf6', agent: '#6366f1', user: '#6b7796' };
+        const rows = users.map(u => {
+          const active = u.active !== false;
+          const date = u.created_at ? new Date(u.created_at).toLocaleDateString('fr-FR') : '—';
+          return `<div style="display:grid;grid-template-columns:1fr 90px 80px 80px 120px;align-items:center;padding:12px 20px;border-bottom:1px solid var(--stroke);gap:12px;${active ? '' : 'opacity:0.45;'}">
+            <div>
+              <div style="font-size:0.84rem;font-weight:600;color:var(--text-strong);">${escHtml(u.email)}</div>
+              <div style="font-size:0.72rem;color:var(--text-muted);">Créé le ${date}</div>
+            </div>
+            <div><span style="background:rgba(91,106,212,0.12);color:${roleColor[u.role]||'var(--accent)'};font-size:0.7rem;font-weight:700;padding:2px 8px;border-radius:4px;text-transform:uppercase;">${u.role||'user'}</span></div>
+            <div><span style="font-size:0.72rem;font-weight:700;padding:2px 8px;border-radius:4px;${active ? 'background:rgba(34,197,94,0.1);color:var(--success);' : 'background:rgba(239,68,68,0.1);color:var(--danger);'}">${active ? 'Actif' : 'Inactif'}</span></div>
+            <div style="font-size:0.7rem;color:var(--text-muted);">${u.id ? u.id.slice(0,8)+'…' : ''}</div>
+            <div style="display:flex;gap:6px;justify-content:flex-end;">
+              ${active
+                ? `<button onclick="setUserActive('${u.id}',false)" style="padding:4px 10px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);border-radius:5px;color:var(--danger);font-size:0.72rem;font-weight:600;cursor:pointer;font-family:inherit;">Désactiver</button>`
+                : `<button onclick="setUserActive('${u.id}',true)" style="padding:4px 10px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.25);border-radius:5px;color:var(--success);font-size:0.72rem;font-weight:600;cursor:pointer;font-family:inherit;">Activer</button>`
+              }
+            </div>
+          </div>`;
+        }).join('');
+        container.innerHTML = `<div style="display:grid;grid-template-columns:1fr 90px 80px 80px 120px;padding:10px 20px;background:rgba(255,255,255,0.02);gap:12px;"><span style="font-size:0.72rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;">Email</span><span style="font-size:0.72rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;">Rôle</span><span style="font-size:0.72rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;">Statut</span><span style="font-size:0.72rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;">ID</span><span></span></div>${rows}`;
+      }
+
+      window.filterLicUsers = function() {
+        const q = (document.getElementById('licUserSearch').value || '').toLowerCase();
+        renderLicenseUsers(q ? allUsers.filter(u => u.email.toLowerCase().includes(q) || (u.role||'').includes(q)) : allUsers);
+      };
+
+      window.setUserActive = async function(userId, active) {
+        const action = active ? 'activate' : 'deactivate';
+        try {
+          const r = await fetch(`/users/${userId}/${action}`, { method: 'PUT', headers: { Authorization: 'Bearer ' + getToken() } });
+          if (!r.ok) { const d = await r.json(); alert(d.error || 'Erreur'); return; }
+          await loadLicensePanel();
+        } catch { alert('Erreur réseau'); }
+      };
+
+      // CSV preview
+      let csvRows = [];
+      window.previewCsv = function(input) {
+        const file = input.files[0];
+        if (!file) return;
+        document.getElementById('csvFileName').textContent = file.name;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const text = e.target.result;
+          const lines = text.trim().split('\n').filter(Boolean);
+          const btn = document.getElementById('csvImportBtn');
+          if (lines.length < 2) { document.getElementById('csvPreview').style.display = 'none'; btn.disabled = true; btn.style.opacity = '0.4'; return; }
+          const header = lines[0].split(',').map(h => h.trim().toLowerCase());
+          csvRows = lines.slice(1).map(l => {
+            const cols = l.split(',').map(c => c.trim().replace(/^"(.*)"$/, '$1'));
+            const obj = {};
+            header.forEach((h, i) => { obj[h] = cols[i] || ''; });
+            return obj;
+          });
+          const preview = document.getElementById('csvPreview');
+          const previewRows = document.getElementById('csvPreviewRows');
+          document.getElementById('csvPreviewLabel').textContent = `${csvRows.length} utilisateur(s) détecté(s) — Aperçu :`;
+          previewRows.innerHTML = csvRows.slice(0,5).map(r => `<div style="font-size:0.78rem;color:var(--text-muted);font-family:monospace;">${escHtml(r.email||'?')} — ${r.role||'user'}</div>`).join('') + (csvRows.length > 5 ? `<div style="font-size:0.74rem;color:var(--text-dim);">… et ${csvRows.length - 5} autre(s)</div>` : '');
+          preview.style.display = '';
+          btn.disabled = false; btn.style.opacity = '1';
+        };
+        reader.readAsText(file);
+      };
+
+      window.importCsv = async function() {
+        const fileInput = document.getElementById('csvFileInput');
+        if (!fileInput.files[0]) return;
+        const btn = document.getElementById('csvImportBtn');
+        const resultEl = document.getElementById('csvResult');
+        btn.disabled = true; btn.textContent = 'Import en cours…';
+        const formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+        try {
+          const r = await fetch('/users/import-csv', { method: 'POST', headers: { Authorization: 'Bearer ' + getToken() }, body: formData });
+          const d = await r.json();
+          resultEl.style.display = '';
+          if (r.ok) {
+            resultEl.style.background = 'rgba(34,197,94,0.08)'; resultEl.style.border = '1px solid rgba(34,197,94,0.2)'; resultEl.style.color = 'var(--success)';
+            resultEl.innerHTML = `✓ Import terminé — <strong>${d.created}</strong> créé(s), <strong>${d.skipped}</strong> ignoré(s) (déjà existants)${d.errors.length ? `, <strong>${d.errors.length}</strong> erreur(s)` : ''}.` + (d.errors.length ? `<div style="margin-top:8px;font-size:0.78rem;color:var(--warning);">${d.errors.slice(0,5).map(e => `${e.email}: ${e.reason}`).join('<br>')}</div>` : '');
+          } else {
+            resultEl.style.background = 'rgba(239,68,68,0.08)'; resultEl.style.border = '1px solid rgba(239,68,68,0.2)'; resultEl.style.color = 'var(--danger)';
+            resultEl.textContent = d.error || 'Erreur serveur';
+          }
+          await loadLicensePanel();
+        } catch { resultEl.style.display = ''; resultEl.textContent = 'Erreur réseau'; }
+        btn.textContent = 'Importer →'; btn.disabled = false;
+        fileInput.value = ''; document.getElementById('csvFileName').textContent = 'Aucun fichier sélectionné';
+        document.getElementById('csvPreview').style.display = 'none';
+        btn.style.opacity = '0.4';
+      };
+
+      window.downloadCsvTemplate = function() {
+        const csv = 'email,role,password\njean.dupont@entreprise.fr,user,\nmarie.martin@entreprise.fr,agent,MonMdp123\nit.admin@entreprise.fr,admin,\n';
+        const a = document.createElement('a');
+        a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+        a.download = 'template_import_users.csv';
+        a.click();
+      };
+
+      function escHtml(str) { return (str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
     })();
     </script>
 
