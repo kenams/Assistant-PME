@@ -442,28 +442,158 @@
       </div>
     </div>
 
-    <!-- DEMO VIDEO EMBED -->
+    <!-- PRODUCT TOUR ANIMÉ -->
     <section id="demo" style="background:var(--bg2);padding:80px 5vw;">
-      <div class="section-label" data-fr="Démo en direct" data-en="Live demo">Démo en direct</div>
-      <h2 class="section-title" data-fr="Voyez l'IA en action — 43 secondes" data-en="See the AI in action — 43 seconds">Voyez l'IA en action — 43 secondes</h2>
-      <p class="section-sub" data-fr="Un utilisateur pose une question, l'IA répond en 3 secondes, le ticket GLPI est créé automatiquement." data-en="A user asks a question, the AI responds in 3 seconds, the GLPI ticket is created automatically.">Un utilisateur pose une question, l'IA répond en 3 secondes, le ticket GLPI est créé automatiquement.</p>
-      <div style="max-width:780px;margin:0 auto;position:relative;border-radius:16px;overflow:hidden;border:1px solid var(--stroke2);box-shadow:0 8px 48px rgba(0,0,0,0.5);">
-        <video
-          id="demoVideo"
-          src="/demo.mp4"
-          poster=""
-          playsinline
-          style="width:100%;display:block;background:#0f1117;cursor:pointer;"
-          onclick="this.paused ? this.play() : this.pause()"
-        ></video>
-        <div id="playOverlay" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.35);cursor:pointer;transition:background 0.2s;">
-          <div style="width:72px;height:72px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 0 40px rgba(99,102,241,0.5);">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
-          </div>
-        </div>
+      <div class="section-label" data-fr="Démo interactive" data-en="Interactive demo">Démo interactive</div>
+      <h2 class="section-title" data-fr="De la question au ticket en 3 secondes" data-en="From question to ticket in 3 seconds">De la question au ticket en 3 secondes</h2>
+      <p class="section-sub" data-fr="Regardez l'IA répondre, créer le ticket GLPI et notifier l'admin — en temps réel." data-en="Watch the AI reply, create the GLPI ticket and notify the admin — in real time.">Regardez l'IA répondre, créer le ticket GLPI et notifier l'admin — en temps réel.</p>
+
+      <style>
+        .tour-tab{display:inline-flex;align-items:center;gap:7px;padding:8px 16px;border-radius:20px;background:var(--card);border:1px solid var(--stroke2);font-family:inherit;font-size:0.8rem;font-weight:600;color:var(--text-muted);cursor:pointer;transition:all 0.2s;}
+        .tour-tab:hover{border-color:rgba(99,102,241,0.3);color:var(--text);}
+        .tour-tab.active{background:linear-gradient(135deg,rgba(99,102,241,0.15),rgba(139,92,246,0.15));border-color:var(--accent);color:var(--text-strong);}
+        .tour-tab-num{width:18px;height:18px;border-radius:50%;background:rgba(99,102,241,0.2);font-size:0.7rem;font-weight:800;color:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+        .tour-tab.active .tour-tab-num{background:var(--accent);color:#fff;}
+        .tour-tab-sep{color:var(--text-muted);font-size:0.8rem;align-self:center;}
+        .tour-slide{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity 0.4s ease;}
+        .tour-slide.active{opacity:1;pointer-events:all;}
+        .tour-dot{width:8px;height:8px;border-radius:50%;background:var(--stroke2);cursor:pointer;transition:all 0.2s;}
+        .tour-dot.active{width:22px;background:var(--accent);border-radius:4px;}
+        @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+        @keyframes ticketPop{0%{opacity:0;transform:scale(0.88)}60%{transform:scale(1.03)}100%{opacity:1;transform:scale(1)}}
+        @keyframes alertGlow{0%,100%{box-shadow:0 0 0 rgba(99,102,241,0)}50%{box-shadow:0 0 20px rgba(99,102,241,0.25)}}
+        .ticket-appear{animation:ticketPop 0.6s ease forwards;}
+        .ticket-card-anim{animation:ticketPop 0.5s ease 0.3s both;}
+        .new-ticket-alert{animation:alertGlow 2s ease infinite 0.5s;}
+        @media(max-width:600px){.tour-tab-sep{display:none;}.tour-tab span:not(.tour-tab-num){display:none;}}
+      </style>
+
+      <div style="display:flex;justify-content:center;gap:8px;margin-bottom:32px;flex-wrap:wrap;">
+        <button class="tour-tab active" data-step="0" onclick="tourGoTo(0)"><span class="tour-tab-num">1</span><span data-fr="Employé chatte" data-en="Employee chats">Employé chatte</span></button>
+        <div class="tour-tab-sep">→</div>
+        <button class="tour-tab" data-step="1" onclick="tourGoTo(1)"><span class="tour-tab-num">2</span><span data-fr="IA répond" data-en="AI replies">IA répond</span></button>
+        <div class="tour-tab-sep">→</div>
+        <button class="tour-tab" data-step="2" onclick="tourGoTo(2)"><span class="tour-tab-num">3</span><span data-fr="Ticket créé" data-en="Ticket created">Ticket créé</span></button>
+        <div class="tour-tab-sep">→</div>
+        <button class="tour-tab" data-step="3" onclick="tourGoTo(3)"><span class="tour-tab-num">4</span><span data-fr="Admin voit tout" data-en="Admin sees it">Admin voit tout</span></button>
       </div>
-      <div style="text-align:center;margin-top:20px;">
-        <a href="/app/demo-video" class="btn ghost" style="font-size:0.85rem;" data-fr="Voir la démo complète avec détails →" data-en="See full demo with details →">Voir la démo complète avec détails →</a>
+
+      <div id="tourWindow" style="max-width:860px;margin:0 auto;border-radius:18px;overflow:hidden;border:1px solid var(--stroke2);box-shadow:0 16px 64px rgba(0,0,0,0.6);position:relative;">
+        <!-- browser chrome -->
+        <div style="background:#1a1d27;padding:10px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,255,255,0.06);">
+          <div style="display:flex;gap:5px;"><div style="width:10px;height:10px;border-radius:50%;background:#ff5f57;"></div><div style="width:10px;height:10px;border-radius:50%;background:#ffbd2e;"></div><div style="width:10px;height:10px;border-radius:50%;background:#28c840;"></div></div>
+          <div id="tourUrl" style="flex:1;background:rgba(255,255,255,0.05);border-radius:6px;padding:4px 12px;font-size:0.73rem;color:var(--text-muted);font-family:monospace;text-align:center;transition:all 0.4s;">kah-support.ch/app/user</div>
+          <div style="width:60px;"></div>
+        </div>
+
+        <div style="background:#0f1117;height:420px;position:relative;overflow:hidden;">
+
+          <!-- slide 0: employé chatte -->
+          <div class="tour-slide active" id="slide-0">
+            <div style="display:grid;grid-template-columns:220px 1fr;height:420px;">
+              <div style="background:#13161f;border-right:1px solid rgba(255,255,255,0.06);padding:16px 0;">
+                <div style="padding:0 16px 16px;border-bottom:1px solid rgba(255,255,255,0.05);">
+                  <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;"><div style="width:28px;height:28px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:0.75rem;">🤖</div><span style="font-size:0.8rem;font-weight:700;color:var(--text-strong);">Assistant IT</span></div>
+                  <div style="font-size:0.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">Mes tickets</div>
+                  <div style="background:rgba(255,255,255,0.04);border-radius:8px;padding:8px 10px;font-size:0.76rem;color:var(--text-muted);">Aucun ticket actif</div>
+                </div>
+                <div style="padding:16px;"><div style="display:flex;align-items:center;gap:6px;color:var(--success);font-size:0.72rem;"><span style="width:6px;height:6px;background:var(--success);border-radius:50%;display:inline-block;animation:pulse 2s infinite;"></span>IA en ligne</div></div>
+              </div>
+              <div style="display:flex;flex-direction:column;height:420px;">
+                <div style="padding:14px 20px;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;align-items:center;gap:10px;"><div style="width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.9rem;">🤖</div><div><div style="font-size:0.85rem;font-weight:700;color:var(--text-strong);">Assistant IT IA</div><div style="font-size:0.7rem;color:var(--success);">● En ligne</div></div></div>
+                <div style="flex:1;padding:20px;display:flex;flex-direction:column;justify-content:flex-end;gap:12px;overflow:hidden;">
+                  <div style="align-self:flex-start;max-width:75%;background:rgba(255,255,255,0.06);border-radius:14px 14px 14px 4px;padding:12px 16px;"><div style="font-size:0.82rem;color:var(--text);">Bonjour ! Comment puis-je vous aider aujourd'hui ?</div><div style="font-size:0.65rem;color:var(--text-muted);margin-top:6px;">10:42</div></div>
+                  <div style="align-self:flex-end;max-width:78%;"><div style="background:linear-gradient(135deg,rgba(99,102,241,0.25),rgba(139,92,246,0.25));border:1px solid rgba(99,102,241,0.3);border-radius:14px 14px 4px 14px;padding:12px 16px;"><div id="tw0" style="font-size:0.82rem;color:var(--text-strong);min-height:1.2em;"></div><div style="font-size:0.65rem;color:var(--text-muted);margin-top:6px;text-align:right;">10:43</div></div></div>
+                </div>
+                <div style="padding:12px 16px;border-top:1px solid rgba(255,255,255,0.05);display:flex;gap:8px;"><div style="flex:1;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:10px 14px;font-size:0.8rem;color:var(--text-muted);">Décrivez votre problème…</div><div style="width:36px;height:36px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- slide 1: IA répond -->
+          <div class="tour-slide" id="slide-1">
+            <div style="display:grid;grid-template-columns:220px 1fr;height:420px;">
+              <div style="background:#13161f;border-right:1px solid rgba(255,255,255,0.06);padding:16px 0;"><div style="padding:0 16px 16px;border-bottom:1px solid rgba(255,255,255,0.05);"><div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;"><div style="width:28px;height:28px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:0.75rem;">🤖</div><span style="font-size:0.8rem;font-weight:700;color:var(--text-strong);">Assistant IT</span></div><div style="background:rgba(255,255,255,0.04);border-radius:8px;padding:8px 10px;font-size:0.76rem;color:var(--text-muted);">Aucun ticket actif</div></div></div>
+              <div style="display:flex;flex-direction:column;height:420px;">
+                <div style="padding:14px 20px;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;align-items:center;gap:10px;"><div style="width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.9rem;">🤖</div><div><div style="font-size:0.85rem;font-weight:700;color:var(--text-strong);">Assistant IT IA</div><div id="iaTypingLabel" style="font-size:0.7rem;color:var(--accent);">● Analyse en cours…</div></div><div style="margin-left:auto;background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.2);border-radius:20px;padding:3px 10px;font-size:0.68rem;color:var(--accent);font-weight:600;">⚡ GPT-4o</div></div>
+                <div style="flex:1;padding:20px;display:flex;flex-direction:column;gap:12px;overflow:hidden;">
+                  <div style="align-self:flex-end;max-width:78%;background:linear-gradient(135deg,rgba(99,102,241,0.25),rgba(139,92,246,0.25));border:1px solid rgba(99,102,241,0.3);border-radius:14px 14px 4px 14px;padding:12px 16px;"><div style="font-size:0.82rem;color:var(--text-strong);">Mon Outlook ne s'ouvre plus depuis ce matin, j'ai une réunion dans 20 min…</div><div style="font-size:0.65rem;color:var(--text-muted);margin-top:6px;text-align:right;">10:43</div></div>
+                  <div style="align-self:flex-start;max-width:85%;"><div style="background:rgba(255,255,255,0.06);border-radius:14px 14px 14px 4px;padding:14px 16px;"><div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;"><div style="width:20px;height:20px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:0.6rem;">🤖</div><span style="font-size:0.68rem;color:var(--accent);font-weight:700;">ASSISTANT IT IA</span></div><div id="tw1" style="font-size:0.82rem;color:var(--text);line-height:1.6;min-height:1.2em;"></div><span id="iaStreamCursor" style="display:inline-block;width:2px;height:14px;background:var(--accent);margin-left:2px;animation:blink 0.7s infinite;vertical-align:middle;"></span></div><div style="margin-top:6px;font-size:0.65rem;color:var(--text-muted);">IA • 10:43 • <span style="color:var(--success);">2.1s</span></div></div>
+                </div>
+                <div style="padding:10px 16px;border-top:1px solid rgba(255,255,255,0.05);"><div style="background:rgba(99,102,241,0.07);border:1px solid rgba(99,102,241,0.15);border-radius:10px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;"><span style="font-size:0.76rem;color:var(--text-muted);" data-fr="Ça n'a pas résolu le problème ?" data-en="Still not working?">Ça n'a pas résolu le problème ?</span><button style="background:rgba(99,102,241,0.2);border:1px solid rgba(99,102,241,0.3);border-radius:6px;padding:5px 12px;color:var(--accent);font-size:0.74rem;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;" data-fr="Créer un ticket" data-en="Create a ticket">Créer un ticket</button></div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- slide 2: ticket créé -->
+          <div class="tour-slide" id="slide-2">
+            <div style="display:grid;grid-template-columns:220px 1fr;height:420px;">
+              <div style="background:#13161f;border-right:1px solid rgba(255,255,255,0.06);padding:16px 0;">
+                <div style="padding:0 16px 16px;border-bottom:1px solid rgba(255,255,255,0.05);">
+                  <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;"><div style="width:28px;height:28px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:0.75rem;">🤖</div><span style="font-size:0.8rem;font-weight:700;color:var(--text-strong);">Assistant IT</span></div>
+                  <div style="font-size:0.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">Mes tickets</div>
+                  <div class="ticket-appear" style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.25);border-radius:8px;padding:10px 12px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;"><span style="font-size:0.67rem;color:var(--accent);font-weight:700;">#TK-0024</span><span style="background:rgba(239,68,68,0.15);color:#f87171;font-size:0.62rem;font-weight:700;padding:2px 7px;border-radius:4px;">HIGH</span></div><div style="font-size:0.73rem;color:var(--text-strong);line-height:1.4;">Outlook ne s'ouvre plus</div><div style="font-size:0.65rem;color:var(--text-muted);margin-top:4px;">● Ouvert • email</div></div>
+                </div>
+              </div>
+              <div style="display:flex;flex-direction:column;height:420px;">
+                <div style="padding:14px 20px;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;align-items:center;gap:10px;"><div style="width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.9rem;">🤖</div><div><div style="font-size:0.85rem;font-weight:700;color:var(--text-strong);">Assistant IT IA</div><div style="font-size:0.7rem;color:var(--success);">● En ligne</div></div></div>
+                <div style="flex:1;padding:20px;display:flex;flex-direction:column;gap:12px;overflow:hidden;">
+                  <div style="align-self:flex-end;max-width:78%;background:linear-gradient(135deg,rgba(99,102,241,0.25),rgba(139,92,246,0.25));border:1px solid rgba(99,102,241,0.3);border-radius:14px 14px 4px 14px;padding:12px 16px;"><div style="font-size:0.82rem;color:var(--text-strong);">Ça n'a pas marché, j'ai toujours l'erreur…</div><div style="font-size:0.65rem;color:var(--text-muted);margin-top:6px;text-align:right;">10:46</div></div>
+                  <div style="align-self:flex-start;max-width:92%;"><div style="background:rgba(255,255,255,0.06);border-radius:14px 14px 14px 4px;padding:14px 16px;"><div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;"><div style="width:20px;height:20px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:0.6rem;">🤖</div><span style="font-size:0.68rem;color:var(--accent);font-weight:700;">ASSISTANT IT IA</span></div><div style="font-size:0.82rem;color:var(--text);line-height:1.6;margin-bottom:12px;">Pas de problème, je crée un ticket prioritaire pour votre équipe IT !</div><div class="ticket-card-anim" style="background:#13161f;border:1px solid rgba(99,102,241,0.35);border-radius:12px;padding:14px;box-shadow:0 0 20px rgba(99,102,241,0.15);"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><span style="font-size:0.72rem;color:var(--accent);font-weight:800;">#TK-0024</span><div style="display:flex;gap:6px;"><span style="background:rgba(239,68,68,0.15);color:#f87171;font-size:0.65rem;font-weight:700;padding:2px 8px;border-radius:4px;">HIGH</span><span style="background:rgba(99,102,241,0.15);color:var(--accent);font-size:0.65rem;font-weight:700;padding:2px 8px;border-radius:4px;">email</span></div></div><div style="font-size:0.85rem;font-weight:700;color:var(--text-strong);margin-bottom:6px;">Outlook ne s'ouvre plus depuis ce matin</div><div style="font-size:0.76rem;color:var(--text-muted);margin-bottom:10px;">Catégorie : email • Priorité : haute • Statut : ouvert</div><div style="display:flex;align-items:center;gap:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.05);"><span style="font-size:0.65rem;color:var(--text-muted);">Synchronisé avec</span><span style="background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.25);color:var(--success);font-size:0.65rem;font-weight:700;padding:2px 8px;border-radius:4px;">✓ GLPI #8842</span></div></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- slide 3: admin smart dispatch -->
+          <div class="tour-slide" id="slide-3">
+            <div style="display:grid;grid-template-columns:200px 1fr;height:420px;">
+              <div style="background:#13161f;border-right:1px solid rgba(255,255,255,0.06);padding:12px 0;">
+                <div style="padding:0 12px 12px;border-bottom:1px solid rgba(255,255,255,0.05);margin-bottom:10px;"><div style="display:flex;align-items:center;gap:8px;"><div style="width:26px;height:26px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.7rem;">🤖</div><div><div style="font-size:0.75rem;font-weight:700;color:var(--text-strong);">Assistant IT</div><div style="font-size:0.6rem;color:var(--accent);">Admin</div></div></div></div>
+                <div style="padding:0 8px;display:flex;flex-direction:column;gap:2px;">
+                  <div style="padding:8px 10px;border-radius:8px;font-size:0.74rem;color:var(--text-muted);">📊 Dashboard</div>
+                  <div style="padding:8px 10px;border-radius:8px;font-size:0.74rem;color:var(--text-muted);display:flex;align-items:center;">🎫 Tickets<span style="margin-left:auto;background:rgba(239,68,68,0.2);color:#f87171;font-size:0.6rem;font-weight:700;padding:1px 5px;border-radius:10px;">+1</span></div>
+                  <div style="padding:8px 10px;border-radius:8px;background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.2);font-size:0.74rem;color:var(--accent);font-weight:600;">🚦 Smart Dispatch</div>
+                  <div style="padding:8px 10px;border-radius:8px;font-size:0.74rem;color:var(--text-muted);">📈 Analytiques</div>
+                </div>
+              </div>
+              <div style="padding:16px 18px;overflow:hidden;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;"><div><div style="font-size:1rem;font-weight:800;color:var(--text-strong);">🚦 Smart Dispatch</div><div style="font-size:0.72rem;color:var(--text-muted);">Acheminement automatique</div></div><div style="background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.2);border-radius:20px;padding:4px 12px;font-size:0.7rem;color:var(--success);font-weight:700;">● IA active</div></div>
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;">
+                  <div style="background:#13161f;border-radius:10px;padding:10px;text-align:center;"><div style="font-size:1.4rem;font-weight:900;color:var(--text-strong);">18</div><div style="font-size:0.62rem;color:var(--text-muted);">Tickets total</div></div>
+                  <div style="background:rgba(239,68,68,0.07);border:1px solid rgba(239,68,68,0.15);border-radius:10px;padding:10px;text-align:center;"><div style="font-size:1.4rem;font-weight:900;color:#f87171;">3</div><div style="font-size:0.62rem;color:var(--text-muted);">Haute priorité</div></div>
+                  <div style="background:rgba(34,197,94,0.07);border:1px solid rgba(34,197,94,0.15);border-radius:10px;padding:10px;text-align:center;"><div style="font-size:1.4rem;font-weight:900;color:var(--success);">87%</div><div style="font-size:0.62rem;color:var(--text-muted);">Résolution IA</div></div>
+                </div>
+                <div class="new-ticket-alert" style="background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.3);border-radius:12px;padding:12px;margin-bottom:10px;position:relative;overflow:hidden;">
+                  <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2));"></div>
+                  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;gap:8px;"><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;"><span style="font-size:0.72rem;color:var(--accent);font-weight:800;">#TK-0024</span><span style="background:rgba(239,68,68,0.2);color:#f87171;font-size:0.62rem;font-weight:700;padding:2px 7px;border-radius:4px;">HIGH</span><span style="background:rgba(99,102,241,0.1);color:var(--accent);font-size:0.6rem;padding:2px 7px;border-radius:4px;">email</span></div><div style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.2);border-radius:6px;padding:3px 8px;flex-shrink:0;"><span style="font-size:0.65rem;color:var(--success);font-weight:700;">✓ GLPI #8842</span></div></div>
+                  <div style="font-size:0.82rem;font-weight:600;color:var(--text-strong);margin-bottom:4px;">Outlook ne s'ouvre plus depuis ce matin</div>
+                  <div style="display:flex;justify-content:space-between;align-items:center;"><div style="font-size:0.68rem;color:var(--text-muted);">Auto-assigné • Backlog N2 • il y a 2 min</div><div style="font-size:0.7rem;color:var(--accent);background:rgba(99,102,241,0.08);padding:3px 8px;border-radius:6px;font-weight:600;">🤖 Suggestion IA →</div></div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:6px;">
+                  <div style="background:#13161f;border-radius:8px;padding:9px 12px;display:flex;justify-content:space-between;align-items:center;"><div style="font-size:0.76rem;color:var(--text);">Imprimante réseau HP plus accessible</div><span style="background:rgba(245,158,11,0.15);color:#fbbf24;font-size:0.6rem;font-weight:700;padding:2px 7px;border-radius:4px;">MED</span></div>
+                  <div style="background:#13161f;border-radius:8px;padding:9px 12px;display:flex;justify-content:space-between;align-items:center;opacity:0.6;"><div style="font-size:0.76rem;color:var(--text);">VPN Cisco AnyConnect déconnexion</div><span style="background:rgba(34,197,94,0.15);color:var(--success);font-size:0.6rem;font-weight:700;padding:2px 7px;border-radius:4px;">✓ Résolu</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+        <!-- progress bar -->
+        <div style="position:absolute;bottom:0;left:0;right:0;height:3px;background:rgba(255,255,255,0.04);z-index:10;"><div id="tourProgress" style="height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));width:0%;transition:width 0.1s linear;"></div></div>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-top:20px;">
+        <button onclick="tourPrev()" style="width:34px;height:34px;background:var(--card);border:1px solid var(--stroke2);border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-muted);"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M15.41 16.58L10.83 12l4.58-4.59L14 6l-6 6 6 6z"/></svg></button>
+        <div style="display:flex;gap:6px;" id="tourDots"><div class="tour-dot active" onclick="tourGoTo(0)"></div><div class="tour-dot" onclick="tourGoTo(1)"></div><div class="tour-dot" onclick="tourGoTo(2)"></div><div class="tour-dot" onclick="tourGoTo(3)"></div></div>
+        <button onclick="tourNext()" style="width:34px;height:34px;background:var(--card);border:1px solid var(--stroke2);border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-muted);"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg></button>
+        <button id="tourPlayBtn" onclick="tourTogglePlay()" style="height:34px;padding:0 14px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:6px;font-family:inherit;font-size:0.78rem;font-weight:700;color:#fff;"><svg id="tourPlayIcon" width="12" height="12" viewBox="0 0 24 24" fill="white"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg><span id="tourPlayLabel" data-fr="Pause" data-en="Pause">Pause</span></button>
+      </div>
+
+      <div style="text-align:center;margin-top:24px;">
+        <a href="/app/login/" class="btn primary" style="font-size:0.88rem;" data-fr="Essayer gratuitement →" data-en="Try for free →">Essayer gratuitement →</a>
+        <span style="margin:0 12px;color:var(--text-muted);font-size:0.8rem;">ou</span>
+        <a href="#contact" class="btn ghost" style="font-size:0.85rem;" data-fr="Demander une démo →" data-en="Request a demo →">Demander une démo →</a>
       </div>
     </section>
 
@@ -1024,6 +1154,126 @@
       // Init
       applyLang(currentLang);
       calcRoi();
+
+      // ── PRODUCT TOUR ──
+      (function() {
+        const STEPS = 4;
+        const STEP_DURATION = 5500; // ms per step
+        let currentStep = 0;
+        let playing = true;
+        let progressStart = null;
+        let rafId = null;
+
+        const TW0_TEXT = "Mon Outlook ne s'ouvre plus depuis ce matin, j'ai une réunion dans 20 minutes…";
+        const TW1_TEXT = "Je vois le problème. Outlook plante après une mise à jour. Solution rapide : 1) Win+R → %appdata%\\Microsoft\\Outlook  2) Renommez le .ost en .ost.bak  3) Relancez Outlook. ✓ Résolu dans 87% des cas.";
+        const URLS = [
+          'kah-support.ch/app/user',
+          'kah-support.ch/app/user',
+          'kah-support.ch/app/user',
+          'kah-support.ch/app/admin'
+        ];
+
+        let tw0Done = false, tw1Done = false;
+        let tw0Timer = null, tw1Timer = null;
+
+        function typewrite(el, text, speed, onDone) {
+          if (!el) return;
+          el.textContent = '';
+          let i = 0;
+          function tick() {
+            if (i < text.length) {
+              el.textContent += text[i++];
+              return setTimeout(tick, speed);
+            }
+            if (onDone) onDone();
+          }
+          return setTimeout(tick, speed);
+        }
+
+        function showSlide(step) {
+          document.querySelectorAll('.tour-slide').forEach((s, i) => {
+            s.classList.toggle('active', i === step);
+          });
+          document.querySelectorAll('.tour-tab').forEach((t, i) => {
+            t.classList.toggle('active', i === step);
+          });
+          document.querySelectorAll('.tour-dot').forEach((d, i) => {
+            d.classList.toggle('active', i === step);
+          });
+          const urlEl = document.getElementById('tourUrl');
+          if (urlEl) urlEl.textContent = URLS[step];
+
+          if (step === 0 && !tw0Done) {
+            clearTimeout(tw0Timer);
+            const el = document.getElementById('tw0');
+            tw0Timer = typewrite(el, TW0_TEXT, 38, () => { tw0Done = true; });
+          }
+          if (step === 1 && !tw1Done) {
+            clearTimeout(tw1Timer);
+            const el = document.getElementById('tw1');
+            const cursor = document.getElementById('iaStreamCursor');
+            const label = document.getElementById('iaTypingLabel');
+            tw1Timer = typewrite(el, TW1_TEXT, 22, () => {
+              tw1Done = true;
+              if (cursor) cursor.style.display = 'none';
+              if (label) { label.textContent = '● En ligne'; label.style.color = 'var(--success)'; }
+            });
+          }
+        }
+
+        function startProgress() {
+          progressStart = performance.now();
+          const bar = document.getElementById('tourProgress');
+          function frame(now) {
+            if (!playing) return;
+            const elapsed = now - progressStart;
+            const pct = Math.min(100, (elapsed / STEP_DURATION) * 100);
+            if (bar) bar.style.width = pct + '%';
+            if (elapsed >= STEP_DURATION) {
+              tourNext();
+            } else {
+              rafId = requestAnimationFrame(frame);
+            }
+          }
+          cancelAnimationFrame(rafId);
+          rafId = requestAnimationFrame(frame);
+        }
+
+        window.tourGoTo = function(step) {
+          currentStep = step;
+          showSlide(step);
+          const bar = document.getElementById('tourProgress');
+          if (bar) bar.style.width = '0%';
+          if (playing) startProgress();
+        };
+
+        window.tourNext = function() {
+          tourGoTo((currentStep + 1) % STEPS);
+        };
+
+        window.tourPrev = function() {
+          tourGoTo((currentStep - 1 + STEPS) % STEPS);
+        };
+
+        window.tourTogglePlay = function() {
+          playing = !playing;
+          const icon = document.getElementById('tourPlayIcon');
+          const label = document.getElementById('tourPlayLabel');
+          if (playing) {
+            if (icon) icon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+            if (label) { label.setAttribute('data-fr','Pause'); label.setAttribute('data-en','Pause'); label.textContent = currentLang === 'en' ? 'Pause' : 'Pause'; }
+            startProgress();
+          } else {
+            cancelAnimationFrame(rafId);
+            if (icon) icon.innerHTML = '<path d="M8 5v14l11-7z"/>';
+            if (label) { label.setAttribute('data-fr','Lecture'); label.setAttribute('data-en','Play'); label.textContent = currentLang === 'en' ? 'Play' : 'Lecture'; }
+          }
+        };
+
+        // Start
+        showSlide(0);
+        startProgress();
+      })();
     </script>
   </body>
 </html>
