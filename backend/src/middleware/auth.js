@@ -31,10 +31,13 @@ function authRequired(req, res, next) {
       req.user = payload;
       return next();
     })
-    .catch(() => {
-      // Column may not exist yet (pending migration) — allow through
-      req.user = payload;
-      return next();
+    .catch((err) => {
+      // 42703 = PostgreSQL "column does not exist" — migration pending, allow through
+      if (err.code === "42703") {
+        req.user = payload;
+        return next();
+      }
+      return next(err);
     });
 }
 
