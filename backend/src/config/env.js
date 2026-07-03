@@ -61,6 +61,7 @@ const env = {
   smtpUser: process.env.SMTP_USER || "",
   smtpPass: process.env.SMTP_PASS || "",
   smtpFrom: process.env.SMTP_FROM || "",
+  resendApiKey: process.env.RESEND_API_KEY || "",
   notifyEmails: process.env.NOTIFY_EMAILS || "",
   backupIntervalHours: parseInt(process.env.BACKUP_INTERVAL_HOURS || "6", 10),
   staleConvDays: parseInt(process.env.STALE_CONV_DAYS || "7", 10),

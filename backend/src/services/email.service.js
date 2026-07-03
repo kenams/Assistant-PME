@@ -4,11 +4,11 @@ let nodemailer = null;
 let transporter = null;
 
 function isConfigured() {
-  return Boolean(env.smtpHost && env.smtpUser && env.smtpPass);
+  return Boolean(env.resendApiKey || (env.smtpHost && env.smtpUser && env.smtpPass));
 }
 
 function getTransporter() {
-  if (!isConfigured()) return null;
+  if (!(env.smtpHost && env.smtpUser && env.smtpPass)) return null;
   if (transporter) return transporter;
   if (!nodemailer) {
     nodemailer = require("nodemailer");
@@ -20,15 +20,58 @@ function getTransporter() {
     auth: {
       user: env.smtpUser,
       pass: env.smtpPass
-    }
+    },
+    // Les PaaS bloquent/throttlent parfois le SMTP sortant — ne jamais pendre indéfiniment
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 15000
   });
   return transporter;
 }
 
+// Resend API HTTP (port 443) — prioritaire car les ports SMTP sortants
+// sont souvent bloqués sur les hébergeurs type Render
+async function sendViaResendApi({ to, subject, html, text, replyTo }) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 15000);
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${env.resendApiKey}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        from: env.smtpFrom || "KAH Support <contact@kah-digital.ch>",
+        to: Array.isArray(to) ? to : [to],
+        reply_to: replyTo || undefined,
+        subject,
+        html,
+        text: text || html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim()
+      }),
+      signal: controller.signal
+    });
+    if (!res.ok) {
+      const body = await res.text().catch(() => "");
+      throw new Error(`resend_api_${res.status}: ${body.slice(0, 200)}`);
+    }
+    return await res.json();
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 async function sendEmail({ to, subject, html, text, replyTo }) {
+  if (env.resendApiKey) {
+    try {
+      return await sendViaResendApi({ to, subject, html, text, replyTo });
+    } catch (err) {
+      console.warn(`[email] Resend API échec (${err.message}) — tentative SMTP`);
+    }
+  }
   const transport = getTransporter();
   if (!transport) {
-    console.log(`[email] SMTP non configuré — email non envoyé: ${subject} → ${Array.isArray(to) ? to.join(", ") : to}`);
+    console.log(`[email] Email non configuré — non envoyé: ${subject} → ${Array.isArray(to) ? to.join(", ") : to}`);
     return null;
   }
   const recipients = Array.isArray(to) ? to.join(", ") : to;
