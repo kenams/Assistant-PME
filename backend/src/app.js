@@ -58,6 +58,9 @@ app.use(
       directives: {
         defaultSrc: ["'self'"],
         scriptSrc: ["'self'", "'unsafe-inline'", "https://js.stripe.com"],
+        // script-src autorise déjà unsafe-inline : bloquer les attributs n'ajoute rien
+        // et casse tous les onclick/oninput des pages (landing, admin, glpi, offline)
+        scriptSrcAttr: ["'unsafe-inline'"],
         styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
         imgSrc: ["'self'", "data:", "https:"],
         connectSrc: [
@@ -139,25 +142,9 @@ app.get("/app/login/index.html", (req, res) => sendNoCache(res, path.join(appDir
 app.get("/app/user", (req, res) => sendNoCache(res, path.join(appDir, "user.html")));
 app.get("/app/user/", (req, res) => sendNoCache(res, path.join(appDir, "user.html")));
 app.get("/app/user/index.html", (req, res) => sendNoCache(res, path.join(appDir, "user.html")));
-// Admin panel: auth-protected, needs unsafe-inline for dynamically generated action buttons
-const ADMIN_CSP = [
-  "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' https://js.stripe.com",
-  "script-src-attr 'unsafe-inline'",
-  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-  "img-src 'self' data: https:",
-  "connect-src 'self' https://api.stripe.com https://api.openai.com https://fonts.googleapis.com https://fonts.gstatic.com",
-  "font-src 'self' data: https://fonts.gstatic.com https://fonts.googleapis.com",
-  "frame-src https://js.stripe.com https://hooks.stripe.com",
-  "worker-src 'self'",
-].join("; ");
-const serveAdmin = (req, res) => {
-  res.setHeader("Content-Security-Policy", ADMIN_CSP);
-  sendNoCache(res, path.join(appDir, "admin.html"));
-};
-app.get("/app/admin", serveAdmin);
-app.get("/app/admin/", serveAdmin);
-app.get("/app/admin/index.html", serveAdmin);
+app.get("/app/admin", (req, res) => sendNoCache(res, path.join(appDir, "admin.html")));
+app.get("/app/admin/", (req, res) => sendNoCache(res, path.join(appDir, "admin.html")));
+app.get("/app/admin/index.html", (req, res) => sendNoCache(res, path.join(appDir, "admin.html")));
 app.get("/app/reset-password", (req, res) => sendNoCache(res, path.join(appDir, "reset-password.html")));
 app.get("/app/reset-password/", (req, res) => sendNoCache(res, path.join(appDir, "reset-password.html")));
 app.get("/app/demo-video", (req, res) => sendNoCache(res, path.join(appDir, "demo-video.html")));
