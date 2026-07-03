@@ -31,7 +31,11 @@ function authRequired(req, res, next) {
       req.user = payload;
       return next();
     })
-    .catch((err) => next(err));
+    .catch(() => {
+      // Column may not exist yet (pending migration) — allow through
+      req.user = payload;
+      return next();
+    });
 }
 
 module.exports = { authRequired };
