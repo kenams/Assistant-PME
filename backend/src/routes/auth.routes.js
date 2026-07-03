@@ -64,6 +64,10 @@ router.post("/login", loginLimiter(), async (req, res, next) => {
       return res.status(401).json({ error: "invalid_credentials" });
     }
 
+    if (user.active === false) {
+      return res.status(403).json({ error: "account_disabled" });
+    }
+
     const effectiveRole =
       env.superAdminEmail && user.email === env.superAdminEmail
         ? "superadmin"

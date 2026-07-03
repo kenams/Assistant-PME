@@ -190,22 +190,30 @@ router.get("/license-status", authRequired, requireAdmin, async (req, res, next)
 
 router.put("/:id/deactivate", authRequired, requireAdmin, async (req, res, next) => {
   try {
-    const ok = await setUserActive(req.user.tenant_id, req.params.id, false);
-    if (!ok) return res.status(404).json({ error: "user_not_found" });
-    await logEvent({ tenantId: req.user.tenant_id, userId: req.user.sub, action: "user_deactivated", meta: { user_id: req.params.id } });
+    const targetId = req.params.id;
+    if (targetId === req.user.sub) return res.status(400).json({ error: "cannot_deactivate_self" });
+    const target = await db("users").where({ id: targetId, tenant_id: req.user.tenant_id }).first();
+    if (!target) return res.status(404).json({ error: "user_not_found" });
+    if (target.role === "superadmin" && req.user.role !== "superadmin") {
+      return res.status(403).json({ error: "cannot_deactivate_superadmin" });
+    }
+    await setUserActive(req.user.tenant_id, targetId, false);
+    await logEvent({ tenantId: req.user.tenant_id, userId: req.user.sub, action: "user_deactivated", meta: { user_id: targetId } });
     return res.json({ ok: true });
   } catch (err) { next(err); }
 });
 
 router.put("/:id/activate", authRequired, requireAdmin, async (req, res, next) => {
   try {
+    const targetId = req.params.id;
+    const target = await db("users").where({ id: targetId, tenant_id: req.user.tenant_id }).first();
+    if (!target) return res.status(404).json({ error: "user_not_found" });
     const limitCheck = await checkUserLimit(req.user.tenant_id);
     if (limitCheck.error === "user_limit_reached") {
       return res.status(403).json({ error: "user_limit_reached", plan: limitCheck.plan, limit: limitCheck.limit, current: limitCheck.current });
     }
-    const ok = await setUserActive(req.user.tenant_id, req.params.id, true);
-    if (!ok) return res.status(404).json({ error: "user_not_found" });
-    await logEvent({ tenantId: req.user.tenant_id, userId: req.user.sub, action: "user_activated", meta: { user_id: req.params.id } });
+    await setUserActive(req.user.tenant_id, targetId, true);
+    await logEvent({ tenantId: req.user.tenant_id, userId: req.user.sub, action: "user_activated", meta: { user_id: targetId } });
     return res.json({ ok: true });
   } catch (err) { next(err); }
 });

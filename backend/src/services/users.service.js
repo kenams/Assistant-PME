@@ -319,13 +319,9 @@ async function importUsersFromCsv({ tenantId, rows }) {
       continue;
     }
 
-    const [{ count }] = await db("users")
-      .where({ tenant_id: tenantId })
-      .whereNot({ active: false })
-      .count("id as count");
-    const used = parseInt(count, 10);
-
-    if (limit && used >= limit) {
+    // Use the canonical checkUserLimit so all creation paths are consistent
+    const limitCheck = await checkUserLimit(tenantId);
+    if (limitCheck.error === "user_limit_reached") {
       results.errors.push({ email, reason: "limite_licences_atteinte" });
       continue;
     }
@@ -350,24 +346,17 @@ async function importUsersFromCsv({ tenantId, rows }) {
       updated_at: now
     });
     results.created++;
+  }
 
-    // Alerte 90% si on vient de franchir le seuil
-    if (limit && tenant) {
-      const newUsed = used + 1;
-      const pct = Math.round((newUsed / limit) * 100);
-      if (pct >= 90 && Math.round((used / limit) * 100) < 90) {
-        const admin = await db("users")
-          .where({ tenant_id: tenantId, role: "admin", active: true })
-          .first();
-        if (admin) {
-          sendLicenseAlert({
-            adminEmail: admin.email,
-            tenantName: tenant.name,
-            used: newUsed,
-            limit,
-            plan
-          }).catch(() => {});
-        }
+  // Alerte 90% après l'import complet (une seule vérification)
+  if (results.created > 0 && limit && tenant) {
+    const [{ count: finalCount }] = await db("users").where({ tenant_id: tenantId }).count("id as count");
+    const finalUsed = parseInt(finalCount, 10);
+    const pct = Math.round((finalUsed / limit) * 100);
+    if (pct >= 90) {
+      const admin = await db("users").where({ tenant_id: tenantId, role: "admin" }).whereNot({ active: false }).first();
+      if (admin) {
+        sendLicenseAlert({ adminEmail: admin.email, tenantName: tenant.name, used: finalUsed, limit, plan }).catch(() => {});
       }
     }
   }
