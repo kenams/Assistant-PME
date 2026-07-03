@@ -2011,7 +2011,16 @@
       return localStorage.getItem('assistant_token') || sessionStorage.getItem('assistant_token') || '';
     }
     function setAdminToken(t) { localStorage.setItem('assistant_token', t); }
-    function clearAdminToken() { localStorage.removeItem('assistant_token'); sessionStorage.removeItem('assistant_token'); }
+    function clearAdminToken() {
+      localStorage.removeItem('assistant_token'); sessionStorage.removeItem('assistant_token');
+      localStorage.removeItem('admin_token'); localStorage.removeItem('user_token');
+    }
+
+    function decodeTokenRole(tok) {
+      try { return JSON.parse(atob(tok.split('.')[1])).role || ''; } catch { return ''; }
+    }
+
+    const ADMIN_ROLES = ['admin', 'superadmin', 'agent'];
     function authHeaders() { return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getAdminToken() }; }
 
     // ─── Navigation sidebar ──────────────────────────────────
@@ -2048,6 +2057,15 @@
       const loginCard = document.getElementById('loginCard');
       const adminLayout = document.getElementById('adminLayout');
       const footer = document.querySelector('.footer');
+
+      // Reject user-role tokens — they have no business on admin panel
+      if (token && !ADMIN_ROLES.includes(decodeTokenRole(token))) {
+        clearAdminToken();
+        if (loginCard) { loginCard.style.display = 'flex'; const s = loginCard.querySelector('.login-status'); if (s) { s.textContent = 'Votre session a expiré. Reconnectez-vous avec un compte admin.'; s.style.color = '#f59e0b'; } }
+        if (adminLayout) adminLayout.style.display = 'none';
+        return;
+      }
+
       if (token) {
         if (loginCard) loginCard.style.display = 'none';
         if (adminLayout) adminLayout.style.display = 'grid';
@@ -2085,12 +2103,20 @@
         const data = await res.json();
         if (res.status === 429) throw new Error('rate_limited');
         if (!res.ok) throw new Error(data.error || 'login_failed');
+
+        // Reject non-admin logins immediately
+        const role = decodeTokenRole(data.token);
+        if (!ADMIN_ROLES.includes(role)) throw new Error('not_admin');
+
         setAdminToken(data.token);
         location.replace(location.pathname);
       } catch(err) {
-        const msg = err.message === 'rate_limited'
-          ? 'Trop de tentatives, attendez 1 minute'
-          : 'Email ou mot de passe incorrect';
+        const msgs = {
+          rate_limited: 'Trop de tentatives, attendez 1 minute',
+          account_disabled: 'Ce compte est désactivé',
+          not_admin: 'Ce compte n\'a pas les droits admin',
+        };
+        const msg = msgs[err.message] || 'Email ou mot de passe incorrect';
         if (statusEl) { statusEl.textContent = msg; statusEl.className = 'status error'; }
         if (btn) { btn.disabled = false; btn.textContent = 'Se connecter →'; }
       }
