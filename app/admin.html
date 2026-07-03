@@ -889,56 +889,56 @@
       <!-- ─── SIDEBAR ─── -->
       <aside class="admin-sidebar">
         <div class="sidebar-section-label">Opérations</div>
-        <button class="sidebar-link active" data-panel="queue" onclick="showPanel('queue',this)">
+        <button class="sidebar-link active" data-panel="queue">
           <span class="icon">🎫</span> File de tickets
           <span class="sidebar-badge" id="sidebarOpenCount">0</span>
         </button>
-        <button class="sidebar-link" data-panel="analytics" onclick="showPanel('analytics',this)">
+        <button class="sidebar-link" data-panel="analytics">
           <span class="icon">📊</span> Analytiques
         </button>
-        <button class="sidebar-link" data-panel="dispatch" onclick="showPanel('dispatch',this)">
+        <button class="sidebar-link" data-panel="dispatch">
           <span class="icon">🚦</span> Smart Dispatch
           <span class="sidebar-badge warn" id="sidebarAlertsBadge" style="display:none">!</span>
         </button>
-        <button class="sidebar-link" data-panel="glpi" onclick="showPanel('glpi',this)">
+        <button class="sidebar-link" data-panel="glpi">
           <span class="icon">🔗</span> GLPI Tickets
         </button>
 
         <div class="sidebar-section-label">Configuration</div>
-        <button class="sidebar-link" data-panel="quicksetup" onclick="showPanel('quicksetup',this)">
+        <button class="sidebar-link" data-panel="quicksetup">
           <span class="icon">⚡</span> Setup Rapide
         </button>
-        <button class="sidebar-link" data-panel="settings" onclick="showPanel('settings',this)">
+        <button class="sidebar-link" data-panel="settings">
           <span class="icon">⚙️</span> Paramètres avancés
         </button>
-        <button class="sidebar-link" data-panel="kb" onclick="showPanel('kb',this)">
+        <button class="sidebar-link" data-panel="kb">
           <span class="icon">📚</span> Base de connaissances
         </button>
-        <button class="sidebar-link" data-panel="users" onclick="showPanel('users',this)">
+        <button class="sidebar-link" data-panel="users">
           <span class="icon">👥</span> Utilisateurs
         </button>
-        <button class="sidebar-link" data-panel="licenses" onclick="showPanel('licenses',this)">
+        <button class="sidebar-link" data-panel="licenses">
           <span class="icon">🔑</span> Licences
           <span class="sidebar-badge" id="sidebarLicBadge" style="display:none">!</span>
         </button>
 
-        <button class="sidebar-link" data-panel="leads" onclick="showPanel('leads',this)">
+        <button class="sidebar-link" data-panel="leads">
           <span class="icon">📈</span> CRM / Leads
         </button>
 
         <div class="sidebar-section-label">Système</div>
-        <button class="sidebar-link" data-panel="privacy" onclick="showPanel('privacy',this)">
+        <button class="sidebar-link" data-panel="privacy">
           <span class="icon">🔒</span> Confidentialité
         </button>
-        <button class="sidebar-link" data-panel="diagnostics" onclick="showPanel('diagnostics',this)">
+        <button class="sidebar-link" data-panel="diagnostics">
           <span class="icon">🔧</span> Diagnostics
           <span class="sidebar-badge warn" id="sidebarDiagBadge" style="display:none">!</span>
         </button>
-        <button class="sidebar-link" data-panel="billing" onclick="showPanel('billing',this)">
+        <button class="sidebar-link" data-panel="billing">
           <span class="icon">💳</span> Abonnement
         </button>
 
-        <button class="sidebar-link superadmin-only" data-panel="superadmin" onclick="showPanel('superadmin',this)" style="display:none">
+        <button class="sidebar-link superadmin-only" data-panel="superadmin" style="display:none">
           <span class="icon">🏢</span> Clients & Tenants
         </button>
 
@@ -958,7 +958,7 @@
             <div style="font-weight:700;color:var(--text-strong);margin-bottom:2px">Bienvenue ! Votre espace n'est pas encore configuré.</div>
             <div style="font-size:0.83rem;color:var(--text-muted)">Configurez votre organisation en 2 minutes pour que vos employés puissent accéder au chatbot.</div>
           </div>
-          <button class="btn primary" onclick="showPanel('quicksetup', document.querySelector('[data-panel=quicksetup]'));document.getElementById('onboardingBanner').style.display='none'">Configurer maintenant →</button>
+          <button class="btn primary" id="onboardingConfigureBtn">Configurer maintenant →</button>
         </div>
 
         <!-- ══ FILE DE TICKETS ══ -->
@@ -966,7 +966,7 @@
 
           <div class="panel-title-row">
             <h2 class="panel-title">File de tickets</h2>
-            <button id="metricsRefreshBtnTop" class="btn ghost" onclick="document.getElementById('metricsRefreshBtn')?.click()">↻ Actualiser</button>
+            <button id="metricsRefreshBtnTop" class="btn ghost">↻ Actualiser</button>
           </div>
 
           <!-- Live Activity Bar -->
@@ -1016,10 +1016,10 @@
           <div class="card" style="padding:20px">
             <div class="queue-header">
               <div class="queue-filters">
-                <button class="chip active" data-ticket-filter="open" onclick="filterQueue('open',this)">Ouverts</button>
-                <button class="chip" data-ticket-filter="all" onclick="filterQueue('all',this)">Tous</button>
-                <button class="chip" data-ticket-filter="critical" onclick="filterQueue('critical',this)">Critiques</button>
-                <button class="chip" data-ticket-filter="resolved" onclick="filterQueue('resolved',this)">Résolus</button>
+                <button class="chip active" data-ticket-filter="open">Ouverts</button>
+                <button class="chip" data-ticket-filter="all">Tous</button>
+                <button class="chip" data-ticket-filter="critical">Critiques</button>
+                <button class="chip" data-ticket-filter="resolved">Résolus</button>
               </div>
               <button id="metricsRefreshBtn" class="btn ghost">↻ Actualiser</button>
             </div>
@@ -1212,7 +1212,7 @@
                 </label>
                 <input id="ruleConfidenceInput" type="number" min="0" max="100" value="70" placeholder="Seuil %" style="width:90px;padding:6px 10px;background:var(--bg3);border:1px solid var(--stroke2);border-radius:8px;color:var(--text);font-size:0.82rem;font-family:inherit" />
                 <button id="dispatchSaveRuleBtn" class="btn primary" style="font-size:0.82rem">💾 Enregistrer</button>
-                <button onclick="document.getElementById('dispatchRuleForm').style.display='none'" class="btn ghost" style="font-size:0.82rem">Annuler</button>
+                <button id="dispatchRuleFormCancel" class="btn ghost" style="font-size:0.82rem">Annuler</button>
                 <span id="dispatchRuleStatus" style="font-size:0.8rem;color:var(--text-muted)"></span>
               </div>
             </div>
@@ -1278,7 +1278,7 @@
                 <input type="file" id="csvFileInput" accept=".csv,text/csv" style="display:none;" onchange="previewCsv(this)">
               </label>
               <span id="csvFileName" style="font-size:0.8rem;color:var(--text-muted);">Aucun fichier sélectionné</span>
-              <button id="csvImportBtn" onclick="importCsv()" disabled style="padding:9px 20px;background:linear-gradient(135deg,var(--accent),#8b5cf6);border:none;border-radius:8px;font-family:inherit;font-size:0.84rem;font-weight:700;color:#fff;cursor:pointer;opacity:0.4;transition:all 0.15s;">Importer →</button>
+              <button id="csvImportBtn" disabled style="padding:9px 20px;background:linear-gradient(135deg,var(--accent),#8b5cf6);border:none;border-radius:8px;font-family:inherit;font-size:0.84rem;font-weight:700;color:#fff;cursor:pointer;opacity:0.4;transition:all 0.15s;">Importer →</button>
             </div>
             <div id="csvPreview" style="display:none;margin-top:16px;background:rgba(255,255,255,0.03);border:1px solid var(--stroke);border-radius:8px;padding:14px;">
               <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:8px;" id="csvPreviewLabel"></div>
@@ -1289,7 +1289,7 @@
 
           <!-- Modèle CSV à télécharger -->
           <div style="margin-bottom:24px;">
-            <button onclick="downloadCsvTemplate()" class="btn ghost" style="font-size:0.82rem;">⬇ Télécharger le modèle CSV</button>
+            <button id="csvTemplateBtn" class="btn ghost" style="font-size:0.82rem;">⬇ Télécharger le modèle CSV</button>
           </div>
 
           <!-- Liste utilisateurs -->
@@ -1298,7 +1298,7 @@
               <div style="font-size:0.95rem;font-weight:700;color:var(--text-strong);">Tous les utilisateurs</div>
               <div style="display:flex;gap:8px;">
                 <input id="licUserSearch" type="text" placeholder="Rechercher…" oninput="filterLicUsers()" style="padding:7px 12px;background:var(--bg2);border:1px solid var(--stroke2);border-radius:7px;color:var(--text);font-family:inherit;font-size:0.82rem;width:160px;outline:none;">
-                <button onclick="loadLicensePanel()" class="btn ghost" style="font-size:0.78rem;">↻ Actualiser</button>
+                <button id="licRefreshBtn" class="btn ghost" style="font-size:0.78rem;">↻ Actualiser</button>
               </div>
             </div>
             <div id="licUserTable" style="min-height:120px;"></div>
@@ -1421,14 +1421,14 @@
               <div style="font-size:0.75rem;font-weight:700;color:#4f8ef7;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px">📤 Partagez ce lien à vos employés</div>
               <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
                 <code id="qsEmployeeUrl" style="flex:1;font-size:0.82rem;background:var(--bg2);padding:8px 12px;border-radius:6px;border:1px solid var(--stroke2);word-break:break-all;color:var(--text-strong)">—</code>
-                <button class="btn ghost" style="white-space:nowrap" onclick="copyQsUrl()">⎘ Copier</button>
+                <button class="btn ghost" style="white-space:nowrap" id="copyQsUrlBtn">⎘ Copier</button>
               </div>
               <p style="margin:8px 0 0;font-size:0.75rem;color:var(--text-muted)">Vos collaborateurs accèdent à l'assistant depuis ce lien. Pas d'installation requise.</p>
             </div>
 
             <div class="actions-inline" style="margin-top:16px">
-              <button class="btn primary" onclick="showPanel('queue', document.querySelector('[data-panel=queue]'))">→ Voir les tickets</button>
-              <button class="btn ghost" onclick="showPanel('users', document.querySelector('[data-panel=users]'))">+ Inviter des utilisateurs</button>
+              <button class="btn primary" id="qsGoToQueueBtn">→ Voir les tickets</button>
+              <button class="btn ghost" id="qsGoToUsersBtn">+ Inviter des utilisateurs</button>
             </div>
           </div>
         </div>
@@ -1548,7 +1548,7 @@
           <div class="card" id="kbEditorCard" style="display:none">
             <div class="card-header">
               <h3 id="kbEditorTitle">Nouvelle procédure</h3>
-              <button class="btn ghost" onclick="closeKbEditor()">✕ Fermer</button>
+              <button class="btn ghost" id="kbEditorCloseTop">✕ Fermer</button>
             </div>
             <div style="padding:16px;display:flex;flex-direction:column;gap:10px">
               <input id="kbEditTitle" placeholder="Titre de la procédure *" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--stroke);border-radius:8px;padding:9px 12px;color:var(--text);font-family:inherit;font-size:0.88rem" />
@@ -1560,7 +1560,7 @@
               <textarea id="kbEditContent" rows="8" placeholder="Contenu de la procédure (étapes, symptômes, résolution…) *" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--stroke);border-radius:8px;padding:9px 12px;color:var(--text);font-family:inherit;font-size:0.85rem;resize:vertical"></textarea>
               <div style="display:flex;gap:8px">
                 <button id="kbSaveBtn" class="btn primary" style="flex:1">💾 Enregistrer</button>
-                <button class="btn ghost" onclick="closeKbEditor()">Annuler</button>
+                <button class="btn ghost" id="kbEditorCloseBottom">Annuler</button>
               </div>
               <div id="kbEditorStatus" style="font-size:0.82rem;color:var(--text-muted);min-height:18px"></div>
             </div>
@@ -1728,13 +1728,13 @@
 
           <!-- Filtres -->
           <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
-            <button class="chip active" data-leads-filter="all" onclick="filterLeads('all',this)">Tous</button>
-            <button class="chip" data-leads-filter="new" onclick="filterLeads('new',this)">🆕 Nouveau</button>
-            <button class="chip" data-leads-filter="contacted" onclick="filterLeads('contacted',this)">📞 Contacté</button>
-            <button class="chip" data-leads-filter="demo" onclick="filterLeads('demo',this)">🎯 Démo</button>
-            <button class="chip" data-leads-filter="proposal" onclick="filterLeads('proposal',this)">📄 Proposition</button>
-            <button class="chip" data-leads-filter="won" onclick="filterLeads('won',this)">🏆 Gagné</button>
-            <button class="chip" data-leads-filter="lost" onclick="filterLeads('lost',this)">❌ Perdu</button>
+            <button class="chip active" data-leads-filter="all">Tous</button>
+            <button class="chip" data-leads-filter="new">🆕 Nouveau</button>
+            <button class="chip" data-leads-filter="contacted">📞 Contacté</button>
+            <button class="chip" data-leads-filter="demo">🎯 Démo</button>
+            <button class="chip" data-leads-filter="proposal">📄 Proposition</button>
+            <button class="chip" data-leads-filter="won">🏆 Gagné</button>
+            <button class="chip" data-leads-filter="lost">❌ Perdu</button>
           </div>
 
           <!-- Liste leads -->
@@ -1764,7 +1764,7 @@
 
           <!-- ─ Configuration GLPI ─ -->
           <div class="card" id="glpiConfigCard" style="margin-bottom:16px">
-            <div class="card-header" style="cursor:pointer;user-select:none;display:flex;align-items:center;justify-content:space-between" onclick="toggleGlpiConfig()">
+            <div class="card-header" id="glpiConfigToggle" style="cursor:pointer;user-select:none;display:flex;align-items:center;justify-content:space-between">
               <h3 style="margin:0">⚙️ Configuration GLPI</h3>
               <span id="glpiConfigToggleIcon" style="font-size:0.8rem;color:var(--text-muted)">▼ Configurer</span>
             </div>
@@ -2070,6 +2070,7 @@
         if (loginCard) loginCard.style.display = 'none';
         if (adminLayout) adminLayout.style.display = 'grid';
         if (footer) footer.style.display = '';
+        initEventListeners();
         loadWelcomeMsg();
         loadTicketQueue();
         loadKpis();
@@ -2088,6 +2089,66 @@
         if (adminLayout) adminLayout.style.display = 'none';
         if (footer) footer.style.display = 'none';
       }
+    }
+
+    // ─── Event listeners (replaces all onclick="..." in HTML) ─
+    function initEventListeners() {
+      // Sidebar delegation
+      document.querySelector('aside')?.addEventListener('click', function(e) {
+        const btn = e.target.closest('.sidebar-link[data-panel]');
+        if (btn) showPanel(btn.dataset.panel, btn);
+      });
+
+      // Static fixed buttons
+      document.getElementById('onboardingConfigureBtn')?.addEventListener('click', function() {
+        showPanel('quicksetup', document.querySelector('[data-panel=quicksetup]'));
+        document.getElementById('onboardingBanner').style.display = 'none';
+      });
+      document.getElementById('metricsRefreshBtnTop')?.addEventListener('click', () => document.getElementById('metricsRefreshBtn')?.click());
+      document.getElementById('dispatchRuleFormCancel')?.addEventListener('click', () => { document.getElementById('dispatchRuleForm').style.display = 'none'; });
+      document.getElementById('csvImportBtn')?.addEventListener('click', () => importCsv());
+      document.getElementById('csvTemplateBtn')?.addEventListener('click', () => downloadCsvTemplate());
+      document.getElementById('licRefreshBtn')?.addEventListener('click', () => loadLicensePanel());
+      document.getElementById('copyQsUrlBtn')?.addEventListener('click', () => copyQsUrl());
+      document.getElementById('qsGoToQueueBtn')?.addEventListener('click', () => showPanel('queue', document.querySelector('[data-panel=queue]')));
+      document.getElementById('qsGoToUsersBtn')?.addEventListener('click', () => showPanel('users', document.querySelector('[data-panel=users]')));
+      document.getElementById('kbEditorCloseTop')?.addEventListener('click', () => closeKbEditor());
+      document.getElementById('kbEditorCloseBottom')?.addEventListener('click', () => closeKbEditor());
+      document.getElementById('glpiConfigToggle')?.addEventListener('click', () => toggleGlpiConfig());
+
+      // Ticket filter chips
+      document.addEventListener('click', function(e) {
+        const chip = e.target.closest('[data-ticket-filter]');
+        if (chip) { filterQueue(chip.dataset.ticketFilter, chip); return; }
+        const leadChip = e.target.closest('[data-leads-filter]');
+        if (leadChip) { filterLeads(leadChip.dataset.leadsFilter, leadChip); return; }
+      });
+
+      // Global data-action delegation
+      document.addEventListener('click', function(e) {
+        const el = e.target.closest('[data-action]');
+        if (!el) return;
+        const action = el.dataset.action;
+        const id = el.dataset.id;
+        switch (action) {
+          case 'closeTicket': closeTicket(id, el); break;
+          case 'generateAiDraft': generateAiDraft(id, el); break;
+          case 'copyTicketSummary': copyTicketSummary(id); break;
+          case 'openBillingPortal': openBillingPortal(id); break;
+          case 'startCheckoutBtn': startCheckoutBtn(el, id); break;
+          case 'loadBillingPanel': loadBillingPanel(); break;
+          case 'revokeInvite': revokeInvite(id, el); break;
+          case 'editKbDoc': editKbDoc(id); break;
+          case 'deleteKbDoc': deleteKbDoc(id, el.dataset.title); break;
+          case 'loadGlpiDetail': loadGlpiDetail(Number(id)); break;
+          case 'changeGlpiStatus': changeGlpiStatus(Number(id)); break;
+          case 'sendGlpiFollowup': sendGlpiFollowup(Number(id)); break;
+          case 'filterLeads': filterLeads(el.dataset.filter, document.querySelector(`[data-leads-filter=${el.dataset.filter}]`)); break;
+          case 'updateLeadStatus': updateLeadStatus(id, el.dataset.status, el); break;
+          case 'copySaToken': copySaToken(id, el.dataset.email); break;
+          case 'setUserActive': setUserActive(id, el.dataset.active === 'true'); break;
+        }
+      });
     }
 
     // ─── Login / Logout ──────────────────────────────────────
@@ -2239,10 +2300,10 @@
           <p style="font-size:0.84rem;color:var(--text-muted);line-height:1.6">${escHtml(summary)}</p>
           ${ai}
           <div class="ticket-actions-row">
-            ${t.status !== 'resolved' ? `<button class="btn primary" onclick="closeTicket('${t.id}',this)">✓ Marquer résolu</button>` : ''}
+            ${t.status !== 'resolved' ? `<button class="btn primary" data-action="closeTicket" data-id="${t.id}">✓ Marquer résolu</button>` : ''}
             ${t.external_url ? `<a class="btn ghost" href="${t.external_url}" target="_blank">Voir dans GLPI →</a>` : ''}
-            <button class="btn ghost" onclick="generateAiDraft('${t.id}',this)">✨ Réponse IA</button>
-            <button class="btn ghost" onclick="copyTicketSummary('${t.id}')">📋 Copier résumé</button>
+            <button class="btn ghost" data-action="generateAiDraft" data-id="${t.id}">✨ Réponse IA</button>
+            <button class="btn ghost" data-action="copyTicketSummary" data-id="${t.id}">📋 Copier résumé</button>
           </div>
         </div>
       `;
@@ -2441,7 +2502,7 @@
                   <div>
                     <div style="font-size:0.9rem;font-weight:700;color:#4ade80">Plan ${escHtml(planLabel)} actif</div>
                     ${endDate ? `<div style="font-size:0.78rem;color:var(--text-muted)">Prochain renouvellement : ${endDate}</div>` : ''}
-                    ${sd.stripe_customer_id ? `<button class="btn ghost" style="font-size:0.78rem;padding:4px 10px;margin-top:8px" onclick="openBillingPortal('${sd.stripe_customer_id}')">⚙️ Gérer l'abonnement →</button>` : ''}
+                    ${sd.stripe_customer_id ? `<button class="btn ghost" style="font-size:0.78rem;padding:4px 10px;margin-top:8px" data-action="openBillingPortal" data-id="${sd.stripe_customer_id}">⚙️ Gérer l'abonnement →</button>` : ''}
                   </div>
                 </div>`
               : `<div style="display:flex;align-items:center;gap:10px;padding:14px 16px;background:rgba(255,255,255,0.03);border-radius:12px;border:1px solid var(--stroke)">
@@ -2468,7 +2529,7 @@
             <ul class="plan-features" style="flex:1">
               ${(PLAN_FEATURES[p.id] || []).map(f => `<li>${escHtml(f)}</li>`).join('')}
             </ul>
-            <button class="btn primary" style="margin-top:16px;padding:12px;font-size:0.9rem;font-weight:700;letter-spacing:0.01em;${btnGradient}" onclick="startCheckoutBtn(this,'${p.id}')">
+            <button class="btn primary" style="margin-top:16px;padding:12px;font-size:0.9rem;font-weight:700;letter-spacing:0.01em;${btnGradient}" data-action="startCheckoutBtn" data-id="${p.id}">
               Choisir ${escHtml(p.name)} →
             </button>
           </div>`;
@@ -2477,7 +2538,7 @@
       } catch(e) {
         if (msgEl) {
           msgEl.style.display = '';
-          msgEl.innerHTML = `<span style="color:var(--danger)">❌ Erreur chargement: ${escHtml(e.message)}</span> <button class="btn ghost" style="font-size:0.8rem;padding:4px 10px;margin-left:8px" onclick="loadBillingPanel()">Réessayer</button>`;
+          msgEl.innerHTML = `<span style="color:var(--danger)">❌ Erreur chargement: ${escHtml(e.message)}</span> <button class="btn ghost" style="font-size:0.8rem;padding:4px 10px;margin-left:8px" data-action="loadBillingPanel">Réessayer</button>`;
         }
         grid.innerHTML = '';
       }
@@ -2852,7 +2913,7 @@
             <td>${statusTag}</td>
             <td style="font-size:0.75rem;color:var(--text-muted)">${inv.expires_at ? new Date(inv.expires_at).toLocaleDateString('fr-FR') : '∞'}</td>
             <td style="font-size:0.72rem;font-family:monospace;max-width:120px;overflow:hidden;text-overflow:ellipsis">${escHtml(inv.token||'')}</td>
-            <td>${!used && !expired ? `<button class="btn ghost" style="font-size:0.72rem;padding:3px 8px" onclick="revokeInvite('${escHtml(inv.id)}',this)">Révoquer</button>` : ''}</td>
+            <td>${!used && !expired ? `<button class="btn ghost" style="font-size:0.72rem;padding:3px 8px" data-action="revokeInvite" data-id="${escHtml(inv.id)}">Révoquer</button>` : ''}</td>
           </tr>`;
         }).join('') || '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:16px">Aucune invitation</td></tr>';
       } catch(e) {}
@@ -2904,8 +2965,8 @@
             <div style="font-size:0.75rem;color:var(--text-muted);margin-top:2px">${TYPE_LABELS[d.source_type] || d.source_type} · ${d.chunk_count || 0} chunk${d.chunk_count !== 1 ? 's' : ''}</div>
           </div>
           <div style="display:flex;gap:6px;flex-shrink:0">
-            <button class="btn ghost" style="font-size:0.75rem;padding:4px 10px" onclick="editKbDoc('${d.id}')">✏️ Modifier</button>
-            <button class="btn ghost" style="font-size:0.75rem;padding:4px 10px;color:var(--danger)" onclick="deleteKbDoc('${d.id}','${escHtml(d.title).replace(/'/g,'\\')}')">🗑️</button>
+            <button class="btn ghost" style="font-size:0.75rem;padding:4px 10px" data-action="editKbDoc" data-id="${d.id}">✏️ Modifier</button>
+            <button class="btn ghost" style="font-size:0.75rem;padding:4px 10px;color:var(--danger)" data-action="deleteKbDoc" data-id="${d.id}" data-title="${escHtml(d.title).replace(/"/g,'&quot;')}">🗑️</button>
           </div>
         </div>`).join('');
     }
@@ -3029,7 +3090,7 @@
         const color = GLPI_STATUS_COLORS[t.status] || '#4f8ef7';
         const label = t.status_label || GLPI_STATUS_LABELS[t.status] || '?';
         const date = t.date_creation ? new Date(t.date_creation).toLocaleDateString('fr-FR') : '';
-        return `<div class="ticket-row" style="cursor:pointer;border-left:3px solid ${color}" onclick="loadGlpiDetail(${t.id})">
+        return `<div class="ticket-row" style="cursor:pointer;border-left:3px solid ${color}" data-action="loadGlpiDetail" data-id="${t.id}">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
             <span style="font-weight:600;font-size:0.88rem;color:var(--text-strong)">#${t.id} — ${escHtml(t.title)}</span>
             <span style="background:${color}22;color:${color};font-size:0.7rem;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap">${label}</span>
@@ -3071,13 +3132,13 @@
               <option value="resolved">Résolu</option>
               <option value="closed">Fermé</option>
             </select>
-            <button class="btn primary" style="font-size:0.8rem;padding:6px 12px" onclick="changeGlpiStatus(${t.id})">Appliquer</button>
+            <button class="btn primary" style="font-size:0.8rem;padding:6px 12px" data-action="changeGlpiStatus" data-id="${t.id}">Appliquer</button>
           </div>
           <div style="font-size:0.8rem;font-weight:700;color:var(--accent);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.06em">Suivis (${(t.followups||[]).length})</div>
           <div style="flex:1;overflow-y:auto;margin-bottom:10px">${followupsHtml}</div>
           <div style="display:flex;flex-direction:column;gap:6px">
             <textarea id="glpiFollowupInput" rows="2" placeholder="Ajouter un suivi GLPI…" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--stroke);border-radius:8px;padding:8px;color:var(--text);font-family:inherit;font-size:0.82rem;resize:vertical"></textarea>
-            <button class="btn primary" style="font-size:0.82rem" onclick="sendGlpiFollowup(${t.id})">📨 Envoyer dans GLPI</button>
+            <button class="btn primary" style="font-size:0.82rem" data-action="sendGlpiFollowup" data-id="${t.id}">📨 Envoyer dans GLPI</button>
           </div>`;
       } catch(e) {
         detail.innerHTML = '<div style="color:var(--danger);padding:16px">Erreur</div>';
@@ -3144,7 +3205,7 @@
       container.innerHTML = stages.map(stage => {
         const count = allLeads.filter(l => (l.status || 'new') === stage).length;
         const color = LEAD_STATUS_COLORS[stage] || '#6b7280';
-        return `<div style="background:${color}18;border:1px solid ${color}44;border-radius:12px;padding:14px 10px;text-align:center;cursor:pointer" onclick="filterLeads('${stage}', document.querySelector('[data-leads-filter=${stage}]'))">
+        return `<div style="background:${color}18;border:1px solid ${color}44;border-radius:12px;padding:14px 10px;text-align:center;cursor:pointer" data-action="filterLeads" data-filter="${stage}">
           <div style="font-size:1.4rem;font-weight:900;color:${color}">${count}</div>
           <div style="font-size:0.72rem;color:var(--text-muted);margin-top:2px">${LEAD_STATUS_LABELS[stage]}</div>
         </div>`;
@@ -3170,9 +3231,9 @@
           </div>
           <span style="font-size:0.72rem;padding:3px 10px;background:${color}18;color:${color};border:1px solid ${color}44;border-radius:20px;white-space:nowrap">${label}</span>
           <div style="display:flex;gap:4px">
-            ${status !== 'won' && status !== 'contacted' ? `<button class="btn ghost" style="font-size:0.72rem;padding:3px 8px" onclick="updateLeadStatus('${lead.id}','contacted',this)">📞</button>` : ''}
-            ${status !== 'demo' ? `<button class="btn ghost" style="font-size:0.72rem;padding:3px 8px" onclick="updateLeadStatus('${lead.id}','demo',this)">🎯</button>` : ''}
-            ${status !== 'won' ? `<button class="btn ghost" style="font-size:0.72rem;padding:3px 8px;color:#22c55e" onclick="updateLeadStatus('${lead.id}','won',this)">🏆</button>` : ''}
+            ${status !== 'won' && status !== 'contacted' ? `<button class="btn ghost" style="font-size:0.72rem;padding:3px 8px" data-action="updateLeadStatus" data-id="${lead.id}" data-status="contacted">📞</button>` : ''}
+            ${status !== 'demo' ? `<button class="btn ghost" style="font-size:0.72rem;padding:3px 8px" data-action="updateLeadStatus" data-id="${lead.id}" data-status="demo">🎯</button>` : ''}
+            ${status !== 'won' ? `<button class="btn ghost" style="font-size:0.72rem;padding:3px 8px;color:#22c55e" data-action="updateLeadStatus" data-id="${lead.id}" data-status="won">🏆</button>` : ''}
           </div>
         </div>`;
       }).join('');
@@ -4001,7 +4062,7 @@
               <td style="padding:10px"><span style="font-size:0.75rem;padding:2px 8px;border-radius:20px;background:rgba(99,102,241,0.15);color:#a5b4fc">${escHtml(t.plan || 'starter')}</span></td>
               <td style="padding:10px;color:#6b7796;font-size:0.82rem">${t.created_at ? new Date(t.created_at).toLocaleDateString('fr-FR') : '—'}</td>
               <td style="padding:10px">
-                <button class="btn ghost" style="font-size:0.78rem;padding:4px 10px" onclick="copySaToken('${escHtml(t.id)}','${escHtml(t.admin_email || '')}')">🔑 Token</button>
+                <button class="btn ghost" style="font-size:0.78rem;padding:4px 10px" data-action="copySaToken" data-id="${escHtml(t.id)}" data-email="${escHtml(t.admin_email || '')}">🔑 Token</button>
               </td>
             </tr>
           `).join('');
@@ -4129,8 +4190,8 @@
             <div style="font-size:0.7rem;color:var(--text-muted);">${u.id ? u.id.slice(0,8)+'…' : ''}</div>
             <div style="display:flex;gap:6px;justify-content:flex-end;">
               ${active
-                ? `<button onclick="setUserActive('${u.id}',false)" style="padding:4px 10px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);border-radius:5px;color:var(--danger);font-size:0.72rem;font-weight:600;cursor:pointer;font-family:inherit;">Désactiver</button>`
-                : `<button onclick="setUserActive('${u.id}',true)" style="padding:4px 10px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.25);border-radius:5px;color:var(--success);font-size:0.72rem;font-weight:600;cursor:pointer;font-family:inherit;">Activer</button>`
+                ? `<button data-action="setUserActive" data-id="${u.id}" data-active="false" style="padding:4px 10px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);border-radius:5px;color:var(--danger);font-size:0.72rem;font-weight:600;cursor:pointer;font-family:inherit;">Désactiver</button>`
+                : `<button data-action="setUserActive" data-id="${u.id}" data-active="true" style="padding:4px 10px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.25);border-radius:5px;color:var(--success);font-size:0.72rem;font-weight:600;cursor:pointer;font-family:inherit;">Activer</button>`
               }
             </div>
           </div>`;
