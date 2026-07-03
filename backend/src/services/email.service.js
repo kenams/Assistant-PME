@@ -200,9 +200,14 @@ async function notifySlaBreach({ ticket, ageHours, slaHours }) {
   });
 }
 
-async function sendWelcomeEmail({ email, tempPassword, tenantName, loginUrl }) {
+async function sendWelcomeEmail({ email, tempPassword, tenantName, tenantCode, loginUrl }) {
   const appUrl = env.appUrl || "http://localhost:3001";
   const url = loginUrl || `${appUrl}/app/login/`;
+  const codeRow = tenantCode ? `
+          <tr>
+            <td style="padding:8px 0;color:#6b7280;font-size:14px;">Code entreprise</td>
+            <td style="padding:8px 0;font-weight:600;font-family:monospace;font-size:14px;color:#6366f1;">${escapeHtml(tenantCode)}</td>
+          </tr>` : "";
 
   const html = `<!DOCTYPE html>
 <html lang="fr">
@@ -221,7 +226,7 @@ async function sendWelcomeEmail({ email, tempPassword, tenantName, loginUrl }) {
           <tr>
             <td style="padding:8px 0;color:#6b7280;width:120px;font-size:14px;">Org.</td>
             <td style="padding:8px 0;font-weight:600;font-size:14px;">${escapeHtml(tenantName || email)}</td>
-          </tr>
+          </tr>${codeRow}
           <tr>
             <td style="padding:8px 0;color:#6b7280;font-size:14px;">Email</td>
             <td style="padding:8px 0;font-weight:600;font-family:monospace;font-size:14px;">${escapeHtml(email)}</td>

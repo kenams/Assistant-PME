@@ -59,7 +59,16 @@ async function listTenants() {
   }));
 }
 
-async function createTenant({ name, plan, adminEmail, adminPassword, code }) {
+function generateTempPassword() {
+  // 12 chars lisibles, sans ambiguïté (pas de 0/O, 1/l/I)
+  const alphabet = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789";
+  const bytes = crypto.randomBytes(12);
+  let out = "";
+  for (let i = 0; i < 12; i++) out += alphabet[bytes[i] % alphabet.length];
+  return out;
+}
+
+async function createTenant({ name, plan, adminEmail, adminPassword, code, mustChangePassword = false }) {
   // Check email uniqueness
   const existingUser = await db("users").where({ email: adminEmail }).first();
   if (existingUser) return { error: "email_exists" };
@@ -99,6 +108,7 @@ async function createTenant({ name, plan, adminEmail, adminPassword, code }) {
     email: adminEmail,
     password_hash: hashPassword(adminPassword),
     role: "admin",
+    must_change_password: mustChangePassword,
     created_at: now
   });
 
@@ -109,7 +119,11 @@ async function createTenant({ name, plan, adminEmail, adminPassword, code }) {
     );
   });
 
-  return { tenant_id: tenantId, admin_id: userId };
+  return {
+    tenant_id: tenantId,
+    admin_id: userId,
+    tenant: { id: tenantId, name, code: finalCode, plan: plan || "starter" }
+  };
 }
 
 module.exports = {
@@ -117,5 +131,6 @@ module.exports = {
   getTenantByCode,
   updateTenant,
   listTenants,
-  createTenant
+  createTenant,
+  generateTempPassword
 };

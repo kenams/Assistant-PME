@@ -716,7 +716,14 @@ router.get("/glpi/tickets", authRequired, requireAdmin, async (req, res, next) =
     const status = req.query.status || null;
     const tickets = await listTickets({ limit, status, configOverride: glpiConfig });
     return res.json({ items: tickets, total: tickets.length });
-  } catch (err) { next(err); }
+  } catch (err) {
+    // Tunnel/instance GLPI down → 503 propre plutôt que 500 générique
+    if (err.code === "ECONNREFUSED" || err.code === "ENOTFOUND" || err.code === "ETIMEDOUT" ||
+        err.name === "AbortError" || /fetch failed|network|socket/i.test(err.message || "")) {
+      return res.status(503).json({ ok: false, error: "glpi_unreachable" });
+    }
+    next(err);
+  }
 });
 
 router.get("/glpi/tickets/:id", authRequired, requireAdmin, async (req, res, next) => {

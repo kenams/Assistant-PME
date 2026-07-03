@@ -1330,7 +1330,7 @@
                 <option value="enterprise">Enterprise</option>
               </select>
               <input id="saAdminEmail" type="email" placeholder="Email admin *" required style="padding:9px 12px;background:#0f1117;border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#e2e6f3;font-family:inherit;font-size:0.88rem;outline:none" />
-              <input id="saAdminPass" type="password" placeholder="Mot de passe admin *" required minlength="6" style="padding:9px 12px;background:#0f1117;border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#e2e6f3;font-family:inherit;font-size:0.88rem;outline:none" />
+              <input id="saAdminPass" type="password" placeholder="Mot de passe (vide = auto-généré + envoyé par email)" minlength="6" style="padding:9px 12px;background:#0f1117;border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#e2e6f3;font-family:inherit;font-size:0.88rem;outline:none" />
               <p id="saCreateStatus" style="font-size:0.82rem;min-height:16px;margin:0;grid-column:1/-1"></p>
               <button type="submit" class="btn primary" style="grid-column:1/-1">Créer le client</button>
             </form>
@@ -2147,6 +2147,11 @@
           case 'updateLeadStatus': updateLeadStatus(id, el.dataset.status, el); break;
           case 'copySaToken': copySaToken(id, el.dataset.email); break;
           case 'setUserActive': setUserActive(id, el.dataset.active === 'true'); break;
+          case 'copyTempCreds': {
+            const creds = `URL : ${location.origin}/app/admin/\nCode entreprise : ${el.dataset.code}\nEmail : ${el.dataset.email}\nMot de passe temporaire : ${el.dataset.pass}`;
+            navigator.clipboard.writeText(creds).then(() => { el.textContent = '✅ Copié'; setTimeout(() => { el.textContent = '📋 Copier'; }, 2000); });
+            break;
+          }
         }
       });
     }
@@ -3068,7 +3073,11 @@
         const res = await fetch(url, { headers: authHeaders() });
         if (!res.ok) {
           const d = await res.json().catch(() => ({}));
-          if (list) list.innerHTML = `<div style="text-align:center;padding:32px;color:var(--danger)">${d.error === 'glpi_not_configured' ? 'GLPI non configuré — activez-le dans Paramètres.' : 'Erreur de chargement'}</div>`;
+          const glpiErrMsgs = {
+            glpi_not_configured: 'GLPI non configuré — activez-le dans Paramètres.',
+            glpi_unreachable: '🔌 GLPI injoignable — le serveur GLPI est éteint ou le tunnel est fermé. Les tickets locaux restent disponibles dans la File de tickets.'
+          };
+          if (list) list.innerHTML = `<div style="text-align:center;padding:32px;color:var(--danger)">${glpiErrMsgs[d.error] || 'Erreur de chargement'}</div>`;
           return;
         }
         const data = await res.json();
@@ -4049,7 +4058,7 @@
 
         // Tenant list
         try {
-          const r = await fetch('/tenants/', { headers: authHeaders() });
+          const r = await fetch('/tenants', { headers: authHeaders() });
           const tbody = document.getElementById('saTenantsList');
           if (!tbody) return;
           if (!r.ok) { tbody.innerHTML = '<tr><td colspan="5" style="padding:20px;text-align:center;color:var(--danger)">Accès refusé (rôle superadmin requis)</td></tr>'; return; }
@@ -4094,15 +4103,22 @@
           code: document.getElementById('saCode').value.trim() || undefined,
           plan: document.getElementById('saPlan').value,
           admin_email: document.getElementById('saAdminEmail').value.trim(),
-          admin_password: document.getElementById('saAdminPass').value
+          admin_password: document.getElementById('saAdminPass').value || undefined
         };
         status.textContent = 'Création en cours...'; status.style.color = '#a5b4fc';
         btn.disabled = true;
         try {
-          const r = await fetch('/tenants/', { method: 'POST', headers: authHeaders(), body: JSON.stringify(body) });
+          const r = await fetch('/tenants', { method: 'POST', headers: authHeaders(), body: JSON.stringify(body) });
           const d = await r.json();
           if (r.ok) {
-            status.textContent = '✅ Client créé — code: ' + (d.tenant?.code || body.code || '?');
+            const code = d.tenant?.code || body.code || '?';
+            let html = '✅ Client créé — code: <b style="font-family:monospace">' + escHtml(code) + '</b>';
+            if (d.email_sent) {
+              html += '<br>📧 Email de bienvenue envoyé à ' + escHtml(body.admin_email) + ' (identifiants + lien de connexion)';
+            } else if (d.temp_password) {
+              html += '<br>⚠️ Email non envoyé (SMTP) — transmettez manuellement : mot de passe temporaire <b style="font-family:monospace">' + escHtml(d.temp_password) + '</b> <button type="button" class="btn ghost" style="font-size:0.75rem;padding:2px 8px" data-action="copyTempCreds" data-code="' + escHtml(code) + '" data-email="' + escHtml(body.admin_email) + '" data-pass="' + escHtml(d.temp_password) + '">📋 Copier</button>';
+            }
+            status.innerHTML = html;
             status.style.color = 'var(--success)';
             e.target.reset();
             loadSuperAdminPanel();
@@ -4163,7 +4179,7 @@
         if (!container) return;
         container.innerHTML = '<div style="padding:20px;color:var(--text-muted);font-size:0.84rem;">Chargement…</div>';
         try {
-          const r = await fetch('/users/', { headers: { Authorization: 'Bearer ' + getToken() } });
+          const r = await fetch('/users', { headers: { Authorization: 'Bearer ' + getToken() } });
           if (!r.ok) throw new Error();
           const d = await r.json();
           allUsers = d.items || [];

@@ -5,7 +5,8 @@ const jwt = require("jsonwebtoken");
 const { env } = require("../config/env");
 const { authRequired } = require("../middleware/auth");
 const { requireSuperAdmin } = require("../middleware/roles");
-const { listTenants, createTenant } = require("../services/tenants.service");
+const { listTenants, createTenant, generateTempPassword } = require("../services/tenants.service");
+const { sendWelcomeEmail } = require("../services/email.service");
 const { findUserByEmailInTenant } = require("../services/users.service");
 const { db: pgDb } = require("../config/db");
 const { validateOr400 } = require("../utils/validate");
@@ -18,7 +19,7 @@ const tenantSchema = z.object({
   plan: z.string().min(1).optional(),
   code: z.string().min(2).optional(),
   admin_email: z.string().email(),
-  admin_password: z.string().min(6)
+  admin_password: z.string().min(6).optional()
 });
 
 const tokenSchema = z.object({
@@ -37,12 +38,16 @@ router.post("/", authRequired, requireSuperAdmin, async (req, res, next) => {
   try {
     const payload = validateOr400(tenantSchema, res, req.body);
     if (!payload) return;
+    // Onboarding autonome : mot de passe auto-généré si absent → email de bienvenue
+    const autoPassword = !payload.admin_password;
+    const adminPassword = payload.admin_password || generateTempPassword();
     const result = await createTenant({
       name: payload.name,
       plan: payload.plan,
       code: payload.code,
       adminEmail: payload.admin_email,
-      adminPassword: payload.admin_password
+      adminPassword,
+      mustChangePassword: autoPassword
     });
     if (result.error === "email_exists") {
       return res.status(409).json({ error: "email_exists" });
@@ -50,7 +55,25 @@ router.post("/", authRequired, requireSuperAdmin, async (req, res, next) => {
     if (result.error === "code_exists") {
       return res.status(409).json({ error: "code_exists" });
     }
-    return res.status(201).json(result);
+    let emailSent = false;
+    try {
+      const sent = await sendWelcomeEmail({
+        email: payload.admin_email,
+        tempPassword: adminPassword,
+        tenantName: payload.name,
+        tenantCode: result.tenant?.code,
+        loginUrl: `${env.appUrl || "https://kah-support.ch"}/app/admin/`
+      });
+      emailSent = Boolean(sent);
+    } catch (e) {
+      req.log?.warn({ err: e }, "welcome email failed");
+    }
+    return res.status(201).json({
+      ...result,
+      email_sent: emailSent,
+      // Renvoyé uniquement à la création pour transmission manuelle si l'email n'est pas parti
+      temp_password: autoPassword ? adminPassword : undefined
+    });
   } catch (err) {
     next(err);
   }
