@@ -25,6 +25,16 @@ async function start() {
   app.listen(env.port, () => {
     logger.info({ port: env.port }, "server_started");
   });
+
+  // Anti cold-start Render : self-ping via l'URL publique toutes les 8 min.
+  // Le trafic entrant via l'edge Render remet le compteur de spin-down à zéro.
+  // (GitHub Actions cron */10 est dépriorisé — trous de 3h constatés.)
+  if (env.nodeEnv === "production" && env.appUrl) {
+    setInterval(() => {
+      fetch(`${env.appUrl}/health`, { signal: AbortSignal.timeout(10000) })
+        .catch(() => {});
+    }, 8 * 60 * 1000).unref();
+  }
 }
 
 start();

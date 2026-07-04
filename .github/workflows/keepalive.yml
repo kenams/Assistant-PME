@@ -11,5 +11,5 @@ jobs:
     steps:
       - name: Ping health endpoint
         run: |
-          curl -s --max-time 15 https://assistant-pme.onrender.com/api/health || true
+          curl -s --max-time 15 https://assistant-pme.onrender.com/health || true
           curl -s --max-time 15 https://kah-support.ch/api/health || true
