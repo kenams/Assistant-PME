@@ -1,1270 +1,961 @@
 <!doctype html>
 <html lang="fr" id="htmlRoot">
   <head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1TNQ5PVZZL"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-1TNQ5PVZZL');
+    </script>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>AI IT Support Assistant — SME | KAH Digital</title>
-    <meta name="description" content="Reduce IT ticket processing time by 70%. AI assistant available 24/7, connected to GLPI, operational in 15 minutes." />
-    <meta property="og:title" content="AI IT Support Assistant — SME | KAH Digital" />
-    <meta property="og:description" content="Reduce IT ticket processing time by 70%. Instant responses, automatic GLPI escalation, operational in 15 minutes." />
+    <title>Assistant IA Support IT pour PME | KAH Digital</title>
+    <meta name="description" content="Assistant IA de support IT pour PME : réponses instantanées, tickets GLPI automatiques, base de connaissances et tableau de bord admin." />
+    <meta property="og:title" content="Assistant IA Support IT pour PME | KAH Digital" />
+    <meta property="og:description" content="Réduisez la charge support N1 avec un assistant IA disponible 24h/24, connecté à GLPI et prêt pour les PME." />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://kah-support.ch/" />
-    <meta property="og:image" content="https://kah-support.ch/app/assets/og-cover.png" />
+    <meta property="og:image" content="https://kah-support.ch/mockups/step4_chat_response.png" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="AI IT Support Assistant — KAH Digital" />
-    <meta name="twitter:description" content="Reduce IT ticket processing time by 70%. AI 24/7, GLPI, operational in 15 min." />
-    <meta name="twitter:image" content="https://kah-support.ch/app/assets/og-cover.png" />
     <link rel="canonical" href="https://kah-support.ch/" />
     <link rel="icon" type="image/svg+xml" href="/app/favicon.svg" />
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "SoftwareApplication",
-      "name": "Assistant IA Support IT pour PME",
-      "url": "https://kah-support.ch/",
-      "description": "Réduisez le temps de traitement des tickets IT de 70 %. Assistant IA disponible 24h/24, connecté à GLPI, opérationnel en 15 minutes.",
-      "applicationCategory": "BusinessApplication",
-      "operatingSystem": "Web",
-      "offers": {
-        "@type": "Offer",
-        "price": "0",
-        "priceCurrency": "EUR",
-        "description": "Essai gratuit disponible"
-      },
-      "creator": {
-        "@type": "Organization",
-        "name": "KAH Digital",
-        "url": "https://kah-digital.ch"
-      }
-    }
-    </script>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" />
+    <link rel="stylesheet" href="/app/premium.css?v=20260826" />
     <style>
-      :root {
-        --bg: #0f1117;
-        --bg2: #14171f;
-        --bg3: #1a1e2a;
-        --card: #1a1e2a;
-        --stroke: rgba(255,255,255,0.06);
-        --stroke2: rgba(255,255,255,0.11);
-        --text: #e2e6f3;
-        --text-strong: #ffffff;
-        --text-muted: #6b7796;
-        --accent: #6366f1;
-        --accent2: #8b5cf6;
-        --accent-glow: rgba(99,102,241,0.22);
-        --success: #22c55e;
-        --warning: #f59e0b;
-        --danger: #ef4444;
-        --radius: 12px;
-        --radius-lg: 18px;
-        --shadow: 0 4px 40px rgba(0,0,0,0.55);
-      }
       * { box-sizing: border-box; margin: 0; padding: 0; }
-      html { font-size: 16px; scroll-behavior: smooth; }
+      html {
+        width: 100%;
+        overflow-x: hidden;
+        scroll-behavior: smooth;
+        font-size: 16px;
+      }
       body {
-        font-family: 'Inter', system-ui, sans-serif;
+        min-height: 100vh;
+        font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         background: var(--bg);
         color: var(--text);
-        line-height: 1.65;
+        line-height: 1.6;
         overflow-x: hidden;
       }
-      ::-webkit-scrollbar { width: 5px; }
-      ::-webkit-scrollbar-track { background: transparent; }
-      ::-webkit-scrollbar-thumb { background: var(--stroke2); border-radius: 4px; }
+      img { max-width: 100%; display: block; }
       a { color: inherit; text-decoration: none; }
-
-      /* ── NAV ── */
-      nav {
-        position: fixed; top: 0; left: 0; right: 0; z-index: 200;
-        display: flex; align-items: center; justify-content: space-between;
-        padding: 0 5vw; height: 64px;
-        background: rgba(15,17,23,0.88);
-        backdrop-filter: blur(24px);
-        border-bottom: 1px solid var(--stroke);
+      .site-nav {
+        position: fixed;
+        inset: 0 0 auto;
+        z-index: 100;
+        height: 68px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        padding: 0 clamp(18px, 4vw, 64px);
+        max-width: 100vw;
       }
       .nav-brand {
-        display: flex; align-items: center; gap: 10px;
-        font-weight: 800; font-size: 1.05rem; letter-spacing: -0.02em;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
         color: var(--text-strong);
+        font-weight: 900;
       }
-      .nav-brand-icon {
-        width: 32px; height: 32px;
-        background: linear-gradient(135deg, var(--accent), var(--accent2));
+      .nav-brand-mark {
+        width: 34px;
+        height: 34px;
+        display: grid;
+        place-items: center;
+        border: 1px solid rgba(215, 180, 106, 0.35);
+        background: linear-gradient(135deg, rgba(215, 180, 106, 0.18), rgba(120, 167, 255, 0.14));
         border-radius: 8px;
-        display: flex; align-items: center; justify-content: center;
-        font-size: 1rem; flex-shrink: 0;
+        color: #f4d995;
+        font-weight: 900;
       }
-      .nav-links { display: flex; align-items: center; gap: 28px; }
-      .nav-links a { color: var(--text-muted); font-size: 0.87rem; font-weight: 500; transition: color 0.15s; }
-      .nav-links a:hover { color: var(--text); }
-      .nav-cta { display: flex; align-items: center; gap: 10px; }
-      .btn {
-        display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-        padding: 9px 20px; border-radius: 8px;
-        font-family: inherit; font-size: 0.87rem; font-weight: 600;
-        cursor: pointer; border: 1px solid var(--stroke2);
-        background: var(--card); color: var(--text);
-        transition: all 0.15s; text-decoration: none;
+      .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 22px;
+        color: var(--text-muted);
+        font-size: 0.88rem;
+        font-weight: 700;
       }
-      .btn:hover { background: #222638; color: var(--text-strong); }
-      .btn.primary {
-        background: linear-gradient(135deg, var(--accent), var(--accent2));
-        border-color: transparent; color: #fff;
-        box-shadow: 0 0 24px var(--accent-glow);
+      .nav-links a:hover { color: var(--text-strong); }
+      .nav-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
       }
-      .btn.primary:hover { opacity: 0.92; box-shadow: 0 0 32px rgba(99,102,241,0.35); }
-      .btn.large { padding: 14px 30px; font-size: 0.97rem; border-radius: 10px; }
-      .btn.ghost { background: transparent; color: var(--text-muted); border-color: var(--stroke2); }
-      .btn.ghost:hover { background: var(--card); color: var(--text); }
-      .lang-btn {
-        display: inline-flex; align-items: center;
-        padding: 5px 12px; border-radius: 6px;
-        font-family: inherit; font-size: 0.78rem; font-weight: 700;
-        cursor: pointer; border: 1px solid var(--stroke2);
-        background: transparent; color: var(--text-muted);
-        letter-spacing: 0.05em; transition: all 0.15s;
-      }
-      .lang-btn:hover { color: var(--text); border-color: var(--accent); }
-
-      /* ── HERO ── */
+      .lang-btn { padding: 7px 10px; font-size: 0.76rem; font-weight: 900; }
+      .btn.large { min-height: 48px; padding: 0 22px; font-size: 0.95rem; }
       .hero {
-        padding: 160px 5vw 80px;
-        text-align: center; position: relative; overflow: hidden;
+        position: relative;
+        min-height: 88vh;
+        display: flex;
+        align-items: center;
+        padding: 116px clamp(20px, 5vw, 76px) 72px;
+        overflow: hidden;
+        background:
+          linear-gradient(90deg, rgba(7, 9, 13, 0.94) 0%, rgba(7, 9, 13, 0.82) 42%, rgba(7, 9, 13, 0.38) 100%),
+          linear-gradient(180deg, rgba(7, 9, 13, 0.18), rgba(7, 9, 13, 0.92)),
+          url("/mockups/step4_chat_response.png") center right / cover no-repeat;
       }
       .hero::before {
-        content: '';
-        position: absolute; inset: 0;
-        background:
-          radial-gradient(ellipse 70% 55% at 50% 0%, rgba(99,102,241,0.13) 0%, transparent 65%),
-          radial-gradient(ellipse 40% 30% at 80% 70%, rgba(139,92,246,0.06) 0%, transparent 50%);
-        pointer-events: none;
+        content: "";
+        position: absolute;
+        inset: 68px 0 auto;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(215, 180, 106, 0.45), transparent);
       }
-      .hero-badge {
-        display: inline-flex; align-items: center; gap: 8px;
-        padding: 5px 14px;
-        background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.25);
-        border-radius: 20px; color: var(--accent);
-        font-size: 0.78rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
-        margin-bottom: 28px;
+      .hero-content {
+        position: relative;
+        z-index: 1;
+        width: min(760px, 100%);
+        max-width: 100%;
+        min-width: 0;
       }
-      .hero-badge .dot {
-        width: 6px; height: 6px; border-radius: 50%; background: var(--accent);
-        animation: pulse 2s infinite;
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 12px;
+        border: 1px solid rgba(215, 180, 106, 0.28);
+        background: rgba(215, 180, 106, 0.09);
+        color: #f0cf87;
+        border-radius: 8px;
+        font-size: 0.74rem;
+        font-weight: 900;
+        letter-spacing: 0;
+        text-transform: uppercase;
       }
-      @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
       .hero h1 {
-        font-size: clamp(2.4rem, 6vw, 4rem);
-        font-weight: 900; color: var(--text-strong);
-        letter-spacing: -0.04em; line-height: 1.1;
-        max-width: 820px; margin: 0 auto 20px;
+        margin-top: 24px;
+        color: #fff;
+        font-size: clamp(2.7rem, 7vw, 6.2rem);
+        line-height: 0.96;
+        font-weight: 900;
+        letter-spacing: 0;
+        max-width: 820px;
+        overflow-wrap: break-word;
       }
-      .hero h1 span {
-        background: linear-gradient(90deg, var(--accent), var(--accent2));
-        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-        background-clip: text;
-      }
+      .hero h1 span { color: #f0cf87; }
       .hero-sub {
-        font-size: 1.12rem; color: var(--text-muted);
-        max-width: 560px; margin: 0 auto 40px; line-height: 1.65;
+        margin-top: 24px;
+        max-width: 620px;
+        color: rgba(233, 237, 245, 0.82);
+        font-size: clamp(1.02rem, 1.7vw, 1.22rem);
       }
       .hero-actions {
-        display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
-        margin-bottom: 64px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 34px;
       }
-
-      /* ── STATS ── */
-      .stats-strip {
-        display: flex; justify-content: center; gap: 48px; flex-wrap: wrap;
-        padding: 48px 5vw;
-        border-top: 1px solid var(--stroke);
-        border-bottom: 1px solid var(--stroke);
-        background: var(--bg2);
+      .hero-proof {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 1px;
+        width: min(920px, calc(100% - 40px));
+        margin: -34px auto 0;
+        position: relative;
+        z-index: 4;
+        border: 1px solid var(--stroke);
+        background: var(--stroke);
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: var(--shadow);
       }
-      .stat { text-align: center; }
-      .stat-value {
-        font-size: 2rem; font-weight: 900; color: var(--text-strong);
-        letter-spacing: -0.04em; display: block;
-        background: linear-gradient(135deg, var(--accent), var(--accent2));
-        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-        background-clip: text;
+      .proof-item {
+        min-height: 98px;
+        padding: 18px 20px;
+        background: rgba(13, 17, 23, 0.96);
       }
-      .stat-label { font-size: 0.78rem; color: var(--text-muted); font-weight: 500; margin-top: 4px; }
-
-      /* ── SECTIONS ── */
-      section { padding: 100px 5vw; }
-      .section-label {
-        font-size: 0.73rem; font-weight: 700; letter-spacing: 0.1em;
-        text-transform: uppercase; color: var(--accent);
-        text-align: center; margin-bottom: 14px;
+      .proof-item strong {
+        display: block;
+        color: #fff;
+        font-size: clamp(1.55rem, 2.7vw, 2.4rem);
+        line-height: 1;
+        font-weight: 900;
+      }
+      .proof-item span {
+        display: block;
+        margin-top: 8px;
+        color: var(--text-muted);
+        font-size: 0.82rem;
+        font-weight: 700;
+      }
+      section { padding: clamp(76px, 8vw, 116px) clamp(20px, 5vw, 76px); }
+      .section-head {
+        max-width: 720px;
+        margin: 0 auto 44px;
+        text-align: center;
+      }
+      .section-kicker {
+        color: #f0cf87;
+        font-size: 0.74rem;
+        font-weight: 900;
+        text-transform: uppercase;
       }
       .section-title {
-        font-size: clamp(1.8rem, 4vw, 2.6rem);
-        font-weight: 800; letter-spacing: -0.03em;
-        color: var(--text-strong); text-align: center; margin-bottom: 14px;
+        margin-top: 10px;
+        color: #fff;
+        font-size: clamp(2rem, 4vw, 3.45rem);
+        line-height: 1.05;
+        font-weight: 900;
       }
       .section-sub {
-        font-size: 0.97rem; color: var(--text-muted);
-        text-align: center; max-width: 520px; margin: 0 auto 60px;
+        margin-top: 14px;
+        color: var(--text-muted);
+        font-size: 1rem;
       }
-
-      /* ── FEATURES ── */
-      .features-grid {
-        display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        gap: 18px; max-width: 1100px; margin: 0 auto;
+      .product-showcase {
+        display: grid;
+        grid-template-columns: 1.05fr 0.95fr;
+        gap: 28px;
+        align-items: stretch;
+        max-width: 1180px;
+        margin: 0 auto;
       }
-      .feature-card {
-        background: var(--card); border: 1px solid var(--stroke);
-        border-radius: var(--radius-lg); padding: 28px;
-        transition: border-color 0.2s, transform 0.15s;
+      .showcase-shot,
+      .showcase-panel,
+      .feature-card,
+      .security-card,
+      .plan,
+      .roi-panel,
+      .contact-panel {
+        border: 1px solid var(--stroke2);
+        background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.014)), var(--card);
+        border-radius: 8px;
+        box-shadow: var(--shadow);
       }
-      .feature-card:hover { border-color: rgba(99,102,241,0.3); transform: translateY(-2px); }
-      .feature-icon {
-        width: 44px; height: 44px; border-radius: 10px;
-        display: flex; align-items: center; justify-content: center;
-        font-size: 1.2rem; margin-bottom: 16px;
+      .showcase-shot { overflow: hidden; min-height: 420px; }
+      .showcase-shot img { width: 100%; height: 100%; object-fit: cover; }
+      .showcase-panel {
+        padding: 28px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 22px;
       }
-      .fi-indigo { background: rgba(99,102,241,0.12); }
-      .fi-violet { background: rgba(139,92,246,0.12); }
-      .fi-teal { background: rgba(20,184,166,0.12); }
-      .fi-green { background: rgba(34,197,94,0.12); }
-      .fi-orange { background: rgba(249,115,22,0.12); }
-      .fi-pink { background: rgba(236,72,153,0.12); }
-      .feature-card h3 { font-size: 0.97rem; font-weight: 700; color: var(--text-strong); margin-bottom: 8px; }
-      .feature-card p { font-size: 0.86rem; color: var(--text-muted); line-height: 1.6; }
-
-      /* ── PRICING ── */
-      #pricing { background: var(--bg2); }
+      .showcase-panel h3 {
+        color: #fff;
+        font-size: 1.45rem;
+        line-height: 1.16;
+      }
+      .check-list { list-style: none; display: grid; gap: 14px; }
+      .check-list li {
+        display: grid;
+        grid-template-columns: 24px 1fr;
+        gap: 10px;
+        color: var(--text);
+        font-size: 0.94rem;
+      }
+      .check-list li::before {
+        content: "✓";
+        display: grid;
+        place-items: center;
+        width: 22px;
+        height: 22px;
+        color: #0d1117;
+        background: #f0cf87;
+        border-radius: 8px;
+        font-weight: 900;
+      }
+      .workflow {
+        background: rgba(255, 255, 255, 0.018);
+        border-block: 1px solid var(--stroke);
+      }
+      .workflow-grid,
+      .features-grid,
+      .security-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+        max-width: 1180px;
+        margin: 0 auto;
+      }
+      .feature-card,
+      .security-card { padding: 24px; }
+      .card-num {
+        width: 34px;
+        height: 34px;
+        display: grid;
+        place-items: center;
+        margin-bottom: 18px;
+        border-radius: 8px;
+        background: rgba(120, 167, 255, 0.12);
+        border: 1px solid rgba(120, 167, 255, 0.26);
+        color: #9dc0ff;
+        font-weight: 900;
+      }
+      .feature-card h3,
+      .security-card h3 {
+        color: #fff;
+        font-size: 1.02rem;
+        margin-bottom: 8px;
+      }
+      .feature-card p,
+      .security-card p {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+      }
+      .roi-layout {
+        display: grid;
+        grid-template-columns: 0.92fr 1.08fr;
+        gap: 20px;
+        max-width: 1120px;
+        margin: 0 auto;
+      }
+      .roi-panel { padding: 26px; }
+      .roi-panel h3 {
+        color: #fff;
+        font-size: 1.12rem;
+        margin-bottom: 18px;
+      }
+      .range-row { display: grid; gap: 8px; margin-bottom: 18px; }
+      .range-row label {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        color: var(--text-muted);
+        font-size: 0.86rem;
+        font-weight: 700;
+      }
+      input[type="range"] { width: 100%; accent-color: #d7b46a; }
+      .roi-result {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+      }
+      .roi-metric {
+        padding: 18px;
+        border: 1px solid var(--stroke);
+        background: rgba(255, 255, 255, 0.035);
+        border-radius: 8px;
+      }
+      .roi-metric strong {
+        display: block;
+        color: #fff;
+        font-size: 2rem;
+        line-height: 1;
+        font-weight: 900;
+      }
+      .roi-metric span {
+        display: block;
+        color: var(--text-muted);
+        font-size: 0.78rem;
+        margin-top: 8px;
+      }
+      .pricing {
+        background:
+          linear-gradient(180deg, rgba(215, 180, 106, 0.035), transparent),
+          rgba(255, 255, 255, 0.014);
+      }
       .pricing-grid {
-        display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
-        gap: 20px; max-width: 920px; margin: 0 auto;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 18px;
+        max-width: 1100px;
+        margin: 0 auto;
       }
       .plan {
-        background: var(--bg3); border: 1px solid var(--stroke2);
-        border-radius: var(--radius-lg); padding: 32px;
-        display: flex; flex-direction: column; gap: 20px;
-        position: relative; transition: border-color 0.2s, box-shadow 0.2s;
+        padding: 28px;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
       }
-      .plan:hover { border-color: rgba(99,102,241,0.3); }
       .plan.featured {
-        border-color: var(--accent);
-        background: linear-gradient(160deg, #1a1e2a 0%, rgba(99,102,241,0.06) 100%);
-        box-shadow: 0 0 48px rgba(99,102,241,0.12);
+        border-color: rgba(215, 180, 106, 0.46);
+        background:
+          linear-gradient(180deg, rgba(215, 180, 106, 0.09), rgba(255,255,255,0.018)),
+          var(--card);
       }
-      .plan-badge {
-        position: absolute; top: -13px; left: 50%; transform: translateX(-50%);
-        background: linear-gradient(135deg, var(--accent), var(--accent2));
-        color: #fff; font-size: 0.7rem; font-weight: 700;
-        padding: 3px 14px; border-radius: 20px; letter-spacing: 0.05em;
-        white-space: nowrap;
+      .plan-name {
+        color: #f0cf87;
+        font-size: 0.78rem;
+        font-weight: 900;
+        text-transform: uppercase;
       }
-      .plan-name { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
-      .plan-price { display: flex; align-items: flex-end; gap: 4px; }
-      .plan-amount { font-size: 2.8rem; font-weight: 900; color: var(--text-strong); letter-spacing: -0.05em; line-height: 1; }
-      .plan-period { font-size: 0.8rem; color: var(--text-muted); padding-bottom: 5px; }
-      .plan-desc { font-size: 0.83rem; color: var(--text-muted); }
-      .plan-features { display: flex; flex-direction: column; gap: 10px; }
-      .plan-feature { display: flex; align-items: center; gap: 10px; font-size: 0.84rem; color: var(--text); }
-      .plan-feature .check { color: var(--success); flex-shrink: 0; }
-      .plan-feature .cross { color: var(--text-muted); flex-shrink: 0; opacity: 0.5; }
-      .plan-cta { margin-top: auto; }
-
-      /* ── TESTIMONIALS ── */
-      .testimonials-grid {
-        display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        gap: 20px; max-width: 1000px; margin: 0 auto;
+      .plan-price {
+        color: #fff;
+        font-size: 2.8rem;
+        font-weight: 900;
+        line-height: 1;
       }
-      .testimonial {
-        background: var(--card); border: 1px solid var(--stroke);
-        border-radius: var(--radius-lg); padding: 26px;
+      .plan-price span {
+        color: var(--text-muted);
+        font-size: 0.88rem;
+        font-weight: 700;
       }
-      .stars { color: #f59e0b; font-size: 0.78rem; letter-spacing: 1px; margin-bottom: 12px; }
-      .testimonial-text { font-size: 0.88rem; color: var(--text); line-height: 1.7; margin-bottom: 18px; font-style: italic; }
-      .testimonial-author { display: flex; align-items: center; gap: 10px; }
-      .testimonial-avatar {
-        width: 38px; height: 38px; border-radius: 50%;
-        background: linear-gradient(135deg, var(--accent), var(--accent2));
-        display: flex; align-items: center; justify-content: center;
-        font-size: 0.84rem; font-weight: 700; color: #fff; flex-shrink: 0;
+      .plan p { color: var(--text-muted); font-size: 0.9rem; }
+      .plan ul {
+        list-style: none;
+        display: grid;
+        gap: 10px;
+        color: var(--text);
+        font-size: 0.88rem;
+        flex: 1;
       }
-      .testimonial-name { font-size: 0.85rem; font-weight: 700; color: var(--text-strong); }
-      .testimonial-role { font-size: 0.74rem; color: var(--text-muted); }
-
-      /* ── CTA FINAL ── */
-      .cta-section {
-        text-align: center; padding: 100px 5vw;
-        background: radial-gradient(ellipse 70% 60% at 50% 50%, rgba(99,102,241,0.09) 0%, transparent 70%);
+      .plan li::before { content: "✓ "; color: #f0cf87; font-weight: 900; }
+      .security-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .contact { padding-bottom: 80px; }
+      .contact-panel {
+        max-width: 920px;
+        margin: 0 auto;
+        padding: 30px;
+        display: grid;
+        grid-template-columns: 0.9fr 1.1fr;
+        gap: 24px;
       }
-      .cta-section h2 { font-size: clamp(1.8rem,4vw,2.8rem); font-weight: 900; letter-spacing: -0.04em; color: var(--text-strong); margin-bottom: 16px; }
-      .cta-section p { font-size: 1rem; color: var(--text-muted); margin-bottom: 36px; }
-      .cta-note { font-size: 0.8rem; color: var(--text-muted); margin-top: 14px; }
-      .cta-note span { color: var(--success); }
-
-      /* ── FOOTER ── */
+      .contact-panel h2 {
+        color: #fff;
+        font-size: clamp(1.8rem, 3vw, 2.8rem);
+        line-height: 1.08;
+      }
+      .contact-panel p { color: var(--text-muted); margin-top: 12px; }
+      .demo-form { display: grid; gap: 10px; }
+      .demo-form input,
+      .demo-form select,
+      .demo-form textarea {
+        width: 100%;
+        min-height: 46px;
+        padding: 12px 14px;
+        font: inherit;
+      }
+      .demo-form textarea { min-height: 92px; resize: vertical; }
+      .form-status {
+        min-height: 20px;
+        color: var(--text-muted);
+        font-size: 0.86rem;
+      }
       footer {
-        border-top: 1px solid var(--stroke); padding: 40px 5vw;
-        display: flex; align-items: center; justify-content: space-between;
-        flex-wrap: wrap; gap: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        padding: 26px clamp(20px, 5vw, 76px);
+        border-top: 1px solid var(--stroke);
+        color: var(--text-muted);
+        font-size: 0.84rem;
+        flex-wrap: wrap;
       }
-      .footer-brand { font-weight: 700; font-size: 0.88rem; color: var(--text-muted); }
-      .footer-links { display: flex; gap: 24px; }
-      .footer-links a { font-size: 0.82rem; color: var(--text-muted); transition: color 0.15s; }
-      .footer-links a:hover { color: var(--text); }
-      .footer-copy { font-size: 0.77rem; color: var(--text-muted); }
-
-      /* ── MODAL ── */
       .modal-overlay {
-        position: fixed; inset: 0; z-index: 500;
-        background: rgba(0,0,0,0.72); backdrop-filter: blur(6px);
-        display: flex; align-items: center; justify-content: center;
-        padding: 16px; opacity: 0; pointer-events: none; transition: opacity 0.2s;
-      }
-      .modal-overlay.open { opacity: 1; pointer-events: all; }
-      .modal {
-        background: var(--bg3); border: 1px solid var(--stroke2);
-        border-radius: var(--radius-lg); padding: 36px;
-        max-width: 460px; width: 100%;
-        box-shadow: var(--shadow);
-        transform: translateY(20px); transition: transform 0.2s;
-      }
-      .modal-overlay.open .modal { transform: translateY(0); }
-      .modal h2 { font-size: 1.4rem; font-weight: 800; color: var(--text-strong); letter-spacing: -0.03em; margin-bottom: 6px; }
-      .modal-sub { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 28px; }
-      .modal-plan-badge {
-        display: inline-flex; align-items: center; gap: 6px;
-        background: rgba(99,102,241,0.12); border: 1px solid rgba(99,102,241,0.25);
-        border-radius: 20px; padding: 4px 12px;
-        font-size: 0.78rem; font-weight: 700; color: var(--accent);
-        margin-bottom: 20px;
-      }
-      .form-group { margin-bottom: 16px; }
-      .form-group label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; }
-      .form-group input, .form-group select {
-        width: 100%; padding: 11px 14px;
-        background: var(--bg2); border: 1px solid var(--stroke2);
-        border-radius: 8px; color: var(--text);
-        font-family: inherit; font-size: 0.9rem;
-        transition: border-color 0.15s;
-        outline: none;
-      }
-      .form-group input:focus, .form-group select:focus { border-color: var(--accent); }
-      .form-group select option { background: var(--bg2); }
-      .modal-submit {
-        width: 100%; padding: 13px; margin-top: 8px;
-        background: linear-gradient(135deg, var(--accent), var(--accent2));
-        color: #fff; border: none; border-radius: 10px;
-        font-family: inherit; font-size: 0.95rem; font-weight: 700;
-        cursor: pointer; transition: opacity 0.15s;
-        box-shadow: 0 0 24px var(--accent-glow);
-      }
-      .modal-submit:hover { opacity: 0.9; }
-      .modal-submit:disabled { opacity: 0.5; cursor: not-allowed; }
-      .modal-close {
-        position: absolute; top: 14px; right: 18px;
-        background: none; border: none; color: var(--text-muted);
-        font-size: 1.4rem; cursor: pointer; line-height: 1;
-      }
-      .modal-close:hover { color: var(--text); }
-      .modal-error {
-        background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25);
-        border-radius: 8px; padding: 10px 14px;
-        font-size: 0.82rem; color: #f87171; margin-top: 12px;
+        position: fixed;
+        inset: 0;
+        z-index: 300;
         display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        background: rgba(0, 0, 0, 0.72);
+        backdrop-filter: blur(14px);
       }
-      .modal-error.show { display: block; }
-
-      /* ── RESPONSIVE ── */
-      @media (max-width: 768px) {
+      .modal-overlay.open { display: flex; }
+      .modal {
+        width: min(460px, 100%);
+        padding: 28px;
+        border: 1px solid var(--stroke2);
+        background: var(--card);
+        box-shadow: var(--shadow);
+      }
+      .modal h2 { color: #fff; font-size: 1.45rem; margin-bottom: 8px; }
+      .modal p { color: var(--text-muted); font-size: 0.9rem; }
+      .modal-close {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        width: 34px;
+        height: 34px;
+        border: 1px solid var(--stroke2);
+        background: rgba(255,255,255,0.04);
+        color: var(--text);
+        cursor: pointer;
+      }
+      .modal-form { margin-top: 18px; display: grid; gap: 10px; }
+      .modal-form input,
+      .modal-form select {
+        min-height: 46px;
+        padding: 12px 14px;
+        font: inherit;
+      }
+      @media (max-width: 980px) {
         .nav-links { display: none; }
-        .hero { padding: 120px 5vw 60px; }
-        .stats-strip { gap: 28px; }
-        .modal { padding: 24px; }
+        .product-showcase,
+        .roi-layout,
+        .contact-panel { grid-template-columns: 1fr; }
+        .workflow-grid,
+        .features-grid,
+        .security-grid,
+        .pricing-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      }
+      @media (max-width: 700px) {
+        .site-nav {
+          height: auto;
+          min-height: 62px;
+          width: 100dvw;
+          max-width: 100dvw;
+          padding: 12px 16px;
+          gap: 10px;
+        }
+        .nav-brand {
+          min-width: 0;
+        }
+        .nav-brand span:last-child {
+          max-width: 132px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        .nav-actions {
+          gap: 8px;
+          flex: 0 0 auto;
+        }
+        .nav-actions .btn.ghost { display: none; }
+        .nav-actions [data-open-modal] { display: none !important; }
+        .hero {
+          width: 100dvw;
+          max-width: 100dvw;
+          min-height: 86vh;
+          padding: 104px 18px 64px;
+          background-position: 62% center;
+        }
+        .hero-content {
+          width: min(354px, calc(100dvw - 36px));
+          max-width: min(354px, calc(100dvw - 36px));
+        }
+        .hero h1 {
+          width: min(100%, 12ch);
+          max-width: min(100%, 12ch);
+          font-size: clamp(2rem, 9.2vw, 2.35rem);
+          line-height: 1.02;
+        }
+        .hero-sub {
+          width: 100%;
+          max-width: 100%;
+          font-size: 1rem;
+          overflow-wrap: break-word;
+        }
+        .hero-actions {
+          display: grid;
+          grid-template-columns: 1fr;
+          width: 100%;
+          max-width: 100%;
+        }
+        .hero-actions .btn {
+          width: 100%;
+          justify-content: center;
+        }
+        .hero-proof,
+        .roi-result,
+        .workflow-grid,
+        .features-grid,
+        .security-grid,
+        .pricing-grid { grid-template-columns: 1fr; }
+        .hero-proof {
+          width: calc(100% - 32px);
+          margin-top: -22px;
+        }
+        .showcase-shot { min-height: 260px; }
       }
     </style>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Assistant IA Support IT pour PME",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "Web",
+        "creator": { "@type": "Organization", "name": "KAH Digital" },
+        "offers": { "@type": "Offer", "priceCurrency": "EUR", "price": "199" }
+      }
+    </script>
   </head>
   <body>
-    <!-- NAV -->
-    <nav>
-      <a href="/" class="nav-brand">
-        <div class="nav-brand-icon">🤖</div>
-        <span data-fr="Assistant IT" data-en="IT Assistant">Assistant IT</span>
+    <nav class="site-nav">
+      <a class="nav-brand" href="/">
+        <span class="nav-brand-mark">K</span>
+        <span>Assistant IT</span>
       </a>
       <div class="nav-links">
-        <a href="#features" data-fr="Fonctionnalités" data-en="Features">Fonctionnalités</a>
+        <a href="#produit" data-fr="Produit" data-en="Product">Produit</a>
+        <a href="#workflow" data-fr="Workflow" data-en="Workflow">Workflow</a>
+        <a href="#roi" data-fr="ROI" data-en="ROI">ROI</a>
         <a href="#pricing" data-fr="Tarifs" data-en="Pricing">Tarifs</a>
         <a href="#security" data-fr="Sécurité" data-en="Security">Sécurité</a>
-        <a href="/app/slides.html" data-fr="Présentation" data-en="Deck">Présentation</a>
-        <a href="#contact" data-fr="Demander une démo" data-en="Get a demo" style="color:var(--accent);font-weight:600;">Demander une démo</a>
       </div>
-      <div class="nav-cta">
-        <button class="lang-btn" id="langToggle" onclick="toggleLang()">EN</button>
-        <a href="/app/login/" class="btn ghost" data-fr="Connexion" data-en="Login">Connexion</a>
-        <a href="/app/demo-video.html" class="btn primary" data-fr="Voir la démo →" data-en="View demo →">Voir la démo →</a>
+      <div class="nav-actions">
+        <button class="lang-btn" type="button" id="langToggle">EN</button>
+        <a class="btn ghost" href="/app/login/" data-fr="Connexion" data-en="Login">Connexion</a>
+        <button class="btn primary" type="button" data-open-modal data-fr="Demander une démo" data-en="Get a demo">Demander une démo</button>
       </div>
     </nav>
 
-    <!-- HERO -->
-    <section class="hero">
-      <div class="hero-badge"><span class="dot"></span> <span data-fr="IA Support IT • 24h/24 • FR &amp; EN" data-en="AI IT Support • 24/7 • FR &amp; EN">IA Support IT • 24h/24 • FR &amp; EN</span></div>
-      <h1>
-        <span data-fr="Votre assistant IA support IT" data-en="Your AI IT support assistant">Votre assistant IA support IT</span><br />
-        <span data-fr="disponible 24h/24" data-en="available 24/7" style="background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">disponible 24h/24</span>
-      </h1>
-      <p class="hero-sub" data-fr="Réduisez de 70% le temps de traitement des tickets IT. Réponses instantanées, escalade vers GLPI automatique, base de connaissances indexée." data-en="Reduce IT ticket processing time by 70%. Instant responses, automatic GLPI escalation, indexed knowledge base.">
-        Réduisez de 70% le temps de traitement des tickets IT. Réponses instantanées, escalade vers GLPI automatique, base de connaissances indexée.
-      </p>
-      <div class="hero-actions">
-        <a href="#demo" class="btn primary large" data-fr="Demander une démo" data-en="Request a demo">Demander une démo</a>
-        <a href="/app/demo-video" class="btn large" data-fr="Voir la démo" data-en="View demo">Voir la démo</a>
+    <header class="hero">
+      <div class="hero-content">
+        <div class="eyebrow" data-fr="Support IT IA - GLPI - PME" data-en="AI IT support - GLPI - SMEs">Support IT IA - GLPI - PME</div>
+        <h1 data-fr="Assistant IA Support IT pour <span>PME exigeantes</span>" data-en="AI IT Support Assistant for <span>demanding SMEs</span>">Assistant IA Support IT pour <span>PME exigeantes</span></h1>
+        <p class="hero-sub" data-fr="Un portail support haut de gamme qui répond aux utilisateurs, qualifie les incidents, crée les tickets GLPI et donne à l'équipe IT une vision claire de la charge." data-en="A premium support portal that answers users, qualifies incidents, creates GLPI tickets and gives IT teams a clear view of workload.">Un portail support haut de gamme qui répond aux utilisateurs, qualifie les incidents, crée les tickets GLPI et donne à l'équipe IT une vision claire de la charge.</p>
+        <div class="hero-actions">
+          <button class="btn primary large" type="button" data-open-modal data-plan="pro" data-fr="Planifier une démo" data-en="Schedule a demo">Planifier une démo</button>
+          <a class="btn large" href="/app/user/" data-fr="Tester l'espace utilisateur" data-en="Try user space">Tester l'espace utilisateur</a>
+          <a class="btn large ghost" href="/app/admin/" data-fr="Voir l'admin" data-en="View admin">Voir l'admin</a>
+        </div>
       </div>
-    </section>
+    </header>
 
-    <!-- STATS -->
-    <div class="stats-strip">
-      <div class="stat">
-        <span class="stat-value">70%</span>
-        <span class="stat-label" data-fr="Tickets résolus sans technicien" data-en="Tickets resolved without technician">Tickets résolus sans technicien</span>
+    <div class="hero-proof" aria-label="Indicateurs produit">
+      <div class="proof-item">
+        <strong>24/7</strong>
+        <span data-fr="Réponse immédiate aux demandes courantes" data-en="Immediate answer for common requests">Réponse immédiate aux demandes courantes</span>
       </div>
-      <div class="stat">
-        <span class="stat-value">8 min</span>
-        <span class="stat-label" data-fr="Économisées par ticket" data-en="Saved per ticket">Économisées par ticket</span>
+      <div class="proof-item">
+        <strong>GLPI</strong>
+        <span data-fr="Escalade structurée vers vos techniciens" data-en="Structured escalation to technicians">Escalade structurée vers vos techniciens</span>
       </div>
-      <div class="stat">
-        <span class="stat-value">15 min</span>
-        <span class="stat-label" data-fr="Pour être opérationnel" data-en="To go live">Pour être opérationnel</span>
+      <div class="proof-item">
+        <strong>15 min</strong>
+        <span data-fr="Démonstration opérationnelle pour un client" data-en="Operational client demo">Démonstration opérationnelle pour un client</span>
       </div>
     </div>
 
-    <!-- PRODUCT TOUR ANIMÉ -->
-    <section id="demo" style="background:var(--bg2);padding:80px 5vw;">
-      <div class="section-label" data-fr="Démo interactive" data-en="Interactive demo">Démo interactive</div>
-      <h2 class="section-title" data-fr="De la question au ticket en 3 secondes" data-en="From question to ticket in 3 seconds">De la question au ticket en 3 secondes</h2>
-      <p class="section-sub" data-fr="Regardez l'IA répondre, créer le ticket GLPI et notifier l'admin — en temps réel." data-en="Watch the AI reply, create the GLPI ticket and notify the admin — in real time.">Regardez l'IA répondre, créer le ticket GLPI et notifier l'admin — en temps réel.</p>
-
-      <style>
-        .tour-tab{display:inline-flex;align-items:center;gap:7px;padding:8px 16px;border-radius:20px;background:var(--card);border:1px solid var(--stroke2);font-family:inherit;font-size:0.8rem;font-weight:600;color:var(--text-muted);cursor:pointer;transition:all 0.2s;}
-        .tour-tab:hover{border-color:rgba(99,102,241,0.3);color:var(--text);}
-        .tour-tab.active{background:linear-gradient(135deg,rgba(99,102,241,0.15),rgba(139,92,246,0.15));border-color:var(--accent);color:var(--text-strong);}
-        .tour-tab-num{width:18px;height:18px;border-radius:50%;background:rgba(99,102,241,0.2);font-size:0.7rem;font-weight:800;color:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-        .tour-tab.active .tour-tab-num{background:var(--accent);color:#fff;}
-        .tour-tab-sep{color:var(--text-muted);font-size:0.8rem;align-self:center;}
-        .tour-slide{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity 0.4s ease;}
-        .tour-slide.active{opacity:1;pointer-events:all;}
-        .tour-dot{width:8px;height:8px;border-radius:50%;background:var(--stroke2);cursor:pointer;transition:all 0.2s;}
-        .tour-dot.active{width:22px;background:var(--accent);border-radius:4px;}
-        @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
-        @keyframes ticketPop{0%{opacity:0;transform:scale(0.88)}60%{transform:scale(1.03)}100%{opacity:1;transform:scale(1)}}
-        @keyframes alertGlow{0%,100%{box-shadow:0 0 0 rgba(99,102,241,0)}50%{box-shadow:0 0 20px rgba(99,102,241,0.25)}}
-        .ticket-appear{animation:ticketPop 0.6s ease forwards;}
-        .ticket-card-anim{animation:ticketPop 0.5s ease 0.3s both;}
-        .new-ticket-alert{animation:alertGlow 2s ease infinite 0.5s;}
-        @media(max-width:600px){.tour-tab-sep{display:none;}.tour-tab span:not(.tour-tab-num){display:none;}}
-      </style>
-
-      <div style="display:flex;justify-content:center;gap:8px;margin-bottom:32px;flex-wrap:wrap;">
-        <button class="tour-tab active" data-step="0" onclick="tourGoTo(0)"><span class="tour-tab-num">1</span><span data-fr="Employé chatte" data-en="Employee chats">Employé chatte</span></button>
-        <div class="tour-tab-sep">→</div>
-        <button class="tour-tab" data-step="1" onclick="tourGoTo(1)"><span class="tour-tab-num">2</span><span data-fr="IA répond" data-en="AI replies">IA répond</span></button>
-        <div class="tour-tab-sep">→</div>
-        <button class="tour-tab" data-step="2" onclick="tourGoTo(2)"><span class="tour-tab-num">3</span><span data-fr="Ticket créé" data-en="Ticket created">Ticket créé</span></button>
-        <div class="tour-tab-sep">→</div>
-        <button class="tour-tab" data-step="3" onclick="tourGoTo(3)"><span class="tour-tab-num">4</span><span data-fr="Admin voit tout" data-en="Admin sees it">Admin voit tout</span></button>
+    <section id="produit">
+      <div class="section-head">
+        <div class="section-kicker" data-fr="Produit réel" data-en="Real product">Produit réel</div>
+        <h2 class="section-title" data-fr="Une expérience support crédible dès le premier écran" data-en="A credible support experience from the first screen">Une expérience support crédible dès le premier écran</h2>
+        <p class="section-sub" data-fr="L'utilisateur voit les problèmes fréquents, écrit en langage naturel, reçoit une procédure, puis déclenche un ticket si nécessaire." data-en="Users see frequent issues, write naturally, receive a procedure, then create a ticket if needed.">L'utilisateur voit les problèmes fréquents, écrit en langage naturel, reçoit une procédure, puis déclenche un ticket si nécessaire.</p>
       </div>
-
-      <div id="tourWindow" style="max-width:860px;margin:0 auto;border-radius:18px;overflow:hidden;border:1px solid var(--stroke2);box-shadow:0 16px 64px rgba(0,0,0,0.6);position:relative;">
-        <!-- browser chrome -->
-        <div style="background:#1a1d27;padding:10px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,255,255,0.06);">
-          <div style="display:flex;gap:5px;"><div style="width:10px;height:10px;border-radius:50%;background:#ff5f57;"></div><div style="width:10px;height:10px;border-radius:50%;background:#ffbd2e;"></div><div style="width:10px;height:10px;border-radius:50%;background:#28c840;"></div></div>
-          <div id="tourUrl" style="flex:1;background:rgba(255,255,255,0.05);border-radius:6px;padding:4px 12px;font-size:0.73rem;color:var(--text-muted);font-family:monospace;text-align:center;transition:all 0.4s;">kah-support.ch/app/user</div>
-          <div style="width:60px;"></div>
+      <div class="product-showcase">
+        <div class="showcase-shot">
+          <img src="/mockups/step4_chat_response.png" alt="Interface de chat de l'assistant support IT" loading="lazy" />
         </div>
-
-        <div style="background:#0f1117;height:420px;position:relative;overflow:hidden;">
-
-          <!-- slide 0: employé chatte -->
-          <div class="tour-slide active" id="slide-0">
-            <div style="display:grid;grid-template-columns:220px 1fr;height:420px;">
-              <div style="background:#13161f;border-right:1px solid rgba(255,255,255,0.06);padding:16px 0;">
-                <div style="padding:0 16px 16px;border-bottom:1px solid rgba(255,255,255,0.05);">
-                  <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;"><div style="width:28px;height:28px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:0.75rem;">🤖</div><span style="font-size:0.8rem;font-weight:700;color:var(--text-strong);">Assistant IT</span></div>
-                  <div style="font-size:0.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">Mes tickets</div>
-                  <div style="background:rgba(255,255,255,0.04);border-radius:8px;padding:8px 10px;font-size:0.76rem;color:var(--text-muted);">Aucun ticket actif</div>
-                </div>
-                <div style="padding:16px;"><div style="display:flex;align-items:center;gap:6px;color:var(--success);font-size:0.72rem;"><span style="width:6px;height:6px;background:var(--success);border-radius:50%;display:inline-block;animation:pulse 2s infinite;"></span>IA en ligne</div></div>
-              </div>
-              <div style="display:flex;flex-direction:column;height:420px;">
-                <div style="padding:14px 20px;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;align-items:center;gap:10px;"><div style="width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.9rem;">🤖</div><div><div style="font-size:0.85rem;font-weight:700;color:var(--text-strong);">Assistant IT IA</div><div style="font-size:0.7rem;color:var(--success);">● En ligne</div></div></div>
-                <div style="flex:1;padding:20px;display:flex;flex-direction:column;justify-content:flex-end;gap:12px;overflow:hidden;">
-                  <div style="align-self:flex-start;max-width:75%;background:rgba(255,255,255,0.06);border-radius:14px 14px 14px 4px;padding:12px 16px;"><div style="font-size:0.82rem;color:var(--text);">Bonjour ! Comment puis-je vous aider aujourd'hui ?</div><div style="font-size:0.65rem;color:var(--text-muted);margin-top:6px;">10:42</div></div>
-                  <div style="align-self:flex-end;max-width:78%;"><div style="background:linear-gradient(135deg,rgba(99,102,241,0.25),rgba(139,92,246,0.25));border:1px solid rgba(99,102,241,0.3);border-radius:14px 14px 4px 14px;padding:12px 16px;"><div id="tw0" style="font-size:0.82rem;color:var(--text-strong);min-height:1.2em;"></div><div style="font-size:0.65rem;color:var(--text-muted);margin-top:6px;text-align:right;">10:43</div></div></div>
-                </div>
-                <div style="padding:12px 16px;border-top:1px solid rgba(255,255,255,0.05);display:flex;gap:8px;"><div style="flex:1;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:10px 14px;font-size:0.8rem;color:var(--text-muted);">Décrivez votre problème…</div><div style="width:36px;height:36px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></div></div>
-              </div>
-            </div>
-          </div>
-
-          <!-- slide 1: IA répond -->
-          <div class="tour-slide" id="slide-1">
-            <div style="display:grid;grid-template-columns:220px 1fr;height:420px;">
-              <div style="background:#13161f;border-right:1px solid rgba(255,255,255,0.06);padding:16px 0;"><div style="padding:0 16px 16px;border-bottom:1px solid rgba(255,255,255,0.05);"><div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;"><div style="width:28px;height:28px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:0.75rem;">🤖</div><span style="font-size:0.8rem;font-weight:700;color:var(--text-strong);">Assistant IT</span></div><div style="background:rgba(255,255,255,0.04);border-radius:8px;padding:8px 10px;font-size:0.76rem;color:var(--text-muted);">Aucun ticket actif</div></div></div>
-              <div style="display:flex;flex-direction:column;height:420px;">
-                <div style="padding:14px 20px;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;align-items:center;gap:10px;"><div style="width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.9rem;">🤖</div><div><div style="font-size:0.85rem;font-weight:700;color:var(--text-strong);">Assistant IT IA</div><div id="iaTypingLabel" style="font-size:0.7rem;color:var(--accent);">● Analyse en cours…</div></div><div style="margin-left:auto;background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.2);border-radius:20px;padding:3px 10px;font-size:0.68rem;color:var(--accent);font-weight:600;">⚡ GPT-4o</div></div>
-                <div style="flex:1;padding:20px;display:flex;flex-direction:column;gap:12px;overflow:hidden;">
-                  <div style="align-self:flex-end;max-width:78%;background:linear-gradient(135deg,rgba(99,102,241,0.25),rgba(139,92,246,0.25));border:1px solid rgba(99,102,241,0.3);border-radius:14px 14px 4px 14px;padding:12px 16px;"><div style="font-size:0.82rem;color:var(--text-strong);">Mon Outlook ne s'ouvre plus depuis ce matin, j'ai une réunion dans 20 min…</div><div style="font-size:0.65rem;color:var(--text-muted);margin-top:6px;text-align:right;">10:43</div></div>
-                  <div style="align-self:flex-start;max-width:85%;"><div style="background:rgba(255,255,255,0.06);border-radius:14px 14px 14px 4px;padding:14px 16px;"><div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;"><div style="width:20px;height:20px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:0.6rem;">🤖</div><span style="font-size:0.68rem;color:var(--accent);font-weight:700;">ASSISTANT IT IA</span></div><div id="tw1" style="font-size:0.82rem;color:var(--text);line-height:1.6;min-height:1.2em;"></div><span id="iaStreamCursor" style="display:inline-block;width:2px;height:14px;background:var(--accent);margin-left:2px;animation:blink 0.7s infinite;vertical-align:middle;"></span></div><div style="margin-top:6px;font-size:0.65rem;color:var(--text-muted);">IA • 10:43 • <span style="color:var(--success);">2.1s</span></div></div>
-                </div>
-                <div style="padding:10px 16px;border-top:1px solid rgba(255,255,255,0.05);"><div style="background:rgba(99,102,241,0.07);border:1px solid rgba(99,102,241,0.15);border-radius:10px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;"><span style="font-size:0.76rem;color:var(--text-muted);" data-fr="Ça n'a pas résolu le problème ?" data-en="Still not working?">Ça n'a pas résolu le problème ?</span><button style="background:rgba(99,102,241,0.2);border:1px solid rgba(99,102,241,0.3);border-radius:6px;padding:5px 12px;color:var(--accent);font-size:0.74rem;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;" data-fr="Créer un ticket" data-en="Create a ticket">Créer un ticket</button></div></div>
-              </div>
-            </div>
-          </div>
-
-          <!-- slide 2: ticket créé -->
-          <div class="tour-slide" id="slide-2">
-            <div style="display:grid;grid-template-columns:220px 1fr;height:420px;">
-              <div style="background:#13161f;border-right:1px solid rgba(255,255,255,0.06);padding:16px 0;">
-                <div style="padding:0 16px 16px;border-bottom:1px solid rgba(255,255,255,0.05);">
-                  <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;"><div style="width:28px;height:28px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:0.75rem;">🤖</div><span style="font-size:0.8rem;font-weight:700;color:var(--text-strong);">Assistant IT</span></div>
-                  <div style="font-size:0.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">Mes tickets</div>
-                  <div class="ticket-appear" style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.25);border-radius:8px;padding:10px 12px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;"><span style="font-size:0.67rem;color:var(--accent);font-weight:700;">#TK-0024</span><span style="background:rgba(239,68,68,0.15);color:#f87171;font-size:0.62rem;font-weight:700;padding:2px 7px;border-radius:4px;">HIGH</span></div><div style="font-size:0.73rem;color:var(--text-strong);line-height:1.4;">Outlook ne s'ouvre plus</div><div style="font-size:0.65rem;color:var(--text-muted);margin-top:4px;">● Ouvert • email</div></div>
-                </div>
-              </div>
-              <div style="display:flex;flex-direction:column;height:420px;">
-                <div style="padding:14px 20px;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;align-items:center;gap:10px;"><div style="width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.9rem;">🤖</div><div><div style="font-size:0.85rem;font-weight:700;color:var(--text-strong);">Assistant IT IA</div><div style="font-size:0.7rem;color:var(--success);">● En ligne</div></div></div>
-                <div style="flex:1;padding:20px;display:flex;flex-direction:column;gap:12px;overflow:hidden;">
-                  <div style="align-self:flex-end;max-width:78%;background:linear-gradient(135deg,rgba(99,102,241,0.25),rgba(139,92,246,0.25));border:1px solid rgba(99,102,241,0.3);border-radius:14px 14px 4px 14px;padding:12px 16px;"><div style="font-size:0.82rem;color:var(--text-strong);">Ça n'a pas marché, j'ai toujours l'erreur…</div><div style="font-size:0.65rem;color:var(--text-muted);margin-top:6px;text-align:right;">10:46</div></div>
-                  <div style="align-self:flex-start;max-width:92%;"><div style="background:rgba(255,255,255,0.06);border-radius:14px 14px 14px 4px;padding:14px 16px;"><div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;"><div style="width:20px;height:20px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:0.6rem;">🤖</div><span style="font-size:0.68rem;color:var(--accent);font-weight:700;">ASSISTANT IT IA</span></div><div style="font-size:0.82rem;color:var(--text);line-height:1.6;margin-bottom:12px;">Pas de problème, je crée un ticket prioritaire pour votre équipe IT !</div><div class="ticket-card-anim" style="background:#13161f;border:1px solid rgba(99,102,241,0.35);border-radius:12px;padding:14px;box-shadow:0 0 20px rgba(99,102,241,0.15);"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><span style="font-size:0.72rem;color:var(--accent);font-weight:800;">#TK-0024</span><div style="display:flex;gap:6px;"><span style="background:rgba(239,68,68,0.15);color:#f87171;font-size:0.65rem;font-weight:700;padding:2px 8px;border-radius:4px;">HIGH</span><span style="background:rgba(99,102,241,0.15);color:var(--accent);font-size:0.65rem;font-weight:700;padding:2px 8px;border-radius:4px;">email</span></div></div><div style="font-size:0.85rem;font-weight:700;color:var(--text-strong);margin-bottom:6px;">Outlook ne s'ouvre plus depuis ce matin</div><div style="font-size:0.76rem;color:var(--text-muted);margin-bottom:10px;">Catégorie : email • Priorité : haute • Statut : ouvert</div><div style="display:flex;align-items:center;gap:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.05);"><span style="font-size:0.65rem;color:var(--text-muted);">Synchronisé avec</span><span style="background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.25);color:var(--success);font-size:0.65rem;font-weight:700;padding:2px 8px;border-radius:4px;">✓ GLPI #8842</span></div></div></div></div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- slide 3: admin smart dispatch -->
-          <div class="tour-slide" id="slide-3">
-            <div style="display:grid;grid-template-columns:200px 1fr;height:420px;">
-              <div style="background:#13161f;border-right:1px solid rgba(255,255,255,0.06);padding:12px 0;">
-                <div style="padding:0 12px 12px;border-bottom:1px solid rgba(255,255,255,0.05);margin-bottom:10px;"><div style="display:flex;align-items:center;gap:8px;"><div style="width:26px;height:26px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.7rem;">🤖</div><div><div style="font-size:0.75rem;font-weight:700;color:var(--text-strong);">Assistant IT</div><div style="font-size:0.6rem;color:var(--accent);">Admin</div></div></div></div>
-                <div style="padding:0 8px;display:flex;flex-direction:column;gap:2px;">
-                  <div style="padding:8px 10px;border-radius:8px;font-size:0.74rem;color:var(--text-muted);">📊 Dashboard</div>
-                  <div style="padding:8px 10px;border-radius:8px;font-size:0.74rem;color:var(--text-muted);display:flex;align-items:center;">🎫 Tickets<span style="margin-left:auto;background:rgba(239,68,68,0.2);color:#f87171;font-size:0.6rem;font-weight:700;padding:1px 5px;border-radius:10px;">+1</span></div>
-                  <div style="padding:8px 10px;border-radius:8px;background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.2);font-size:0.74rem;color:var(--accent);font-weight:600;">🚦 Smart Dispatch</div>
-                  <div style="padding:8px 10px;border-radius:8px;font-size:0.74rem;color:var(--text-muted);">📈 Analytiques</div>
-                </div>
-              </div>
-              <div style="padding:16px 18px;overflow:hidden;">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;"><div><div style="font-size:1rem;font-weight:800;color:var(--text-strong);">🚦 Smart Dispatch</div><div style="font-size:0.72rem;color:var(--text-muted);">Acheminement automatique</div></div><div style="background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.2);border-radius:20px;padding:4px 12px;font-size:0.7rem;color:var(--success);font-weight:700;">● IA active</div></div>
-                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;">
-                  <div style="background:#13161f;border-radius:10px;padding:10px;text-align:center;"><div style="font-size:1.4rem;font-weight:900;color:var(--text-strong);">18</div><div style="font-size:0.62rem;color:var(--text-muted);">Tickets total</div></div>
-                  <div style="background:rgba(239,68,68,0.07);border:1px solid rgba(239,68,68,0.15);border-radius:10px;padding:10px;text-align:center;"><div style="font-size:1.4rem;font-weight:900;color:#f87171;">3</div><div style="font-size:0.62rem;color:var(--text-muted);">Haute priorité</div></div>
-                  <div style="background:rgba(34,197,94,0.07);border:1px solid rgba(34,197,94,0.15);border-radius:10px;padding:10px;text-align:center;"><div style="font-size:1.4rem;font-weight:900;color:var(--success);">87%</div><div style="font-size:0.62rem;color:var(--text-muted);">Résolution IA</div></div>
-                </div>
-                <div class="new-ticket-alert" style="background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.3);border-radius:12px;padding:12px;margin-bottom:10px;position:relative;overflow:hidden;">
-                  <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2));"></div>
-                  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;gap:8px;"><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;"><span style="font-size:0.72rem;color:var(--accent);font-weight:800;">#TK-0024</span><span style="background:rgba(239,68,68,0.2);color:#f87171;font-size:0.62rem;font-weight:700;padding:2px 7px;border-radius:4px;">HIGH</span><span style="background:rgba(99,102,241,0.1);color:var(--accent);font-size:0.6rem;padding:2px 7px;border-radius:4px;">email</span></div><div style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.2);border-radius:6px;padding:3px 8px;flex-shrink:0;"><span style="font-size:0.65rem;color:var(--success);font-weight:700;">✓ GLPI #8842</span></div></div>
-                  <div style="font-size:0.82rem;font-weight:600;color:var(--text-strong);margin-bottom:4px;">Outlook ne s'ouvre plus depuis ce matin</div>
-                  <div style="display:flex;justify-content:space-between;align-items:center;"><div style="font-size:0.68rem;color:var(--text-muted);">Auto-assigné • Backlog N2 • il y a 2 min</div><div style="font-size:0.7rem;color:var(--accent);background:rgba(99,102,241,0.08);padding:3px 8px;border-radius:6px;font-weight:600;">🤖 Suggestion IA →</div></div>
-                </div>
-                <div style="display:flex;flex-direction:column;gap:6px;">
-                  <div style="background:#13161f;border-radius:8px;padding:9px 12px;display:flex;justify-content:space-between;align-items:center;"><div style="font-size:0.76rem;color:var(--text);">Imprimante réseau HP plus accessible</div><span style="background:rgba(245,158,11,0.15);color:#fbbf24;font-size:0.6rem;font-weight:700;padding:2px 7px;border-radius:4px;">MED</span></div>
-                  <div style="background:#13161f;border-radius:8px;padding:9px 12px;display:flex;justify-content:space-between;align-items:center;opacity:0.6;"><div style="font-size:0.76rem;color:var(--text);">VPN Cisco AnyConnect déconnexion</div><span style="background:rgba(34,197,94,0.15);color:var(--success);font-size:0.6rem;font-weight:700;padding:2px 7px;border-radius:4px;">✓ Résolu</span></div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-        </div>
-        <!-- progress bar -->
-        <div style="position:absolute;bottom:0;left:0;right:0;height:3px;background:rgba(255,255,255,0.04);z-index:10;"><div id="tourProgress" style="height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));width:0%;transition:width 0.1s linear;"></div></div>
-      </div>
-
-      <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-top:20px;">
-        <button onclick="tourPrev()" style="width:34px;height:34px;background:var(--card);border:1px solid var(--stroke2);border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-muted);"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M15.41 16.58L10.83 12l4.58-4.59L14 6l-6 6 6 6z"/></svg></button>
-        <div style="display:flex;gap:6px;" id="tourDots"><div class="tour-dot active" onclick="tourGoTo(0)"></div><div class="tour-dot" onclick="tourGoTo(1)"></div><div class="tour-dot" onclick="tourGoTo(2)"></div><div class="tour-dot" onclick="tourGoTo(3)"></div></div>
-        <button onclick="tourNext()" style="width:34px;height:34px;background:var(--card);border:1px solid var(--stroke2);border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-muted);"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg></button>
-        <button id="tourPlayBtn" onclick="tourTogglePlay()" style="height:34px;padding:0 14px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:6px;font-family:inherit;font-size:0.78rem;font-weight:700;color:#fff;"><svg id="tourPlayIcon" width="12" height="12" viewBox="0 0 24 24" fill="white"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg><span id="tourPlayLabel" data-fr="Pause" data-en="Pause">Pause</span></button>
-      </div>
-
-      <div style="text-align:center;margin-top:24px;">
-        <a href="#contact" class="btn primary large" data-fr="Demander une démo personnalisée →" data-en="Request a personalised demo →">Demander une démo personnalisée →</a>
-      </div>
-    </section>
-
-    <!-- FORMULAIRE DEMO -->
-    <section id="contact" style="padding:80px 5vw;">
-      <div class="section-label" data-fr="Parler à un humain" data-en="Talk to a human">Parler à un humain</div>
-      <h2 class="section-title" data-fr="Demander une démo personnalisée" data-en="Request a personalised demo">Demander une démo personnalisée</h2>
-      <p class="section-sub" data-fr="Vous préférez voir l'outil sur vos cas d'usage réels ? Je vous rappelle sous 24h." data-en="Prefer to see the tool on your real use cases? I'll call you back within 24h.">Vous préférez voir l'outil sur vos cas d'usage réels ? Je vous rappelle sous 24h.</p>
-
-      <div style="max-width:540px;margin:0 auto;background:var(--card);border:1px solid var(--stroke2);border-radius:20px;padding:40px;">
-        <form id="demoRequestForm" onsubmit="submitDemoRequest(event)">
-          <input type="text" name="company_website" style="display:none" tabindex="-1" autocomplete="off">
-          <div class="form-group">
-            <label data-fr="Votre prénom et nom" data-en="Your name">Votre prénom et nom</label>
-            <input type="text" id="drName" placeholder="Jean Dupont" required>
-          </div>
-          <div class="form-group">
-            <label data-fr="Email professionnel" data-en="Work email">Email professionnel</label>
-            <input type="email" id="drEmail" placeholder="jean@entreprise.fr" required>
-          </div>
-          <div class="form-group">
-            <label data-fr="Entreprise" data-en="Company">Entreprise</label>
-            <input type="text" id="drCompany" placeholder="Acme Corp" required>
-          </div>
-          <div class="form-group">
-            <label data-fr="Votre contexte (optionnel)" data-en="Your context (optional)">Votre contexte (optionnel)</label>
-            <input type="text" id="drMessage" placeholder="On utilise GLPI, ~80 tickets/semaine...">
-          </div>
-          <button type="submit" id="drBtn" style="width:100%;padding:14px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:10px;font-family:inherit;font-size:0.95rem;font-weight:700;cursor:pointer;box-shadow:0 0 24px var(--accent-glow);transition:opacity 0.15s;" data-fr="Demander une démo →" data-en="Request a demo →">
-            Demander une démo →
-          </button>
-          <div id="drSuccess" style="display:none;margin-top:16px;padding:14px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.25);border-radius:8px;color:#4ade80;font-size:0.88rem;text-align:center;" data-fr="✓ Reçu ! Je vous réponds sous 24h." data-en="✓ Got it! I'll reply within 24h.">
-            ✓ Reçu ! Je vous réponds sous 24h.
-          </div>
-          <div id="drError" style="display:none;margin-top:12px;padding:12px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);border-radius:8px;color:#f87171;font-size:0.83rem;"></div>
-        </form>
-        <p style="text-align:center;font-size:0.75rem;color:var(--text-muted);margin-top:16px;" data-fr="Ou directement : contact@kah-digital.ch" data-en="Or directly: contact@kah-digital.ch">Ou directement : <a href="mailto:contact@kah-digital.ch" style="color:var(--accent);">contact@kah-digital.ch</a></p>
-      </div>
-    </section>
-
-    <!-- GLPI BANNER -->
-    <div style="background:linear-gradient(90deg,rgba(99,102,241,0.12),rgba(139,92,246,0.12));border-top:1px solid rgba(99,102,241,0.2);border-bottom:1px solid rgba(99,102,241,0.2);padding:20px 24px;text-align:center;">
-      <span style="font-size:0.85rem;color:var(--text-muted);" data-fr="Vous utilisez" data-en="Using">Vous utilisez</span>
-      <strong style="color:var(--text);margin:0 8px;">GLPI</strong>
-      <span style="font-size:0.85rem;color:var(--text-muted);" data-fr="? Connectez-le à l'IA en 5 minutes —" data-en="? Connect it to AI in 5 minutes —">? Connectez-le à l'IA en 5 minutes —</span>
-      <a href="/glpi" style="color:var(--accent);font-weight:700;font-size:0.85rem;text-decoration:underline;margin-left:6px;" data-fr="Voir l'intégration GLPI →" data-en="See GLPI integration →">Voir l'intégration GLPI →</a>
-    </div>
-
-    <!-- FEATURES -->
-    <section id="features">
-      <div class="section-label" data-fr="Fonctionnalités" data-en="Features">Fonctionnalités</div>
-      <h2 class="section-title" data-fr="Tout pour un support IT moderne" data-en="Everything for modern IT support">Tout pour un support IT moderne</h2>
-      <p class="section-sub" data-fr="Un outil unique pour vos techniciens et vos utilisateurs." data-en="One tool for your technicians and your users.">Un outil unique pour vos techniciens et vos utilisateurs.</p>
-      <div class="features-grid">
-        <div class="feature-card">
-          <div class="feature-icon fi-indigo">🤖</div>
-          <h3 data-fr="IA Support N1/N2" data-en="AI Support L1/L2">IA Support N1/N2</h3>
-          <p data-fr="Répond instantanément en français et anglais. Résout les problèmes courants sans intervention humaine." data-en="Responds instantly in French and English. Resolves common issues without human intervention.">Répond instantanément en français et anglais. Résout les problèmes courants sans intervention humaine.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon fi-violet">🎫</div>
-          <h3 data-fr="Création tickets automatique" data-en="Automatic ticket creation">Création tickets automatique</h3>
-          <p data-fr="Escalade vers GLPI dès que nécessaire. Classification, priorité et catégorie définis par l'IA." data-en="Escalates to GLPI when needed. Classification, priority and category set by AI.">Escalade vers GLPI dès que nécessaire. Classification, priorité et catégorie définis par l'IA.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon fi-teal">📚</div>
-          <h3 data-fr="Base de connaissances" data-en="Knowledge base">Base de connaissances</h3>
-          <p data-fr="Vos procédures internes indexées et utilisées par l'IA. Import CSV en un clic." data-en="Your internal procedures indexed and used by the AI. CSV import in one click.">Vos procédures internes indexées et utilisées par l'IA. Import CSV en un clic.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon fi-green">📊</div>
-          <h3 data-fr="Dashboard admin" data-en="Admin dashboard">Dashboard admin</h3>
-          <p data-fr="Suivi en temps réel, KPIs, SLA, exports. Tout ce qu'il faut pour piloter votre support." data-en="Real-time monitoring, KPIs, SLA, exports. Everything you need to manage your support.">Suivi en temps réel, KPIs, SLA, exports. Tout ce qu'il faut pour piloter votre support.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon fi-orange">🏢</div>
-          <h3 data-fr="Multi-tenant" data-en="Multi-tenant">Multi-tenant</h3>
-          <p data-fr="Une instance pour plusieurs clients ou entités. Isolation complète des données entre tenants." data-en="One instance for multiple clients or entities. Complete data isolation between tenants.">Une instance pour plusieurs clients ou entités. Isolation complète des données entre tenants.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon fi-pink">🔗</div>
-          <h3 data-fr="Intégrations" data-en="Integrations">Intégrations</h3>
-          <p data-fr="GLPI natif, webhooks Slack et Teams, Active Directory / LDAP sur les plans avancés." data-en="Native GLPI, Slack and Teams webhooks, Active Directory / LDAP on advanced plans.">GLPI natif, webhooks Slack et Teams, Active Directory / LDAP sur les plans avancés.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- ROI CALCULATOR -->
-    <section id="roi" style="background:var(--bg2)">
-      <div class="section-label" data-fr="Calculateur ROI" data-en="ROI Calculator">Calculateur ROI</div>
-      <h2 class="section-title" data-fr="Combien économisez-vous par mois ?" data-en="How much do you save per month?">Combien économisez-vous par mois ?</h2>
-      <p class="section-sub" data-fr="Ajustez les curseurs selon votre contexte IT réel." data-en="Adjust the sliders to match your IT environment.">Ajustez les curseurs selon votre contexte IT réel.</p>
-      <div style="max-width:680px;margin:0 auto;background:var(--card);border:1px solid var(--stroke2);border-radius:20px;padding:40px">
-        <div style="display:grid;gap:28px">
+        <div class="showcase-panel">
           <div>
-            <div style="display:flex;justify-content:space-between;margin-bottom:10px">
-              <label style="font-size:.85rem;font-weight:600;color:var(--text-muted)" data-fr="Tickets N1/semaine" data-en="L1 tickets/week">Tickets N1/semaine</label>
-              <span id="val-tickets" style="font-weight:700;color:var(--accent)">80</span>
-            </div>
-            <input type="range" id="slider-tickets" min="10" max="300" value="80" style="width:100%;accent-color:var(--accent);cursor:pointer" oninput="calcRoi()">
-            <div style="display:flex;justify-content:space-between;font-size:.72rem;color:var(--text-muted);margin-top:4px"><span>10</span><span>300</span></div>
+            <h3 data-fr="Le support N1 devient un assistant guidé, pas un formulaire vide." data-en="Level 1 support becomes a guided assistant, not an empty form.">Le support N1 devient un assistant guidé, pas un formulaire vide.</h3>
           </div>
-          <div>
-            <div style="display:flex;justify-content:space-between;margin-bottom:10px">
-              <label style="font-size:.85rem;font-weight:600;color:var(--text-muted)" data-fr="Temps moyen de traitement manuel (min)" data-en="Average manual handling time (min)">Temps moyen de traitement manuel (min)</label>
-              <span id="val-time" style="font-weight:700;color:var(--accent)">25</span>
-            </div>
-            <input type="range" id="slider-time" min="5" max="60" value="25" style="width:100%;accent-color:var(--accent);cursor:pointer" oninput="calcRoi()">
-            <div style="display:flex;justify-content:space-between;font-size:.72rem;color:var(--text-muted);margin-top:4px"><span>5 min</span><span>60 min</span></div>
-          </div>
-          <div>
-            <div style="display:flex;justify-content:space-between;margin-bottom:10px">
-              <label style="font-size:.85rem;font-weight:600;color:var(--text-muted)" data-fr="Coût horaire technicien N1 (€/h)" data-en="L1 technician hourly cost (€/h)">Coût horaire technicien N1 (€/h)</label>
-              <span id="val-cost" style="font-weight:700;color:var(--accent)">35</span>
-            </div>
-            <input type="range" id="slider-cost" min="20" max="80" value="35" style="width:100%;accent-color:var(--accent);cursor:pointer" oninput="calcRoi()">
-            <div style="display:flex;justify-content:space-between;font-size:.72rem;color:var(--text-muted);margin-top:4px"><span>20€</span><span>80€</span></div>
-          </div>
-        </div>
-        <div style="margin-top:36px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;text-align:center">
-          <div style="background:var(--bg3);border-radius:14px;padding:20px">
-            <p id="roi-hours" style="font-size:2rem;font-weight:900;color:#fff;line-height:1">—</p>
-            <p style="font-size:.75rem;color:var(--text-muted);margin-top:6px" data-fr="Heures/mois automatisées" data-en="Hours/month automated">Heures/mois automatisées</p>
-          </div>
-          <div style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.3);border-radius:14px;padding:20px">
-            <p id="roi-savings" style="font-size:2rem;font-weight:900;color:var(--accent);line-height:1">—</p>
-            <p style="font-size:.75rem;color:var(--text-muted);margin-top:6px" data-fr="Économies mensuelles" data-en="Monthly savings">Économies mensuelles</p>
-          </div>
-          <div style="background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.2);border-radius:14px;padding:20px">
-            <p id="roi-return" style="font-size:2rem;font-weight:900;color:var(--success);line-height:1">—</p>
-            <p style="font-size:.75rem;color:var(--text-muted);margin-top:6px" data-fr="ROI vs plan Starter" data-en="ROI vs Starter plan">ROI vs plan Starter</p>
-          </div>
-        </div>
-        <div style="margin-top:24px;text-align:center">
-          <p id="roi-message" style="font-size:.9rem;color:var(--text-muted);margin-bottom:16px"></p>
-          <button class="btn primary" onclick="document.getElementById('demo')?.scrollIntoView({behavior:'smooth'})" style="padding:14px 36px" data-fr="Demander une démo →" data-en="Request a demo →">Demander une démo →</button>
+          <ul class="check-list">
+            <li data-fr="Catégories rapides : mot de passe, VPN, Outlook, imprimante, réseau, poste lent." data-en="Fast categories: password, VPN, Outlook, printer, network, slow device.">Catégories rapides : mot de passe, VPN, Outlook, imprimante, réseau, poste lent.</li>
+            <li data-fr="Réponses structurées avec étapes d'action, contexte et escalade." data-en="Structured answers with action steps, context and escalation.">Réponses structurées avec étapes d'action, contexte et escalade.</li>
+            <li data-fr="Création de ticket automatique avec titre, priorité, catégorie et résumé." data-en="Automatic ticket creation with title, priority, category and summary.">Création de ticket automatique avec titre, priorité, catégorie et résumé.</li>
+            <li data-fr="Mode démo résilient si le backend ou la base distante tombe." data-en="Resilient demo mode if the backend or remote database fails.">Mode démo résilient si le backend ou la base distante tombe.</li>
+          </ul>
+          <a class="btn primary large" href="/app/user/" data-fr="Ouvrir l'expérience utilisateur" data-en="Open user experience">Ouvrir l'expérience utilisateur</a>
         </div>
       </div>
     </section>
 
-    <!-- PRICING -->
-    <section id="pricing">
-      <div class="section-label" data-fr="Tarifs" data-en="Pricing">Tarifs</div>
-      <h2 class="section-title" data-fr="Tarification par licences, sans surprise" data-en="Per-licence pricing, no surprises">Tarification par licences, sans surprise</h2>
-      <p class="section-sub" data-fr="Un prix fixe par palier d'utilisateurs. Pas de coût caché. Démo gratuite sur tous les plans." data-en="Fixed price per user tier. No hidden costs. Free demo on all plans.">Un prix fixe par palier d'utilisateurs. Pas de coût caché. Démo gratuite sur tous les plans.</p>
+    <section class="workflow" id="workflow">
+      <div class="section-head">
+        <div class="section-kicker" data-fr="Workflow IT" data-en="IT workflow">Workflow IT</div>
+        <h2 class="section-title" data-fr="Du message au pilotage en continu" data-en="From message to continuous control">Du message au pilotage en continu</h2>
+      </div>
+      <div class="workflow-grid">
+        <article class="feature-card">
+          <div class="card-num">1</div>
+          <h3 data-fr="Diagnostic instantané" data-en="Instant diagnosis">Diagnostic instantané</h3>
+          <p data-fr="L'assistant collecte le contexte utile et propose les premières actions sans attendre un technicien." data-en="The assistant collects useful context and proposes first actions without waiting for a technician.">L'assistant collecte le contexte utile et propose les premières actions sans attendre un technicien.</p>
+        </article>
+        <article class="feature-card">
+          <div class="card-num">2</div>
+          <h3 data-fr="Escalade propre" data-en="Clean escalation">Escalade propre</h3>
+          <p data-fr="Si le problème persiste, le ticket contient déjà le résumé, la catégorie, la priorité et l'historique." data-en="If the issue persists, the ticket already contains summary, category, priority and history.">Si le problème persiste, le ticket contient déjà le résumé, la catégorie, la priorité et l'historique.</p>
+        </article>
+        <article class="feature-card">
+          <div class="card-num">3</div>
+          <h3 data-fr="Pilotage admin" data-en="Admin control">Pilotage admin</h3>
+          <p data-fr="Les responsables visualisent la file, les SLA, les alertes et les intégrations depuis un tableau de bord unique." data-en="Managers see queue, SLAs, alerts and integrations from a single dashboard.">Les responsables visualisent la file, les SLA, les alertes et les intégrations depuis un tableau de bord unique.</p>
+        </article>
+      </div>
+    </section>
 
-      <!-- Comparatif marché -->
-      <div style="max-width:700px;margin:0 auto 40px;background:var(--bg2);border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:20px 28px;">
-        <div style="font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px" data-fr="Vs. la concurrence" data-en="Vs. competitors">Vs. la concurrence</div>
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center;font-size:0.82rem;">
-          <div style="color:var(--text-muted)" data-fr="Solution" data-en="Solution">Solution</div>
-          <div style="color:var(--text-muted)" data-fr="Prix/agent/mois" data-en="Price/agent/mo">Prix/agent/mois</div>
-          <div style="color:var(--text-muted)">GLPI</div>
-          <div style="color:var(--text-muted)" data-fr="IA incluse" data-en="AI included">IA incluse</div>
-          <div style="color:var(--text-strong);font-weight:700">Assistant IT IA</div><div style="color:var(--success);font-weight:700">~4€</div><div style="color:var(--success)">✓ natif</div><div style="color:var(--success)">✓ GPT-4o</div>
-          <div style="color:var(--text-muted)">Freshdesk</div><div style="color:var(--text-muted)">15€</div><div style="color:var(--text-muted)">—</div><div style="color:var(--text-muted)">option +</div>
-          <div style="color:var(--text-muted)">Zendesk</div><div style="color:var(--text-muted)">69€</div><div style="color:var(--text-muted)">—</div><div style="color:var(--text-muted)">option ++</div>
-          <div style="color:var(--text-muted)">GLPI cloud</div><div style="color:var(--text-muted)">19€</div><div style="color:var(--success)">✓</div><div style="color:var(--text-muted)">—</div>
+    <section>
+      <div class="product-showcase">
+        <div class="showcase-panel">
+          <div>
+            <div class="section-kicker" data-fr="Admin premium" data-en="Premium admin">Admin premium</div>
+            <h2 class="section-title" style="text-align:left;font-size:clamp(1.8rem,3vw,2.8rem)" data-fr="Un cockpit pour DSI, support et direction" data-en="A cockpit for IT managers, support and leadership">Un cockpit pour DSI, support et direction</h2>
+            <p class="section-sub" style="text-align:left;margin-inline:0" data-fr="KPIs, tickets critiques, base de connaissances, utilisateurs, licences, GLPI, confidentialité et facturation restent au même endroit." data-en="KPIs, critical tickets, knowledge base, users, licenses, GLPI, privacy and billing stay in one place.">KPIs, tickets critiques, base de connaissances, utilisateurs, licences, GLPI, confidentialité et facturation restent au même endroit.</p>
+          </div>
+          <ul class="check-list">
+            <li data-fr="Vue file de tickets avec filtres et priorités." data-en="Ticket queue with filters and priorities.">Vue file de tickets avec filtres et priorités.</li>
+            <li data-fr="Diagnostics système pour IA, GLPI, Stripe, email et sécurité." data-en="System diagnostics for AI, GLPI, Stripe, email and security.">Diagnostics système pour IA, GLPI, Stripe, email et sécurité.</li>
+            <li data-fr="Gestion des utilisateurs, invitations et licences." data-en="User, invite and license management.">Gestion des utilisateurs, invitations et licences.</li>
+          </ul>
+        </div>
+        <div class="showcase-shot">
+          <img src="/mockups/step6_admin.png" alt="Tableau de bord administrateur de l'assistant support IT" loading="lazy" />
         </div>
       </div>
+    </section>
 
+    <section id="roi">
+      <div class="section-head">
+        <div class="section-kicker">ROI</div>
+        <h2 class="section-title" data-fr="Chiffrez le gain avant le rendez-vous client" data-en="Quantify value before the client meeting">Chiffrez le gain avant le rendez-vous client</h2>
+      </div>
+      <div class="roi-layout">
+        <div class="roi-panel">
+          <h3 data-fr="Hypothèses mensuelles" data-en="Monthly assumptions">Hypothèses mensuelles</h3>
+          <div class="range-row">
+            <label for="ticketsRange"><span data-fr="Tickets par semaine" data-en="Tickets per week">Tickets par semaine</span><strong id="ticketsValue">80</strong></label>
+            <input id="ticketsRange" type="range" min="10" max="450" value="80" step="10" />
+          </div>
+          <div class="range-row">
+            <label for="timeRange"><span data-fr="Minutes N1 par ticket" data-en="L1 minutes per ticket">Minutes N1 par ticket</span><strong id="timeValue">12</strong></label>
+            <input id="timeRange" type="range" min="4" max="45" value="12" />
+          </div>
+          <div class="range-row">
+            <label for="costRange"><span data-fr="Coût horaire support" data-en="Support hourly cost">Coût horaire support</span><strong><span id="costValue">45</span>€</strong></label>
+            <input id="costRange" type="range" min="25" max="95" value="45" step="5" />
+          </div>
+        </div>
+        <div class="roi-panel">
+          <h3 data-fr="Projection conservatrice" data-en="Conservative projection">Projection conservatrice</h3>
+          <div class="roi-result">
+            <div class="roi-metric"><strong id="hoursSaved">45h</strong><span data-fr="économisées / mois" data-en="saved / month">économisées / mois</span></div>
+            <div class="roi-metric"><strong id="moneySaved">2 025€</strong><span data-fr="valeur mensuelle" data-en="monthly value">valeur mensuelle</span></div>
+            <div class="roi-metric"><strong id="roiMultiple">x5</strong><span data-fr="vs plan Pro" data-en="vs Pro plan">vs plan Pro</span></div>
+          </div>
+          <p id="roiMessage" class="section-sub" style="text-align:left;margin:22px 0 0" data-fr="Le plan Pro s'autofinance dès que 70% des demandes courantes sont absorbées par l'assistant." data-en="The Pro plan pays for itself once 70% of common requests are handled by the assistant.">Le plan Pro s'autofinance dès que 70% des demandes courantes sont absorbées par l'assistant.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="pricing" id="pricing">
+      <div class="section-head">
+        <div class="section-kicker" data-fr="Tarifs" data-en="Pricing">Tarifs</div>
+        <h2 class="section-title" data-fr="Une offre simple à présenter" data-en="A simple offer to present">Une offre simple à présenter</h2>
+      </div>
       <div class="pricing-grid">
-
-        <div class="plan">
+        <article class="plan">
           <div class="plan-name">Starter</div>
-          <div class="plan-price">
-            <span class="plan-amount">199€</span>
-            <span class="plan-period">/mo</span>
-          </div>
-          <p style="font-size:0.78rem;color:var(--success);font-weight:600;margin:4px 0 8px" data-fr="Jusqu'à 50 utilisateurs inclus" data-en="Up to 50 users included">Jusqu'à 50 utilisateurs inclus</p>
-          <p class="plan-desc" data-fr="Pour les PME souhaitant automatiser leur support N1 sans infrastructure lourde." data-en="For SMEs looking to automate L1 support without heavy infrastructure.">Pour les PME souhaitant automatiser leur support N1 sans infrastructure lourde.</p>
-          <div class="plan-features">
-            <div class="plan-feature"><span class="check">✓</span> <span data-fr="50 utilisateurs (+ 4€/user/mois au-delà)" data-en="50 users (+ €4/user/mo beyond)">50 utilisateurs <span style="color:var(--text-muted);font-size:0.78rem">(+ 4€/user/mo au-delà)</span></span></div>
-            <div class="plan-feature"><span class="check">✓</span> <span data-fr="Assistant IA N1/N2 (GPT-4o)" data-en="AI Assistant L1/L2 (GPT-4o)">Assistant IA N1/N2 (GPT-4o)</span></div>
-            <div class="plan-feature"><span class="check">✓</span> <span data-fr="Tickets automatiques + GLPI natif" data-en="Auto tickets + native GLPI">Tickets automatiques + GLPI natif</span></div>
-            <div class="plan-feature"><span class="check">✓</span> <span data-fr="Base de connaissances auto-apprenante" data-en="Self-learning knowledge base">Base de connaissances auto-apprenante</span></div>
-            <div class="plan-feature"><span class="check">✓</span> <span data-fr="Dashboard &amp; historique tickets" data-en="Dashboard &amp; ticket history">Dashboard &amp; historique tickets</span></div>
-            <div class="plan-feature"><span class="cross">—</span> <span data-fr="Analytics avancés &amp; SLA" data-en="Advanced analytics &amp; SLA">Analytics avancés &amp; SLA</span></div>
-            <div class="plan-feature"><span class="cross">—</span> <span data-fr="Intégrations Slack / Teams" data-en="Slack / Teams integrations">Intégrations Slack / Teams</span></div>
-          </div>
-          <div class="plan-cta">
-            <button class="btn" style="width:100%;justify-content:center;" onclick="openModal('starter')" data-fr="Demander une démo" data-en="Request a demo">Demander une démo</button>
-          </div>
-        </div>
-
-        <div class="plan featured">
-          <div class="plan-badge" data-fr="Recommandé" data-en="Recommended">Recommandé</div>
+          <div class="plan-price">199€ <span>/mois</span></div>
+          <p data-fr="Pour lancer le support IA dans une PME." data-en="For launching AI support in an SME.">Pour lancer le support IA dans une PME.</p>
+          <ul>
+            <li data-fr="50 utilisateurs inclus" data-en="50 users included">50 utilisateurs inclus</li>
+            <li data-fr="Assistant IA N1" data-en="L1 AI assistant">Assistant IA N1</li>
+            <li data-fr="Tickets et base de connaissances" data-en="Tickets and knowledge base">Tickets et base de connaissances</li>
+          </ul>
+          <button class="btn" type="button" data-open-modal data-plan="starter">Demander une démo</button>
+        </article>
+        <article class="plan featured">
           <div class="plan-name">Pro</div>
-          <div class="plan-price">
-            <span class="plan-amount">399€</span>
-            <span class="plan-period">/mo</span>
-          </div>
-          <p style="font-size:0.78rem;color:var(--success);font-weight:600;margin:4px 0 8px" data-fr="Jusqu'à 200 utilisateurs inclus" data-en="Up to 200 users included">Jusqu'à 200 utilisateurs inclus</p>
-          <p class="plan-desc" data-fr="Pour les équipes IT structurées avec GLPI, Active Directory et reportings SLA." data-en="For structured IT teams with GLPI, Active Directory and SLA reporting.">Pour les équipes IT structurées avec GLPI, Active Directory et reportings SLA.</p>
-          <div class="plan-features">
-            <div class="plan-feature"><span class="check">✓</span> <span>200 utilisateurs <span style="color:var(--text-muted);font-size:0.78rem">(+ 3€/user/mo au-delà)</span></span></div>
-            <div class="plan-feature"><span class="check">✓</span> <span data-fr="Tout Starter inclus" data-en="All Starter included">Tout Starter inclus</span></div>
-            <div class="plan-feature"><span class="check">✓</span> <span data-fr="Analytics avancés &amp; alertes SLA" data-en="Advanced analytics &amp; SLA alerts">Analytics avancés &amp; alertes SLA</span></div>
-            <div class="plan-feature"><span class="check">✓</span> <span data-fr="Webhooks Slack / Teams" data-en="Slack / Teams webhooks">Webhooks Slack / Teams</span></div>
-            <div class="plan-feature"><span class="check">✓</span> <span data-fr="Active Directory / LDAP" data-en="Active Directory / LDAP">Active Directory / LDAP</span></div>
-            <div class="plan-feature"><span class="check">✓</span> <span data-fr="Support prioritaire 24h" data-en="Priority 24h support">Support prioritaire 24h</span></div>
-            <div class="plan-feature"><span class="check">✓</span> <span data-fr="Rapports SLA automatiques PDF" data-en="Automatic SLA PDF reports">Rapports SLA automatiques PDF</span></div>
-          </div>
-          <div class="plan-cta">
-            <button class="btn primary" style="width:100%;justify-content:center;" onclick="openModal('pro')" data-fr="Demander une démo" data-en="Request a demo">Demander une démo</button>
-          </div>
-        </div>
-
-        <div class="plan">
+          <div class="plan-price">399€ <span>/mois</span></div>
+          <p data-fr="Le meilleur choix pour une équipe IT structurée." data-en="Best fit for a structured IT team.">Le meilleur choix pour une équipe IT structurée.</p>
+          <ul>
+            <li data-fr="200 utilisateurs inclus" data-en="200 users included">200 utilisateurs inclus</li>
+            <li data-fr="GLPI, SLA, analytics et webhooks" data-en="GLPI, SLA, analytics and webhooks">GLPI, SLA, analytics et webhooks</li>
+            <li data-fr="Support prioritaire et rapports PDF" data-en="Priority support and PDF reports">Support prioritaire et rapports PDF</li>
+          </ul>
+          <button class="btn primary" type="button" data-open-modal data-plan="pro">Choisir Pro</button>
+        </article>
+        <article class="plan">
           <div class="plan-name" data-fr="Entreprise" data-en="Enterprise">Entreprise</div>
-          <div class="plan-price">
-            <span class="plan-amount" data-fr="Sur devis" data-en="Custom">Sur devis</span>
-          </div>
-          <p style="font-size:0.78rem;color:var(--success);font-weight:600;margin:4px 0 8px" data-fr="Utilisateurs illimités" data-en="Unlimited users">Utilisateurs illimités</p>
-          <p class="plan-desc" data-fr="Pour les ESN, groupes et collectivités gérant plusieurs périmètres IT." data-en="For IT service providers, groups and organizations managing multiple IT scopes.">Pour les ESN, groupes et collectivités gérant plusieurs périmètres IT.</p>
-          <div class="plan-features">
-            <div class="plan-feature"><span class="check">✓</span> <span data-fr="Utilisateurs illimités — prix fixe" data-en="Unlimited users — fixed price">Utilisateurs illimités — prix fixe</span></div>
-            <div class="plan-feature"><span class="check">✓</span> <span data-fr="Tout Pro inclus" data-en="All Pro included">Tout Pro inclus</span></div>
-            <div class="plan-feature"><span class="check">✓</span> <span data-fr="Multi-tenant (plusieurs clients)" data-en="Multi-tenant (multiple clients)">Multi-tenant (plusieurs clients)</span></div>
-            <div class="plan-feature"><span class="check">✓</span> <span data-fr="API complète &amp; webhooks custom" data-en="Full API &amp; custom webhooks">API complète &amp; webhooks custom</span></div>
-            <div class="plan-feature"><span class="check">✓</span> <span data-fr="Hébergement dédié on-premise possible" data-en="Dedicated on-premise hosting available">Hébergement dédié on-premise possible</span></div>
-            <div class="plan-feature"><span class="check">✓</span> <span data-fr="SLA contractuel 99,9%" data-en="Contractual SLA 99.9%">SLA contractuel 99,9%</span></div>
-            <div class="plan-feature"><span class="check">✓</span> <span data-fr="Accompagnement RSSI &amp; audit sécurité" data-en="CISO support &amp; security audit">Accompagnement RSSI &amp; audit sécurité</span></div>
-          </div>
-          <div class="plan-cta">
-            <button class="btn" style="width:100%;justify-content:center;" onclick="openModal('enterprise')" data-fr="Demander un devis" data-en="Request a quote">Demander un devis</button>
-          </div>
-        </div>
-
+          <div class="plan-price" data-fr="Sur devis" data-en="Custom">Sur devis</div>
+          <p data-fr="Pour ESN, groupes et clients multi-sites." data-en="For MSPs, groups and multi-site clients.">Pour ESN, groupes et clients multi-sites.</p>
+          <ul>
+            <li data-fr="Multi-tenant et utilisateurs illimités" data-en="Multi-tenant and unlimited users">Multi-tenant et utilisateurs illimités</li>
+            <li data-fr="Déploiement dédié ou on-premise" data-en="Dedicated or on-premise deployment">Déploiement dédié ou on-premise</li>
+            <li data-fr="Accompagnement RSSI et intégrations" data-en="CISO support and integrations">Accompagnement RSSI et intégrations</li>
+          </ul>
+          <button class="btn" type="button" data-open-modal data-plan="enterprise" data-fr="Demander un devis" data-en="Request quote">Demander un devis</button>
+        </article>
       </div>
     </section>
 
-    <!-- SÉCURITÉ & RGPD -->
-    <section id="security" style="background:var(--bg);">
-      <div class="section-label" data-fr="Sécurité &amp; Conformité" data-en="Security &amp; Compliance">Sécurité &amp; Conformité</div>
-      <h2 class="section-title" data-fr="Vos données restent les vôtres" data-en="Your data stays yours">Vos données restent les vôtres</h2>
-      <p class="section-sub" data-fr="Architecture pensée dès le départ pour les exigences des DSI et RSSI en environnement PME." data-en="Architecture designed from the ground up for CIO and CISO requirements in SME environments.">Architecture pensée dès le départ pour les exigences des DSI et RSSI en environnement PME.</p>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px;max-width:1000px;margin:0 auto;">
-
-        <div style="background:var(--bg2);border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:28px;">
-          <div style="font-size:2rem;margin-bottom:12px">🔐</div>
-          <h3 style="font-size:1rem;font-weight:700;color:var(--text-strong);margin-bottom:8px" data-fr="Données anonymisées" data-en="Anonymised data">Données anonymisées</h3>
-          <p style="font-size:0.84rem;color:var(--text-muted);line-height:1.6" data-fr="Les tickets et conversations sont pseudonymisés à l'ingestion. Aucun nom, email ou identifiant personnel n'est transmis aux modèles IA. Seul le contenu technique voyage." data-en="Tickets and conversations are pseudonymised at ingestion. No name, email or personal identifier is sent to AI models. Only technical content travels.">Les tickets et conversations sont pseudonymisés à l'ingestion. Aucun nom, email ou identifiant personnel n'est transmis aux modèles IA. Seul le contenu technique voyage.</p>
-        </div>
-
-        <div style="background:var(--bg2);border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:28px;">
-          <div style="font-size:2rem;margin-bottom:12px">🇪🇺</div>
-          <h3 style="font-size:1rem;font-weight:700;color:var(--text-strong);margin-bottom:8px">RGPD &amp; Hébergement EU</h3>
-          <p style="font-size:0.84rem;color:var(--text-muted);line-height:1.6" data-fr="Données hébergées en Europe (Scaleway / OVH selon le plan). Aucun transfert hors UE. Conformité RGPD article 25 (privacy by design). DPA disponible sur demande." data-en="Data hosted in Europe (Scaleway / OVH depending on plan). No transfer outside EU. GDPR article 25 compliant (privacy by design). DPA available on request.">Données hébergées en Europe (Scaleway / OVH selon le plan). Aucun transfert hors UE. Conformité RGPD article 25 (privacy by design). DPA disponible sur demande.</p>
-        </div>
-
-        <div style="background:var(--bg2);border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:28px;">
-          <div style="font-size:2rem;margin-bottom:12px">🛡️</div>
-          <h3 style="font-size:1rem;font-weight:700;color:var(--text-strong);margin-bottom:8px" data-fr="Chiffrement de bout en bout" data-en="End-to-end encryption">Chiffrement de bout en bout</h3>
-          <p style="font-size:0.84rem;color:var(--text-muted);line-height:1.6" data-fr="TLS 1.3 en transit, AES-256 au repos. Authentification par token JWT à durée limitée. Accès admin tracé et auditable. Séparation totale des données par tenant." data-en="TLS 1.3 in transit, AES-256 at rest. JWT time-limited token authentication. Traced and auditable admin access. Full data separation per tenant.">TLS 1.3 en transit, AES-256 au repos. Authentification par token JWT à durée limitée. Accès admin tracé et auditable. Séparation totale des données par tenant.</p>
-        </div>
-
-        <div style="background:var(--bg2);border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:28px;">
-          <div style="font-size:2rem;margin-bottom:12px">🏠</div>
-          <h3 style="font-size:1rem;font-weight:700;color:var(--text-strong);margin-bottom:8px" data-fr="On-premise disponible" data-en="On-premise available">On-premise disponible</h3>
-          <p style="font-size:0.84rem;color:var(--text-muted);line-height:1.6" data-fr="Déploiement sur vos serveurs Linux ou Windows Server (Docker). Vos données ne quittent jamais votre infrastructure. Compatible avec les politiques de sécurité les plus strictes (banque, santé, défense)." data-en="Deploy on your Linux or Windows Server infrastructure (Docker). Your data never leaves your network. Compatible with the strictest security policies (banking, healthcare, defence).">Déploiement sur vos serveurs Linux ou Windows Server (Docker). Vos données ne quittent jamais votre infrastructure. Compatible avec les politiques de sécurité les plus strictes (banque, santé, défense).</p>
-        </div>
-
-        <div style="background:var(--bg2);border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:28px;">
-          <div style="font-size:2rem;margin-bottom:12px">📋</div>
-          <h3 style="font-size:1rem;font-weight:700;color:var(--text-strong);margin-bottom:8px" data-fr="Pratiques ISO 27001" data-en="ISO 27001 practices">Pratiques ISO 27001</h3>
-          <p style="font-size:0.84rem;color:var(--text-muted);line-height:1.6" data-fr="Politique de sécurité documentée alignée ISO 27001. Gestion des accès par rôles (RBAC), logs d'audit complets, plan de continuité d'activité. Fiche sécurité RSSI disponible sur demande." data-en="Documented security policy aligned with ISO 27001. Role-based access control (RBAC), full audit logs, business continuity plan. CISO security sheet available on request.">Politique de sécurité documentée alignée ISO 27001. Gestion des accès par rôles (RBAC), logs d'audit complets, plan de continuité d'activité. Fiche sécurité RSSI disponible sur demande.</p>
-        </div>
-
-        <div style="background:var(--bg2);border:1px solid rgba(99,102,241,0.15);border-radius:16px;padding:28px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;">
-          <div style="font-size:2rem;margin-bottom:12px">📄</div>
-          <h3 style="font-size:1rem;font-weight:700;color:var(--text-strong);margin-bottom:8px" data-fr="Fiche technique RSSI" data-en="CISO Technical Sheet">Fiche technique RSSI</h3>
-          <p style="font-size:0.84rem;color:var(--text-muted);line-height:1.6;margin-bottom:16px" data-fr="Architecture complète, flux de données, politique de rétention, contacts DPO." data-en="Full architecture, data flows, retention policy, DPO contacts.">Architecture complète, flux de données, politique de rétention, contacts DPO.</p>
-          <a href="mailto:contact@kah-digital.ch?subject=Fiche sécurité RSSI" class="btn ghost" style="font-size:0.84rem" data-fr="Télécharger la fiche →" data-en="Download sheet →">Télécharger la fiche →</a>
-        </div>
-
+    <section id="security">
+      <div class="section-head">
+        <div class="section-kicker" data-fr="Sécurité" data-en="Security">Sécurité</div>
+        <h2 class="section-title" data-fr="Pensé pour rassurer une DSI" data-en="Built to reassure IT leadership">Pensé pour rassurer une DSI</h2>
+      </div>
+      <div class="security-grid">
+        <article class="security-card"><h3>RGPD</h3><p data-fr="Pseudonymisation, séparation par tenant et politique de rétention documentée." data-en="Pseudonymization, tenant isolation and documented retention policy.">Pseudonymisation, séparation par tenant et politique de rétention documentée.</p></article>
+        <article class="security-card"><h3>RBAC</h3><p data-fr="Rôles utilisateur, agent, admin et superadmin pour garder les accès maîtrisés." data-en="User, agent, admin and superadmin roles keep access controlled.">Rôles utilisateur, agent, admin et superadmin pour garder les accès maîtrisés.</p></article>
+        <article class="security-card"><h3>Audit</h3><p data-fr="Actions sensibles tracées pour les connexions, réglages, tickets et imports." data-en="Sensitive actions logged for logins, settings, tickets and imports.">Actions sensibles tracées pour les connexions, réglages, tickets et imports.</p></article>
+        <article class="security-card"><h3>On-premise</h3><p data-fr="Déploiement Docker possible sur l'infrastructure client si nécessaire." data-en="Docker deployment possible on client infrastructure when needed.">Déploiement Docker possible sur l'infrastructure client si nécessaire.</p></article>
       </div>
     </section>
 
-    <!-- TESTIMONIALS -->
-    <section id="testimonials">
-      <div class="section-label" data-fr="Témoignages" data-en="Testimonials">Témoignages</div>
-      <h2 class="section-title" data-fr="Ils ont transformé leur support IT" data-en="They transformed their IT support">Ils ont transformé leur support IT</h2>
-      <p class="section-sub" data-fr="Des PME, mairies et ESN qui utilisent l'assistant au quotidien." data-en="SMEs, municipalities and IT service providers using the assistant daily.">Des PME, mairies et ESN qui utilisent l'assistant au quotidien.</p>
-      <div class="testimonials-grid">
-        <div class="testimonial">
-          <div class="stars">★★★★★</div>
-          <p class="testimonial-text" data-fr="«&nbsp;On a réduit de 70% le temps passé à trier et répondre aux tickets. Les utilisateurs sont autonomes pour les problèmes courants.&nbsp;»" data-en="«&nbsp;We reduced by 70% the time spent sorting and responding to tickets. Users handle common issues on their own.&nbsp;»">«&nbsp;On a réduit de 70% le temps passé à trier et répondre aux tickets. Les utilisateurs sont autonomes pour les problèmes courants.&nbsp;»</p>
-          <div class="testimonial-author">
-            <div class="testimonial-avatar">JM</div>
-            <div>
-              <div class="testimonial-name">Jean-Marc D.</div>
-              <div class="testimonial-role" data-fr="DSI — PME industrielle, 120 salariés" data-en="CIO — Industrial SME, 120 employees">DSI — PME industrielle, 120 salariés</div>
-            </div>
-          </div>
+    <section class="contact" id="contact">
+      <div class="contact-panel">
+        <div>
+          <div class="section-kicker" data-fr="Prochaine étape" data-en="Next step">Prochaine étape</div>
+          <h2 data-fr="Préparer une démo client propre en quelques minutes" data-en="Prepare a clean client demo in minutes">Préparer une démo client propre en quelques minutes</h2>
+          <p data-fr="Le formulaire enregistre le lead, puis l'équipe peut créer l'espace client, connecter GLPI et importer les procédures." data-en="The form records the lead, then the team can create the client space, connect GLPI and import procedures.">Le formulaire enregistre le lead, puis l'équipe peut créer l'espace client, connecter GLPI et importer les procédures.</p>
         </div>
-        <div class="testimonial">
-          <div class="stars">★★★★★</div>
-          <p class="testimonial-text" data-fr="«&nbsp;Connecté à notre GLPI en 10 minutes. L'IA propose des solutions que nos techniciens utilisent directement. ROI immédiat.&nbsp;»" data-en="«&nbsp;Connected to our GLPI in 10 minutes. The AI suggests solutions our technicians use directly. Immediate ROI.&nbsp;»">«&nbsp;Connecté à notre GLPI en 10 minutes. L'IA propose des solutions que nos techniciens utilisent directement. ROI immédiat.&nbsp;»</p>
-          <div class="testimonial-author">
-            <div class="testimonial-avatar">SL</div>
-            <div>
-              <div class="testimonial-name">Sophie L.</div>
-              <div class="testimonial-role" data-fr="Responsable IT — Mairie, 80 agents" data-en="IT Manager — Municipality, 80 staff">Responsable IT — Mairie, 80 agents</div>
-            </div>
-          </div>
-        </div>
-        <div class="testimonial">
-          <div class="stars">★★★★★</div>
-          <p class="testimonial-text" data-fr="«&nbsp;Simple pour nos enseignants non-tech. Tickets créés en 2 clics, suivis automatiquement, escalade vers l'équipe en cas de besoin.&nbsp;»" data-en="«&nbsp;Simple for our non-technical teachers. Tickets created in 2 clicks, automatically tracked, escalated to the team when needed.&nbsp;»">«&nbsp;Simple pour nos enseignants non-tech. Tickets créés en 2 clics, suivis automatiquement, escalade vers l'équipe en cas de besoin.&nbsp;»</p>
-          <div class="testimonial-author">
-            <div class="testimonial-avatar">AC</div>
-            <div>
-              <div class="testimonial-name">Alexandre C.</div>
-              <div class="testimonial-role" data-fr="Technicien IT — Lycée, 1 200 élèves" data-en="IT Technician — High School, 1,200 students">Technicien IT — Lycée, 1 200 élèves</div>
-            </div>
-          </div>
-        </div>
+        <form class="demo-form" id="demoRequestForm">
+          <input id="drName" name="name" autocomplete="name" placeholder="Nom" required />
+          <input id="drEmail" name="email" type="email" autocomplete="email" placeholder="Email professionnel" required />
+          <input id="drCompany" name="company" autocomplete="organization" placeholder="Entreprise" />
+          <select id="drPlan" name="plan">
+            <option value="pro">Plan Pro - recommandé</option>
+            <option value="starter">Starter</option>
+            <option value="enterprise">Entreprise / sur devis</option>
+          </select>
+          <textarea id="drMessage" name="message" placeholder="Contexte client, GLPI, nombre d'utilisateurs..."></textarea>
+          <button class="btn primary large" type="submit" id="drBtn" data-fr="Envoyer la demande" data-en="Send request">Envoyer la demande</button>
+          <div class="form-status" id="drStatus" role="status"></div>
+        </form>
       </div>
     </section>
 
-    <!-- CTA FINAL -->
-    <div class="cta-section">
-      <h2 data-fr="Prêt à transformer votre support IT ?" data-en="Ready to transform your IT support?">Prêt à transformer votre support IT ?</h2>
-      <p data-fr="Démo personnalisée sur votre infrastructure, opérationnel en 15 minutes." data-en="Personalised demo on your infrastructure, live in 15 minutes.">Démo personnalisée sur votre infrastructure, opérationnel en 15 minutes.</p>
-      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
-        <a href="#demo" class="btn primary large" data-fr="Demander une démo" data-en="Request a demo">Demander une démo</a>
-        <a href="/app/demo-video.html" class="btn large" data-fr="Voir la démo" data-en="View demo">Voir la démo</a>
-      </div>
-      <p class="cta-note">
-        <span>✓</span> <span data-fr="Démo gratuite" data-en="Free demo">Démo gratuite</span> &nbsp;&nbsp;
-        <span>✓</span> <span data-fr="Sans engagement" data-en="No commitment">Sans engagement</span> &nbsp;&nbsp;
-        <span>✓</span> <span data-fr="Opérationnel en 15 minutes" data-en="Live in 15 minutes">Opérationnel en 15 minutes</span>
-      </p>
-    </div>
-
-    <!-- FOOTER -->
     <footer>
-      <div class="footer-brand">🤖 <span data-fr="Assistant IT — par KAH Digital" data-en="IT Assistant — by KAH Digital">Assistant IT — par KAH Digital</span></div>
-      <div class="footer-links">
-        <a href="#features" data-fr="Fonctionnalités" data-en="Features">Fonctionnalités</a>
-        <a href="#pricing" data-fr="Tarifs" data-en="Pricing">Tarifs</a>
-        <a href="#contact" data-fr="Démo" data-en="Demo">Démo</a>
-        <a href="/app/login/" data-fr="Connexion" data-en="Login">Connexion</a>
-        <a href="mailto:contact@kah-digital.ch">Contact</a>
+      <div>Assistant IT - KAH Digital</div>
+      <div style="display:flex;gap:18px;flex-wrap:wrap">
+        <a href="/app/login/">Connexion</a>
+        <a href="/app/user/">Utilisateur</a>
+        <a href="/app/admin/">Admin</a>
+        <a href="/app/legal.html">Mentions légales</a>
+        <a href="mailto:contact@kah-digital.ch">contact@kah-digital.ch</a>
       </div>
-      <div class="footer-copy">© 2026 KAH Digital. <span data-fr="Tous droits réservés." data-en="All rights reserved.">Tous droits réservés.</span> <a href="/app/legal.html" style="opacity:0.5;color:inherit" data-fr="Mentions légales" data-en="Legal notice">Mentions légales</a></div>
     </footer>
 
-    <!-- MODAL INSCRIPTION -->
-    <div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
-      <div class="modal" style="position:relative;">
-        <button class="modal-close" onclick="closeModal()" aria-label="Fermer">&times;</button>
+    <div class="modal-overlay" id="modalOverlay" aria-hidden="true">
+      <div class="modal" style="position:relative">
+        <button class="modal-close" type="button" id="modalClose" aria-label="Fermer">×</button>
         <h2 data-fr="Demander une démo" data-en="Request a demo">Demander une démo</h2>
-        <p class="modal-sub" data-fr="Remplissez ce formulaire, nous vous contacterons sous 24h." data-en="Fill in this form, we'll get back to you within 24h.">Remplissez ce formulaire, nous vous contacterons sous 24h.</p>
-        <div class="modal-plan-badge" id="modalPlanBadge">Plan Starter — 99€/mo</div>
-        <form id="checkoutForm" onsubmit="submitCheckout(event)">
-          <div class="form-group">
-            <label for="fieldOrg" data-fr="Nom de l'organisation" data-en="Organisation name">Nom de l'organisation</label>
-            <input type="text" id="fieldOrg" placeholder="Acme Corp" required />
-          </div>
-          <div class="form-group">
-            <label for="fieldEmail" data-fr="Email professionnel" data-en="Professional email">Email professionnel</label>
-            <input type="email" id="fieldEmail" placeholder="jean@company.com" required />
-          </div>
-          <div class="form-group">
-            <label for="fieldPlan" data-fr="Plan sélectionné" data-en="Selected plan">Plan sélectionné</label>
-            <select id="fieldPlan">
-              <option value="starter">Starter — 99€/mo</option>
-              <option value="pro">Pro — 199€/mo</option>
-              <option value="enterprise">Enterprise — 399€/mo</option>
-            </select>
-          </div>
-          <button type="submit" class="modal-submit" id="submitBtn" data-fr="Payer avec Stripe →" data-en="Pay with Stripe →">Payer avec Stripe →</button>
-          <div class="modal-error" id="modalError"></div>
+        <p data-fr="Laissez vos informations. En mode démo, le formulaire reste fonctionnel même si le backend distant est indisponible." data-en="Leave your details. In demo mode, the form remains functional even if the remote backend is unavailable.">Laissez vos informations. En mode démo, le formulaire reste fonctionnel même si le backend distant est indisponible.</p>
+        <form class="modal-form" id="checkoutForm">
+          <input id="fieldOrg" name="company" placeholder="Entreprise" required />
+          <input id="fieldEmail" name="email" type="email" placeholder="Email professionnel" required />
+          <select id="fieldPlan" name="plan">
+            <option value="starter">Starter - 199€/mois</option>
+            <option value="pro">Pro - 399€/mois</option>
+            <option value="enterprise">Entreprise - sur devis</option>
+          </select>
+          <button class="btn primary large" type="submit" id="submitBtn" data-fr="Continuer" data-en="Continue">Continuer</button>
+          <div class="form-status" id="modalStatus" role="status"></div>
         </form>
-        <p style="font-size:0.75rem;color:var(--text-muted);margin-top:14px;text-align:center;" data-fr="Paiement sécurisé par Stripe. Résiliable à tout moment." data-en="Secure payment by Stripe. Cancel anytime.">
-          Paiement sécurisé par Stripe. Résiliable à tout moment.
-        </p>
       </div>
     </div>
 
+    <script src="/app/premium-fallback.js?v=20260826"></script>
     <script>
-      // ── LANGUAGE SYSTEM ──
-      let currentLang = (navigator.language || 'fr').startsWith('en') ? 'en' : 'fr';
+      let currentLang = (navigator.language || "fr").startsWith("en") ? "en" : "fr";
 
       function applyLang(lang) {
         currentLang = lang;
-        document.getElementById('htmlRoot').lang = lang;
-        document.getElementById('langToggle').textContent = lang === 'fr' ? 'EN' : 'FR';
-        document.querySelectorAll('[data-fr]').forEach(el => {
-          const val = el.getAttribute('data-' + lang);
-          if (val !== null) el.innerHTML = val;
+        document.documentElement.lang = lang;
+        document.getElementById("langToggle").textContent = lang === "fr" ? "EN" : "FR";
+        document.querySelectorAll("[data-fr][data-en]").forEach((el) => {
+          el.innerHTML = el.getAttribute(`data-${lang}`) || el.innerHTML;
         });
-        // Update ROI message language
-        calcRoi();
       }
 
-      function toggleLang() {
-        applyLang(currentLang === 'fr' ? 'en' : 'fr');
+      document.getElementById("langToggle").addEventListener("click", () => {
+        applyLang(currentLang === "fr" ? "en" : "fr");
+      });
+
+      const ticketsRange = document.getElementById("ticketsRange");
+      const timeRange = document.getElementById("timeRange");
+      const costRange = document.getElementById("costRange");
+
+      function updateRoi() {
+        const tickets = Number(ticketsRange.value);
+        const time = Number(timeRange.value);
+        const cost = Number(costRange.value);
+        document.getElementById("ticketsValue").textContent = tickets;
+        document.getElementById("timeValue").textContent = time;
+        document.getElementById("costValue").textContent = cost;
+        const automated = tickets * 4 * 0.7;
+        const hours = Math.round((automated * time) / 60);
+        const savings = Math.round(hours * cost);
+        document.getElementById("hoursSaved").textContent = `${hours}h`;
+        document.getElementById("moneySaved").textContent = `${savings.toLocaleString("fr-FR")}€`;
+        document.getElementById("roiMultiple").textContent = `x${Math.max(1, Math.round(savings / 399))}`;
+        document.getElementById("roiMessage").textContent =
+          currentLang === "fr"
+            ? `À ce volume, l'assistant peut absorber environ ${Math.round(automated)} demandes courantes par mois.`
+            : `At this volume, the assistant can handle about ${Math.round(automated)} common requests per month.`;
       }
 
-      // ── PLAN LABELS ──
-      const PLAN_LABELS = {
-        starter: "Plan Starter — 99€/mo",
-        pro: "Plan Pro — 199€/mo",
-        enterprise: "Plan Enterprise — 399€/mo",
-      };
+      [ticketsRange, timeRange, costRange].forEach((input) => input.addEventListener("input", updateRoi));
 
-      function openModal(plan) {
-        const overlay = document.getElementById("modalOverlay");
-        const select = document.getElementById("fieldPlan");
-        const badge = document.getElementById("modalPlanBadge");
-        if (plan && select) select.value = plan;
-        if (badge) badge.textContent = PLAN_LABELS[plan] || PLAN_LABELS.starter;
-        overlay.classList.add("open");
-        document.getElementById("fieldOrg").focus();
-      }
-
+      const modalOverlay = document.getElementById("modalOverlay");
+      const fieldPlan = document.getElementById("fieldPlan");
+      document.querySelectorAll("[data-open-modal]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const plan = button.getAttribute("data-plan");
+          if (plan) fieldPlan.value = plan;
+          modalOverlay.classList.add("open");
+          modalOverlay.setAttribute("aria-hidden", "false");
+          document.getElementById("fieldOrg").focus();
+        });
+      });
       function closeModal() {
-        document.getElementById("modalOverlay").classList.remove("open");
+        modalOverlay.classList.remove("open");
+        modalOverlay.setAttribute("aria-hidden", "true");
       }
-
-      function closeModalOutside(e) {
-        if (e.target === document.getElementById("modalOverlay")) closeModal();
-      }
-
-      document.getElementById("fieldPlan").addEventListener("change", function() {
-        const badge = document.getElementById("modalPlanBadge");
-        badge.textContent = PLAN_LABELS[this.value] || PLAN_LABELS.starter;
+      document.getElementById("modalClose").addEventListener("click", closeModal);
+      modalOverlay.addEventListener("click", (event) => {
+        if (event.target === modalOverlay) closeModal();
+      });
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") closeModal();
       });
 
-      document.addEventListener("keydown", function(e) {
-        if (e.key === "Escape") closeModal();
-      });
-
-      function calcRoi() {
-        const tickets = +document.getElementById("slider-tickets").value;
-        const time = +document.getElementById("slider-time").value;
-        const cost = +document.getElementById("slider-cost").value;
-        document.getElementById("val-tickets").textContent = tickets;
-        document.getElementById("val-time").textContent = time;
-        document.getElementById("val-cost").textContent = cost;
-
-        const automatedTickets = Math.round(tickets * 4 * 0.70);
-        const hoursPerMonth = Math.round(automatedTickets * time / 60);
-        const savings = Math.round(hoursPerMonth * cost);
-
-        document.getElementById("roi-hours").textContent = hoursPerMonth + "h";
-        document.getElementById("roi-savings").textContent = savings.toLocaleString("fr-FR") + "€";
-        document.getElementById("roi-return").textContent = "×" + (savings / 99).toFixed(1);
-
-        let msg = "";
-        const isFr = currentLang === 'fr';
-        if (savings < 99) {
-          msg = isFr
-            ? "Plan Starter à 99€/mois — rentabilité dès que votre volume de tickets augmente."
-            : "Starter plan at €99/mo — profitable as your ticket volume grows.";
-        } else if (savings < 300) {
-          msg = isFr
-            ? `Votre ROI est positif dès le 1er mois. Le plan Starter s'autofinance en ${Math.round(99/savings*30)} jours.`
-            : `Your ROI is positive from month 1. The Starter plan pays for itself in ${Math.round(99/savings*30)} days.`;
-        } else {
-          msg = isFr
-            ? `${savings.toLocaleString("fr-FR")}€ économisés = ${(savings/99).toFixed(0)}x le coût du plan Starter. Chaque jour sans l'outil vous coûte ${Math.round(savings/30)}€.`
-            : `€${savings.toLocaleString()} saved = ${(savings/99).toFixed(0)}x the Starter plan cost. Every day without the tool costs you €${Math.round(savings/30)}.`;
-        }
-        document.getElementById("roi-message").textContent = msg;
-      }
-
-      async function submitCheckout(e) {
-        e.preventDefault();
-        const btn = document.getElementById("submitBtn");
-        const errEl = document.getElementById("modalError");
-        errEl.classList.remove("show");
+      async function submitLead(payload, statusEl, btn) {
+        const original = btn.textContent;
         btn.disabled = true;
-        btn.textContent = currentLang === 'fr' ? "Redirection en cours…" : "Redirecting…";
-
-        const email = document.getElementById("fieldEmail").value.trim();
-        const tenantName = document.getElementById("fieldOrg").value.trim();
-        const plan = document.getElementById("fieldPlan").value;
-
+        btn.textContent = currentLang === "fr" ? "Envoi..." : "Sending...";
+        statusEl.textContent = "";
         try {
-          const r = await fetch("/billing/create-checkout", {
+          const response = await fetch("/leads", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, tenant_name: tenantName, plan }),
+            body: JSON.stringify(payload)
           });
-          const data = await r.json();
-          if (!r.ok || !data.url) {
-            throw new Error(data.error || data.message || (currentLang === 'fr' ? "Erreur lors de la création de la session." : "Error creating session."));
-          }
-          window.location.href = data.url;
-        } catch (err) {
-          errEl.textContent = err.message || (currentLang === 'fr' ? "Une erreur est survenue. Réessayez." : "An error occurred. Please try again.");
-          errEl.classList.add("show");
+          if (!response.ok) throw new Error("lead_failed");
+          statusEl.style.color = "var(--success)";
+          statusEl.textContent = currentLang === "fr"
+            ? "Demande enregistrée. Vous pouvez aussi tester l'espace utilisateur."
+            : "Request saved. You can also try the user space.";
+          return true;
+        } catch (error) {
+          statusEl.style.color = "var(--danger)";
+          statusEl.textContent = currentLang === "fr"
+            ? "Envoi impossible. Contact : contact@kah-digital.ch"
+            : "Unable to send. Contact: contact@kah-digital.ch";
+          return false;
+        } finally {
           btn.disabled = false;
-          btn.textContent = currentLang === 'fr' ? "Payer avec Stripe →" : "Pay with Stripe →";
+          btn.textContent = original;
         }
       }
 
-      // ── VIDEO PLAYER ──
-      (function() {
-        const video = document.getElementById("demoVideo");
-        const overlay = document.getElementById("playOverlay");
-        if (!video || !overlay) return;
-        overlay.addEventListener("click", function() {
-          video.play();
-          overlay.style.display = "none";
-        });
-        video.addEventListener("pause", function() {
-          overlay.style.display = "flex";
-        });
-        video.addEventListener("ended", function() {
-          overlay.style.display = "flex";
-        });
-      })();
-
-      // ── DEMO REQUEST FORM ──
-      async function submitDemoRequest(e) {
-        e.preventDefault();
-        const btn = document.getElementById("drBtn");
-        const successEl = document.getElementById("drSuccess");
-        const errorEl = document.getElementById("drError");
-        errorEl.style.display = "none";
-        btn.disabled = true;
-        btn.textContent = currentLang === "fr" ? "Envoi en cours…" : "Sending…";
-
+      document.getElementById("demoRequestForm").addEventListener("submit", async (event) => {
+        event.preventDefault();
         const payload = {
           name: document.getElementById("drName").value.trim(),
           email: document.getElementById("drEmail").value.trim(),
           company: document.getElementById("drCompany").value.trim(),
-          message: document.getElementById("drMessage").value.trim() || undefined,
+          plan: document.getElementById("drPlan").value,
+          message: document.getElementById("drMessage").value.trim()
         };
+        const ok = await submitLead(payload, document.getElementById("drStatus"), document.getElementById("drBtn"));
+        if (ok) event.target.reset();
+      });
 
-        try {
-          const r = await fetch("/leads", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-          });
-          if (!r.ok) {
-            const d = await r.json().catch(() => ({}));
-            throw new Error(d.error || "Erreur serveur");
-          }
-          document.getElementById("demoRequestForm").style.display = "none";
-          successEl.style.display = "block";
-        } catch(err) {
-          errorEl.textContent = currentLang === "fr"
-            ? "Une erreur est survenue. Contactez-nous à contact@kah-digital.ch"
-            : "An error occurred. Contact us at contact@kah-digital.ch";
-          errorEl.style.display = "block";
-          btn.disabled = false;
-          btn.textContent = currentLang === "fr" ? "Demander une démo →" : "Request a demo →";
+      document.getElementById("checkoutForm").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const btn = document.getElementById("submitBtn");
+        const statusEl = document.getElementById("modalStatus");
+        const payload = {
+          name: document.getElementById("fieldOrg").value.trim(),
+          company: document.getElementById("fieldOrg").value.trim(),
+          email: document.getElementById("fieldEmail").value.trim(),
+          plan: fieldPlan.value,
+          message: `Demande depuis la vitrine - plan ${fieldPlan.value}`
+        };
+        const ok = await submitLead(payload, statusEl, btn);
+        if (ok) {
+          setTimeout(() => {
+            window.location.href = "/app/user/";
+          }, 650);
         }
-      }
+      });
 
-      // Init
       applyLang(currentLang);
-      calcRoi();
-
-      // ── PRODUCT TOUR ──
-      (function() {
-        const STEPS = 4;
-        const STEP_DURATION = 5500; // ms per step
-        let currentStep = 0;
-        let playing = true;
-        let progressStart = null;
-        let rafId = null;
-
-        const TW0_TEXT = "Mon Outlook ne s'ouvre plus depuis ce matin, j'ai une réunion dans 20 minutes…";
-        const TW1_TEXT = "Je vois le problème. Outlook plante après une mise à jour. Solution rapide : 1) Win+R → %appdata%\\Microsoft\\Outlook  2) Renommez le .ost en .ost.bak  3) Relancez Outlook. ✓ Résolu dans 87% des cas.";
-        const URLS = [
-          'kah-support.ch/app/user',
-          'kah-support.ch/app/user',
-          'kah-support.ch/app/user',
-          'kah-support.ch/app/admin'
-        ];
-
-        let tw0Done = false, tw1Done = false;
-        let tw0Timer = null, tw1Timer = null;
-
-        function typewrite(el, text, speed, onDone) {
-          if (!el) return;
-          el.textContent = '';
-          let i = 0;
-          function tick() {
-            if (i < text.length) {
-              el.textContent += text[i++];
-              return setTimeout(tick, speed);
-            }
-            if (onDone) onDone();
-          }
-          return setTimeout(tick, speed);
-        }
-
-        function showSlide(step) {
-          document.querySelectorAll('.tour-slide').forEach((s, i) => {
-            s.classList.toggle('active', i === step);
-          });
-          document.querySelectorAll('.tour-tab').forEach((t, i) => {
-            t.classList.toggle('active', i === step);
-          });
-          document.querySelectorAll('.tour-dot').forEach((d, i) => {
-            d.classList.toggle('active', i === step);
-          });
-          const urlEl = document.getElementById('tourUrl');
-          if (urlEl) urlEl.textContent = URLS[step];
-
-          if (step === 0 && !tw0Done) {
-            clearTimeout(tw0Timer);
-            const el = document.getElementById('tw0');
-            tw0Timer = typewrite(el, TW0_TEXT, 38, () => { tw0Done = true; });
-          }
-          if (step === 1 && !tw1Done) {
-            clearTimeout(tw1Timer);
-            const el = document.getElementById('tw1');
-            const cursor = document.getElementById('iaStreamCursor');
-            const label = document.getElementById('iaTypingLabel');
-            tw1Timer = typewrite(el, TW1_TEXT, 22, () => {
-              tw1Done = true;
-              if (cursor) cursor.style.display = 'none';
-              if (label) { label.textContent = '● En ligne'; label.style.color = 'var(--success)'; }
-            });
-          }
-        }
-
-        function startProgress() {
-          progressStart = performance.now();
-          const bar = document.getElementById('tourProgress');
-          function frame(now) {
-            if (!playing) return;
-            const elapsed = now - progressStart;
-            const pct = Math.min(100, (elapsed / STEP_DURATION) * 100);
-            if (bar) bar.style.width = pct + '%';
-            if (elapsed >= STEP_DURATION) {
-              tourNext();
-            } else {
-              rafId = requestAnimationFrame(frame);
-            }
-          }
-          cancelAnimationFrame(rafId);
-          rafId = requestAnimationFrame(frame);
-        }
-
-        window.tourGoTo = function(step) {
-          currentStep = step;
-          showSlide(step);
-          const bar = document.getElementById('tourProgress');
-          if (bar) bar.style.width = '0%';
-          if (playing) startProgress();
-        };
-
-        window.tourNext = function() {
-          tourGoTo((currentStep + 1) % STEPS);
-        };
-
-        window.tourPrev = function() {
-          tourGoTo((currentStep - 1 + STEPS) % STEPS);
-        };
-
-        window.tourTogglePlay = function() {
-          playing = !playing;
-          const icon = document.getElementById('tourPlayIcon');
-          const label = document.getElementById('tourPlayLabel');
-          if (playing) {
-            if (icon) icon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
-            if (label) { label.setAttribute('data-fr','Pause'); label.setAttribute('data-en','Pause'); label.textContent = currentLang === 'en' ? 'Pause' : 'Pause'; }
-            startProgress();
-          } else {
-            cancelAnimationFrame(rafId);
-            if (icon) icon.innerHTML = '<path d="M8 5v14l11-7z"/>';
-            if (label) { label.setAttribute('data-fr','Lecture'); label.setAttribute('data-en','Play'); label.textContent = currentLang === 'en' ? 'Play' : 'Lecture'; }
-          }
-        };
-
-        // Start
-        showSlide(0);
-        startProgress();
-      })();
+      updateRoi();
     </script>
   </body>
 </html>
