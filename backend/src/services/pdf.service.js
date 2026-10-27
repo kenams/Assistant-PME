@@ -33,7 +33,7 @@ function buildTicketsPdf({ tickets, filters, tenantName }) {
     doc.on("end", () => resolve(Buffer.concat(chunks)));
 
     doc.fontSize(18).text("Assistant Support IT", { align: "left" });
-    doc.fontSize(10).fillColor("#666").text("Concu par Kah-Digital", {
+    doc.fontSize(10).fillColor("#666").text("Concu par KAH Digital Studio", {
       align: "left"
     });
     doc.moveDown(0.5);
@@ -151,7 +151,7 @@ function buildRoiPdf({ tenantName, metrics }) {
     doc.on("end", () => resolve(Buffer.concat(chunks)));
 
     doc.fontSize(20).text("Rapport ROI Support IT", { align: "left" });
-    doc.fontSize(10).fillColor("#666").text("Concu par Kah-Digital");
+    doc.fontSize(10).fillColor("#666").text("Concu par KAH Digital Studio");
     doc.moveDown(0.5);
     doc.fillColor("#111").fontSize(12).text(`Organisation: ${tenantName || "PME"}`);
     doc.fontSize(10).fillColor("#444").text(`Date: ${new Date().toLocaleString("fr-FR")}`);
@@ -200,7 +200,7 @@ function buildAnalyticsPdf({ tenantName, analytics }) {
     doc.on("end", () => resolve(Buffer.concat(chunks)));
 
     doc.fontSize(20).text("Rapport Analytics Support IT", { align: "left" });
-    doc.fontSize(10).fillColor("#666").text("Concu par Kah-Digital");
+    doc.fontSize(10).fillColor("#666").text("Concu par KAH Digital Studio");
     doc.moveDown(0.5);
     doc.fillColor("#111").fontSize(12).text(`Organisation: ${tenantName || "PME"}`);
     doc.fontSize(10).fillColor("#444").text(`Date: ${new Date().toLocaleString("fr-FR")}`);
@@ -246,7 +246,7 @@ function buildUserGuidePdf({ tenantName, support }) {
     doc.on("end", () => resolve(Buffer.concat(chunks)));
 
     doc.fontSize(20).text("Guide utilisateur - Support IT", { align: "left" });
-    doc.fontSize(10).fillColor("#666").text("Concu par Kah-Digital");
+    doc.fontSize(10).fillColor("#666").text("Concu par KAH Digital Studio");
     doc.moveDown(0.5);
     doc.fillColor("#111").fontSize(12).text(`Organisation: ${tenantName || "PME"}`);
     doc.fontSize(10).fillColor("#444").text(`Date: ${new Date().toLocaleString("fr-FR")}`);

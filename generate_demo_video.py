@@ -95,7 +95,7 @@ def make_title_slide(title, subtitle, tag="", duration=4.0):
             d.text((tx, ty + li*56), line, fill=(*SUCCESS, alpha_s), font=FONTS["subtitle"])
 
         # Branding bas droite
-        brand = "KAH Digital — Assistant IT IA"
+        brand = "KAH Digital Studio — Assistant IT IA"
         bw = d.textbbox((0,0), brand, font=FONTS["small"])[2]
         d.text((W - bw - 40, H - 50), brand, fill=(*MUTED, 180), font=FONTS["small"])
 
@@ -226,7 +226,7 @@ def make_stats_slide(title, stats, duration=4.0):
             d.text((cx - lw//2, cy + 50), label, fill=(*MUTED, a), font=FONTS["small"])
 
         # Branding
-        brand = "KAH Digital — Assistant IT IA"
+        brand = "KAH Digital Studio — Assistant IT IA"
         bw = d.textbbox((0,0), brand, font=FONTS["small"])[2]
         d.text((W - bw - 40, H - 50), brand, fill=(*MUTED, 140), font=FONTS["small"])
 
@@ -257,7 +257,7 @@ def main():
     all_frames += make_title_slide(
         "Votre support IT, piloté par l'IA.",
         "94% des tickets résolus automatiquement — GLPI natif — Déployé en 15 min",
-        tag="Assistant IT IA — KAH Digital",
+        tag="Assistant IT IA — KAH Digital Studio",
         duration=4.5
     )
     all_frames += flash()

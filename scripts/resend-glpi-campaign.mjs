@@ -16,7 +16,7 @@ const root = path.join(__dirname, "..");
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 if (!RESEND_API_KEY) { console.error("❌ RESEND_API_KEY manquant dans les variables d'env"); process.exit(1); }
-const FROM = "KAH Digital <contact@kah-digital.ch>";
+const FROM = "KAH Digital Studio <contact@kah-digital.ch>";
 const REPLY_TO = "kahdigital42@gmail.com";
 const DELAY_MS = 2500;
 
@@ -52,7 +52,7 @@ function buildEmail(p) {
 <div style="max-width:600px;margin:40px auto;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.08);">
 
   <div style="background:linear-gradient(135deg,#6366f1,#8b5cf6);padding:28px 36px;">
-    <span style="color:#fff;font-size:15px;font-weight:700;">🤖 Assistant IT — KAH Digital</span><br/>
+    <span style="color:#fff;font-size:15px;font-weight:700;">🤖 Assistant IT — KAH Digital Studio</span><br/>
     <span style="color:rgba(255,255,255,.7);font-size:12px;">kah-support.ch</span>
   </div>
 
@@ -109,7 +109,7 @@ function buildEmail(p) {
 
   <div style="padding:14px 36px;text-align:center;border-top:1px solid #f3f4f6;">
     <p style="color:#9ca3af;font-size:11px;margin:0;">
-      KAH Digital · <a href="https://kah-support.ch" style="color:#9ca3af;">kah-support.ch</a> ·
+      KAH Digital Studio · <a href="https://kah-support.ch" style="color:#9ca3af;">kah-support.ch</a> ·
       <a href="https://kah-support.ch/glpi" style="color:#9ca3af;">Page GLPI</a>
     </p>
   </div>

@@ -186,7 +186,7 @@ router.get("/quotes/:id/print", authRequired, async (req, res, next) => {
       <div>TVA: ${formatMoney(quote.tax_amount)} EUR</div>
       <strong>Total: ${formatMoney(quote.total)} EUR</strong>
     </div>
-    <p style="margin-top:24px;">Kah-Digital</p>
+    <p style="margin-top:24px;">KAH Digital Studio</p>
   </body></html>`;
 
     res.setHeader("Content-Type", "text/html; charset=utf-8");
@@ -333,7 +333,7 @@ router.get("/invoices/:id/print", authRequired, async (req, res, next) => {
       <div>TVA: ${formatMoney(invoice.tax_amount)} EUR</div>
       <strong>Total: ${formatMoney(invoice.total)} EUR</strong>
     </div>
-    <p style="margin-top:24px;">Kah-Digital</p>
+    <p style="margin-top:24px;">KAH Digital Studio</p>
   </body></html>`;
 
     res.setHeader("Content-Type", "text/html; charset=utf-8");

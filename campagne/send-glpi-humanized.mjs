@@ -109,7 +109,7 @@ function buildEmail(p) {
 
   <div style="padding:16px 40px;background:#f9fafb;border-top:1px solid #f0f0f0;border-radius:0 0 10px 10px;">
     <p style="color:#9ca3af;font-size:12px;margin:0;line-height:1.6;">
-      Kenams — fondateur KAH Digital &nbsp;·&nbsp;
+      Kenams — fondateur KAH Digital Studio &nbsp;·&nbsp;
       <a href="https://kah-support.ch" style="color:#6366f1;text-decoration:none;">kah-support.ch</a>
       &nbsp;·&nbsp;
       <a href="mailto:contact@kah-digital.ch?subject=Désabonnement ${encodeURIComponent(company)}" style="color:#9ca3af;text-decoration:none;">Me désinscrire</a>
@@ -120,7 +120,7 @@ function buildEmail(p) {
 </body>
 </html>`;
 
-  const text = `${greet}\n\n${hook}\n\nJ'ai développé un assistant IA qui se connecte à GLPI et règle ça automatiquement : 94% des tickets N1 résolus sans technicien, -70% de charge helpdesk. Déploiement 15 min, données EU.\n\nDémo 2 min (sans inscription) : ${DEMO_URL}\n\nPS : Si vous avez 20 min pour une démo sur vos cas réels chez ${company}, répondez à cet email.\n\nKenams — KAH Digital`;
+  const text = `${greet}\n\n${hook}\n\nJ'ai développé un assistant IA qui se connecte à GLPI et règle ça automatiquement : 94% des tickets N1 résolus sans technicien, -70% de charge helpdesk. Déploiement 15 min, données EU.\n\nDémo 2 min (sans inscription) : ${DEMO_URL}\n\nPS : Si vous avez 20 min pour une démo sur vos cas réels chez ${company}, répondez à cet email.\n\nKenams — KAH Digital Studio`;
 
   return { subject, html, text };
 }

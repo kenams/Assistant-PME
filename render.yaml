@@ -52,7 +52,7 @@ services:
       - key: SEED_USER_PASSWORD
         sync: false
       - key: SEED_TENANT_NAME
-        value: KAH Digital
+        value: KAH Digital Studio
       - key: SEED_TENANT_CODE
         value: KAH
       - key: DISABLE_QUICK_LOGIN

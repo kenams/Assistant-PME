@@ -70,7 +70,7 @@ async function req(method, url, body, headers = {}) {
 
 async function run() {
   console.log('\n═══════════════════════════════════════════════════');
-  console.log('  TEST E2E — Assistant PME KAH Digital');
+  console.log('  TEST E2E — Assistant PME KAH Digital Studio');
   console.log('  Backend:', BASE);
   console.log('═══════════════════════════════════════════════════\n');
 

@@ -1,5 +1,5 @@
 # Assistant Support IT - Assistant IA Support Informatique pour PME
-Concu par Kah-Digital
+Concu par KAH Digital Studio
 
 Objectif:
 - MVP en 30 jours

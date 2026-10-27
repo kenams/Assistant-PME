@@ -62,7 +62,7 @@ function buildEmail(prospect) {
   <div style="max-width:600px;margin:40px auto;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.08);">
 
     <div style="background:linear-gradient(135deg,#6366f1,#8b5cf6);padding:28px 36px;">
-      <span style="color:#fff;font-size:14px;font-weight:600;">🤖 Assistant IT — KAH Digital</span>
+      <span style="color:#fff;font-size:14px;font-weight:600;">🤖 Assistant IT — KAH Digital Studio</span>
     </div>
 
     <div style="padding:32px 36px;">
@@ -118,7 +118,7 @@ function buildEmail(prospect) {
 
     <div style="padding:14px 36px;text-align:center;">
       <p style="color:#9ca3af;font-size:11px;margin:0;">
-        KAH Digital · <a href="https://kah-support.ch" style="color:#9ca3af;">kah-support.ch</a>
+        KAH Digital Studio · <a href="https://kah-support.ch" style="color:#9ca3af;">kah-support.ch</a>
       </p>
     </div>
   </div>

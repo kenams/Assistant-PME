@@ -19,7 +19,7 @@ function quoteEmailTemplate(quote) {
     "Je reste disponible pour toute question.",
     "",
     "Cordialement,",
-    "Kah-Digital"
+    "KAH Digital Studio"
   ];
   return { subject, body: bodyLines.join("\n") };
 }
@@ -38,7 +38,7 @@ function invoiceEmailTemplate(invoice) {
     "Merci pour votre confiance.",
     "",
     "Cordialement,",
-    "Kah-Digital"
+    "KAH Digital Studio"
   ];
   return { subject, body: bodyLines.join("\n") };
 }

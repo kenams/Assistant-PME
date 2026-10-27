@@ -384,7 +384,7 @@ async function sendGlpiProspectEmail({ to, name, company, personalNote }) {
       <div style="font-size:28px;">🤖</div>
       <div>
         <h1 style="color:#fff;margin:0;font-size:18px;">Assistant IA pour GLPI</h1>
-        <p style="color:rgba(255,255,255,.6);margin:0;font-size:13px;">KAH Digital — kah-support.ch</p>
+        <p style="color:rgba(255,255,255,.6);margin:0;font-size:13px;">KAH Digital Studio — kah-support.ch</p>
       </div>
     </div>
     <div style="padding:32px;">
@@ -417,7 +417,7 @@ async function sendGlpiProspectEmail({ to, name, company, personalNote }) {
     </div>
     <div style="background:#f9fafb;padding:16px 32px;border-top:1px solid #e5e7eb;">
       <p style="margin:0;color:#9ca3af;font-size:11px;">
-        KAH Digital · kah-support.ch ·
+        KAH Digital Studio · kah-support.ch ·
         <a href="https://kah-support.ch/unsubscribe" style="color:#9ca3af;">Se désabonner</a>
       </p>
     </div>
@@ -462,7 +462,7 @@ function onboardingWrap(content) {
   <div class="wrap">
     <div class="header"><div class="logo">KAH Support</div></div>
     ${content}
-    <div class="footer">KAH Digital · kah-support.ch · Se désabonner</div>
+    <div class="footer">KAH Digital Studio · kah-support.ch · Se désabonner</div>
   </div></div></body></html>`;
 }
 

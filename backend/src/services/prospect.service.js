@@ -29,7 +29,7 @@ function buildGlpiEmailHtml({ name, company, personalNote }) {
     <div style="background:linear-gradient(135deg,#6366f1,#8b5cf6);padding:32px 40px;">
       <div style="display:inline-flex;align-items:center;gap:12px;">
         <div style="width:36px;height:36px;background:rgba(255,255,255,0.2);border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:18px;">🤖</div>
-        <span style="color:rgba(255,255,255,0.9);font-size:14px;font-weight:600;">Assistant IT — KAH Digital</span>
+        <span style="color:rgba(255,255,255,0.9);font-size:14px;font-weight:600;">Assistant IT — KAH Digital Studio</span>
       </div>
     </div>
 
@@ -86,7 +86,7 @@ function buildGlpiEmailHtml({ name, company, personalNote }) {
 
     <div style="padding:16px 40px;text-align:center;">
       <p style="color:#9ca3af;font-size:11px;margin:0;">
-        KAH Digital — Assistant IA Support Informatique<br />
+        KAH Digital Studio — Assistant IA Support Informatique<br />
         <a href="https://kah-support.ch" style="color:#9ca3af;">kah-support.ch</a> ·
         <a href="https://kah-support.ch/app/glpi" style="color:#9ca3af;">Page GLPI</a>
       </p>
